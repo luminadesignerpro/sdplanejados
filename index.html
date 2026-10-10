@@ -3919,12 +3919,12 @@
     <!-- Barra de Filtros e Sub-Abas do Estoque -->
     <div class="card" style="margin-bottom:14px;padding:12px;">
       <!-- Sub-Abas em Grid 100% Organizado -->
-      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:6px;margin-bottom:12px;width:100%;box-sizing:border-box;">
-        <button type="button" class="btn btn-sec btn-sm btn-estoque-tab active" id="btn-subaba-materiais" onclick="mudarSubAbaEstoque('materiais')" style="justify-content:center;padding:9px 6px;font-size:11.5px;font-weight:800;width:100%;box-sizing:border-box;">📦 Materiais</button>
-        <button type="button" class="btn btn-sec btn-sm btn-estoque-tab" id="btn-subaba-movimentacoes" onclick="mudarSubAbaEstoque('movimentacoes')" style="justify-content:center;padding:9px 6px;font-size:11.5px;font-weight:800;width:100%;box-sizing:border-box;">🔄 Entradas & Saídas</button>
-        <button type="button" class="btn btn-sec btn-sm btn-estoque-tab" id="btn-subaba-historico" onclick="mudarSubAbaEstoque('historico')" style="justify-content:center;padding:9px 6px;font-size:11.5px;font-weight:800;width:100%;box-sizing:border-box;">📜 Histórico</button>
-        <button type="button" class="btn btn-sec btn-sm btn-estoque-tab" id="btn-subaba-alertas" onclick="mudarSubAbaEstoque('alertas')" style="justify-content:center;padding:9px 6px;font-size:11.5px;font-weight:800;width:100%;box-sizing:border-box;">⚠️ Alertas Reposição</button>
-        <button type="button" class="btn btn-sec btn-sm btn-estoque-tab" id="btn-subaba-clientes" onclick="mudarSubAbaEstoque('clientes')" style="justify-content:center;padding:9px 6px;font-size:11.5px;font-weight:800;width:100%;box-sizing:border-box;">👤 Por Cliente / Obra</button>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px;width:100%;box-sizing:border-box;">
+        <button type="button" class="btn btn-sec btn-sm btn-estoque-tab active" id="btn-subaba-materiais" onclick="mudarSubAbaEstoque('materiais')" style="justify-content:center;padding:10px 8px;font-size:12.5px;font-weight:900;width:100%;box-sizing:border-box;">📦 Materiais</button>
+        <button type="button" class="btn btn-sec btn-sm btn-estoque-tab" id="btn-subaba-movimentacoes" onclick="mudarSubAbaEstoque('movimentacoes')" style="justify-content:center;padding:10px 8px;font-size:12.5px;font-weight:900;width:100%;box-sizing:border-box;">🔄 Entradas & Saídas</button>
+        <button type="button" class="btn btn-sec btn-sm btn-estoque-tab" id="btn-subaba-historico" onclick="mudarSubAbaEstoque('historico')" style="justify-content:center;padding:10px 8px;font-size:12.5px;font-weight:900;width:100%;box-sizing:border-box;">📜 Histórico</button>
+        <button type="button" class="btn btn-sec btn-sm btn-estoque-tab" id="btn-subaba-alertas" onclick="mudarSubAbaEstoque('alertas')" style="justify-content:center;padding:10px 8px;font-size:12.5px;font-weight:900;width:100%;box-sizing:border-box;">⚠️ Alertas Reposição</button>
+        <button type="button" class="btn btn-sec btn-sm btn-estoque-tab" id="btn-subaba-clientes" onclick="mudarSubAbaEstoque('clientes')" style="grid-column: span 2;justify-content:center;padding:10px 8px;font-size:12.5px;font-weight:900;width:100%;box-sizing:border-box;">👤 Por Cliente / Obra</button>
       </div>
 
       <!-- Filtros Responsivos (Sem cortar o texto da busca) -->
@@ -16178,40 +16178,40 @@ function renderAgenda() {
             ${zapLink ? `<a href="${zapLink}" target="_blank" style="padding:6px 11px;font-size:12px;font-weight:800;border-radius:8px;text-decoration:none;background:linear-gradient(135deg,#25D366,#1cb85a);color:#fff;display:inline-flex;align-items:center;gap:5px;box-shadow:0 3px 10px rgba(37,211,102,0.3);">💬 WhatsApp</a>` : ''}
           </div>
 
-          <!-- BOTÕES TRAVADOS: Só liberam/atualizam quando o cliente escolhe a opção -->
+          <!-- BOTÕES TRAVADOS: Só liberam/atualizam quando o cliente escolhe a opção no WhatsApp -->
           <div style="display:flex;align-items:center;gap:5px;flex-wrap:wrap;">
             ${isConfirmado ? `
-              <button style="background:rgba(16,185,129,0.28);border:1.5px solid #10b981;color:#34d399;padding:6px 11px;border-radius:8px;font-size:11.5px;font-weight:900;display:inline-flex;align-items:center;gap:4px;box-shadow:0 0 12px rgba(16,185,129,0.35);" title="Confirmado pelo cliente via WhatsApp">
+              <button style="background:rgba(16,185,129,0.3);border:1.5px solid #10b981;color:#fff;padding:6px 12px;border-radius:10px;font-size:11.5px;font-weight:900;display:inline-flex;align-items:center;gap:5px;box-shadow:0 0 15px rgba(16,185,129,0.4);" title="Confirmado pelo cliente via WhatsApp">
                 ✅ Status: Confirmado
               </button>
             ` : `
-              <button disabled style="background:rgba(255,255,255,0.03);border:1px dashed rgba(255,255,255,0.18);color:#64748b;padding:6px 10px;border-radius:8px;font-size:11.5px;font-weight:700;display:inline-flex;align-items:center;gap:4px;cursor:not-allowed;opacity:0.6;" title="Travado: Aguardando o cliente escolher Confirmar no WhatsApp">
+              <button disabled style="background:rgba(255,255,255,0.04);border:1.2px dashed rgba(255,255,255,0.2);color:rgba(255,255,255,0.4);padding:6px 11px;border-radius:10px;font-size:11.5px;font-weight:700;display:inline-flex;align-items:center;gap:5px;cursor:not-allowed;opacity:0.7;" title="Travado: Aguardando o cliente confirmar no WhatsApp">
                 🔒 Confirmar
               </button>
             `}
 
             ${ev.reagendamento_solicitado ? `
-              <button onclick="reagendarCompromissoAgenda('${ev.id}')" style="background:rgba(59,130,246,0.25);border:1.5px solid #38bdf8;color:#93c5fd;padding:6px 10px;border-radius:8px;cursor:pointer;font-size:11.5px;font-weight:900;display:inline-flex;align-items:center;gap:4px;box-shadow:0 0 12px rgba(56,189,248,0.35);" title="Cliente solicitou reagendamento pelo WhatsApp">
+              <button onclick="reagendarCompromissoAgenda('${ev.id}')" style="background:rgba(59,130,246,0.3);border:1.5px solid #38bdf8;color:#fff;padding:6px 12px;border-radius:10px;cursor:pointer;font-size:11.5px;font-weight:900;display:inline-flex;align-items:center;gap:5px;box-shadow:0 0 15px rgba(56,189,248,0.4);" title="Cliente solicitou reagendamento pelo WhatsApp">
                 🔄 Reagendar Solicitado
               </button>
             ` : `
-              <button disabled style="background:rgba(255,255,255,0.03);border:1px dashed rgba(255,255,255,0.18);color:#64748b;padding:6px 10px;border-radius:8px;font-size:11.5px;font-weight:700;display:inline-flex;align-items:center;gap:4px;cursor:not-allowed;opacity:0.6;" title="Travado: Aguardando solicitação de reagendamento pelo cliente">
+              <button disabled style="background:rgba(255,255,255,0.04);border:1.2px dashed rgba(255,255,255,0.2);color:rgba(255,255,255,0.4);padding:6px 11px;border-radius:10px;font-size:11.5px;font-weight:700;display:inline-flex;align-items:center;gap:5px;cursor:not-allowed;opacity:0.7;" title="Travado: Aguardando solicitação de reagendamento pelo cliente">
                 🔒 Reagendar
               </button>
             `}
 
             ${temAvaliacao ? `
-              <button style="background:rgba(234,179,8,0.25);border:1.5px solid #facc15;color:#facc15;padding:6px 10px;border-radius:8px;font-size:11.5px;font-weight:900;display:inline-flex;align-items:center;gap:4px;box-shadow:0 0 12px rgba(250,204,21,0.35);" title="Avaliação enviada pelo cliente">
+              <button style="background:rgba(234,179,8,0.3);border:1.5px solid #facc15;color:#fff;padding:6px 12px;border-radius:10px;font-size:11.5px;font-weight:900;display:inline-flex;align-items:center;gap:5px;box-shadow:0 0 15px rgba(250,204,21,0.4);" title="Avaliação enviada pelo cliente">
                 ⭐ Avaliado (${ev.avaliacao.nota}★)
               </button>
             ` : `
-              <button disabled style="background:rgba(255,255,255,0.03);border:1px dashed rgba(255,255,255,0.18);color:#64748b;padding:6px 10px;border-radius:8px;font-size:11.5px;font-weight:700;display:inline-flex;align-items:center;gap:4px;cursor:not-allowed;opacity:0.6;" title="Travado: Aguardando avaliação enviada pelo cliente">
+              <button disabled style="background:rgba(255,255,255,0.04);border:1.2px dashed rgba(255,255,255,0.2);color:rgba(255,255,255,0.4);padding:6px 11px;border-radius:10px;font-size:11.5px;font-weight:700;display:inline-flex;align-items:center;gap:5px;cursor:not-allowed;opacity:0.7;" title="Travado: Aguardando avaliação enviada pelo cliente">
                 🔒 Avaliar
               </button>
             `}
 
             <!-- Desbloqueio manual de contingência (Admin) -->
-            <button onclick="alternarConfirmadoAgenda('${ev.id}')" title="${isConfirmado ? 'Alternar/Desmarcar status manualmente' : 'Desbloquear/Confirmar manualmente (Modo Admin)'}" style="background:transparent;border:1px solid rgba(255,255,255,0.15);color:var(--muted);width:26px;height:26px;border-radius:6px;cursor:pointer;font-size:11px;display:inline-flex;align-items:center;justify-content:center;">
+            <button onclick="alternarConfirmadoAgenda('${ev.id}')" title="${isConfirmado ? 'Alternar/Desmarcar status manualmente' : 'Desbloquear/Confirmar manualmente (Modo Admin)'}" style="background:transparent;border:1px solid rgba(255,255,255,0.15);color:var(--muted);width:26px;height:26px;border-radius:6px;cursor:pointer;font-size:11px;display:inline-flex;align-items:center;justify-content:center;margin-left:4px;">
               ${isConfirmado ? '🔓' : '⚙️'}
             </button>
             <button onclick="abrirModalNovoCompromissoAgenda('${ev.id}')" style="background:rgba(245,158,11,0.15);border:1px solid rgba(245,158,11,0.35);color:#fbbf24;width:28px;height:28px;border-radius:8px;cursor:pointer;font-size:12px;display:inline-flex;align-items:center;justify-content:center;" title="Editar">✏️</button>
