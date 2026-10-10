@@ -3875,18 +3875,18 @@
         <div style="font-size:12.5px;color:var(--muted);">Controle completo de saldo, registro de compras e saídas destinadas a clientes/obras.</div>
       </div>
 
-      <!-- BOTÕES DE AÇÃO (flex-wrap + nowrap: o nome nunca quebra) -->
-      <div style="display:flex;flex-wrap:wrap;gap:8px;width:100%;box-sizing:border-box;">
-        <button type="button" class="btn btn-primary" onclick="abrirModalEntradaEstoque()" style="flex:1 1 150px;white-space:nowrap;padding:10px 8px;font-size:12px;font-weight:800;background:linear-gradient(135deg,#059669,#10b981);border:none;box-shadow:0 4px 15px rgba(16,185,129,0.35);display:flex;align-items:center;justify-content:center;gap:6px;box-sizing:border-box;">
+      <!-- BOTÕES DE AÇÃO ORGANIZADOS EM GRADE PERFEITA (2x2 NO MOBILE / 4 COLUNAS NO DESKTOP) -->
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:8px;width:100%;box-sizing:border-box;">
+        <button type="button" class="btn btn-primary" onclick="abrirModalEntradaEstoque()" style="padding:10px 12px;font-size:12.5px;font-weight:800;background:linear-gradient(135deg,#059669,#10b981);border:none;box-shadow:0 4px 15px rgba(16,185,129,0.35);display:flex;align-items:center;justify-content:center;gap:6px;width:100%;box-sizing:border-box;">
           📥 Registrar Entrada
         </button>
-        <button type="button" class="btn btn-sec" onclick="abrirModalSaidaEstoque()" style="flex:1 1 150px;white-space:nowrap;padding:10px 8px;font-size:12px;font-weight:800;background:linear-gradient(135deg,#dc2626,#ef4444);border:none;color:#fff;box-shadow:0 4px 15px rgba(239,68,68,0.35);display:flex;align-items:center;justify-content:center;gap:6px;box-sizing:border-box;">
+        <button type="button" class="btn btn-sec" onclick="abrirModalSaidaEstoque()" style="padding:10px 12px;font-size:12.5px;font-weight:800;background:linear-gradient(135deg,#dc2626,#ef4444);border:none;color:#fff;box-shadow:0 4px 15px rgba(239,68,68,0.35);display:flex;align-items:center;justify-content:center;gap:6px;width:100%;box-sizing:border-box;">
           📤 Registrar Saída
         </button>
-        <button type="button" class="btn btn-gold" onclick="abrirModalCadastrarMaterialEstoque()" style="flex:1 1 150px;white-space:nowrap;padding:10px 8px;font-size:12px;font-weight:800;display:flex;align-items:center;justify-content:center;gap:6px;box-sizing:border-box;">
+        <button type="button" class="btn btn-gold" onclick="abrirModalCadastrarMaterialEstoque()" style="padding:10px 12px;font-size:12.5px;font-weight:800;display:flex;align-items:center;justify-content:center;gap:6px;width:100%;box-sizing:border-box;">
           ➕ Novo Material
         </button>
-        <button type="button" class="btn btn-primary" onclick="abrirModalSaidaClienteEstoque()" style="flex:1 1 150px;white-space:nowrap;padding:10px 8px;font-size:12px;font-weight:800;background:linear-gradient(135deg,#0284c7,#38bdf8);border:none;color:#fff;box-shadow:0 4px 15px rgba(56,189,248,0.35);display:flex;align-items:center;justify-content:center;gap:6px;box-sizing:border-box;">
+        <button type="button" class="btn btn-primary" onclick="abrirModalSaidaClienteEstoque()" style="padding:10px 12px;font-size:12.5px;font-weight:800;background:linear-gradient(135deg,#0284c7,#38bdf8);border:none;color:#fff;box-shadow:0 4px 15px rgba(56,189,248,0.35);display:flex;align-items:center;justify-content:center;gap:6px;width:100%;box-sizing:border-box;">
           👤 Saída p/ Cliente
         </button>
       </div>
@@ -3918,13 +3918,13 @@
 
     <!-- Barra de Filtros e Sub-Abas do Estoque -->
     <div class="card" style="margin-bottom:14px;padding:12px;">
-      <!-- Sub-Abas com Scroll Horizontal (nunca quebra o texto) -->
-      <div style="display:flex;gap:6px;overflow-x:auto;padding-bottom:4px;margin-bottom:12px;width:100%;box-sizing:border-box;-webkit-overflow-scrolling:touch;scrollbar-width:thin;">
-        <button type="button" class="btn btn-sec btn-sm btn-estoque-tab active" id="btn-subaba-materiais" onclick="mudarSubAbaEstoque('materiais')" style="flex:0 0 auto;white-space:nowrap;justify-content:center;padding:10px 14px;font-size:12px;font-weight:900;box-sizing:border-box;">📦 Materiais</button>
-        <button type="button" class="btn btn-sec btn-sm btn-estoque-tab" id="btn-subaba-movimentacoes" onclick="mudarSubAbaEstoque('movimentacoes')" style="flex:0 0 auto;white-space:nowrap;justify-content:center;padding:10px 14px;font-size:12px;font-weight:900;box-sizing:border-box;">🔄 Entradas</button>
-        <button type="button" class="btn btn-sec btn-sm btn-estoque-tab" id="btn-subaba-historico" onclick="mudarSubAbaEstoque('historico')" style="flex:0 0 auto;white-space:nowrap;justify-content:center;padding:10px 14px;font-size:12px;font-weight:900;box-sizing:border-box;">📜 Histórico</button>
-        <button type="button" class="btn btn-sec btn-sm btn-estoque-tab" id="btn-subaba-alertas" onclick="mudarSubAbaEstoque('alertas')" style="flex:0 0 auto;white-space:nowrap;justify-content:center;padding:10px 14px;font-size:12px;font-weight:900;box-sizing:border-box;">⚠️ Alertas</button>
-        <button type="button" class="btn btn-sec btn-sm btn-estoque-tab" id="btn-subaba-clientes" onclick="mudarSubAbaEstoque('clientes')" style="flex:0 0 auto;white-space:nowrap;justify-content:center;padding:10px 14px;font-size:12px;font-weight:900;box-sizing:border-box;">👤 Por Cliente / Obra</button>
+      <!-- Sub-Abas (flex-wrap: o nome nunca quebra e todos ficam visíveis) -->
+      <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px;width:100%;box-sizing:border-box;">
+        <button type="button" class="btn btn-sec btn-sm btn-estoque-tab active" id="btn-subaba-materiais" onclick="mudarSubAbaEstoque('materiais')" style="flex:1 1 auto;white-space:nowrap;justify-content:center;padding:10px 12px;font-size:12px;font-weight:900;box-sizing:border-box;">📦 Materiais</button>
+        <button type="button" class="btn btn-sec btn-sm btn-estoque-tab" id="btn-subaba-movimentacoes" onclick="mudarSubAbaEstoque('movimentacoes')" style="flex:1 1 auto;white-space:nowrap;justify-content:center;padding:10px 12px;font-size:12px;font-weight:900;box-sizing:border-box;">🔄 Entradas</button>
+        <button type="button" class="btn btn-sec btn-sm btn-estoque-tab" id="btn-subaba-historico" onclick="mudarSubAbaEstoque('historico')" style="flex:1 1 auto;white-space:nowrap;justify-content:center;padding:10px 12px;font-size:12px;font-weight:900;box-sizing:border-box;">📜 Histórico</button>
+        <button type="button" class="btn btn-sec btn-sm btn-estoque-tab" id="btn-subaba-alertas" onclick="mudarSubAbaEstoque('alertas')" style="flex:1 1 auto;white-space:nowrap;justify-content:center;padding:10px 12px;font-size:12px;font-weight:900;box-sizing:border-box;">⚠️ Alertas</button>
+        <button type="button" class="btn btn-sec btn-sm btn-estoque-tab" id="btn-subaba-clientes" onclick="mudarSubAbaEstoque('clientes')" style="flex:1 1 auto;white-space:nowrap;justify-content:center;padding:10px 12px;font-size:12px;font-weight:900;box-sizing:border-box;">👤 Por Cliente / Obra</button>
       </div>
 
       <!-- Filtros Responsivos (Sem cortar o texto da busca) -->

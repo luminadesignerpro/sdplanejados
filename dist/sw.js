@@ -1,5 +1,5 @@
-// Service Worker PWA para sdmoveisprojetados - v4.0
-const CACHE_NAME = 'sdmoveisprojetados-v4.0';
+// Service Worker PWA para sdmoveisprojetados - v5.0
+const CACHE_NAME = 'sdmoveisprojetados-v5.0';
 
 self.addEventListener('install', (event) => {
   self.skipWaiting();
