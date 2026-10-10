@@ -3922,6 +3922,7 @@
       <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:6px;margin-bottom:12px;width:100%;box-sizing:border-box;">
         <button type="button" class="btn btn-sec btn-sm btn-estoque-tab active" id="btn-subaba-materiais" onclick="mudarSubAbaEstoque('materiais')" style="justify-content:center;padding:9px 6px;font-size:11.5px;font-weight:800;width:100%;box-sizing:border-box;">📦 Materiais</button>
         <button type="button" class="btn btn-sec btn-sm btn-estoque-tab" id="btn-subaba-movimentacoes" onclick="mudarSubAbaEstoque('movimentacoes')" style="justify-content:center;padding:9px 6px;font-size:11.5px;font-weight:800;width:100%;box-sizing:border-box;">🔄 Entradas & Saídas</button>
+        <button type="button" class="btn btn-sec btn-sm btn-estoque-tab" id="btn-subaba-historico" onclick="mudarSubAbaEstoque('historico')" style="justify-content:center;padding:9px 6px;font-size:11.5px;font-weight:800;width:100%;box-sizing:border-box;">📜 Histórico</button>
         <button type="button" class="btn btn-sec btn-sm btn-estoque-tab" id="btn-subaba-alertas" onclick="mudarSubAbaEstoque('alertas')" style="justify-content:center;padding:9px 6px;font-size:11.5px;font-weight:800;width:100%;box-sizing:border-box;">⚠️ Alertas Reposição</button>
         <button type="button" class="btn btn-sec btn-sm btn-estoque-tab" id="btn-subaba-clientes" onclick="mudarSubAbaEstoque('clientes')" style="justify-content:center;padding:9px 6px;font-size:11.5px;font-weight:800;width:100%;box-sizing:border-box;">👤 Por Cliente / Obra</button>
       </div>
@@ -13349,7 +13350,9 @@ function conectarRealtimeAprovacoes() {
         const item = JSON.parse(e.data);
         if (item.event === 'message' && item.message) {
           const dados = JSON.parse(item.message);
-          if (dados.numero_os) {
+          if (dados.tipo === 'confirmacao_agendamento') {
+            if (typeof processarConfirmacaoAgendamento === 'function') processarConfirmacaoAgendamento(dados);
+          } else if (dados.numero_os) {
             aplicarAprovacaoOs(dados.numero_os, dados.cliente || dados.assinante_nome || 'Confirmado via WhatsApp');
           }
         }
@@ -15079,7 +15082,11 @@ function iniciarRealtimePortalAdmin() {
         const data = JSON.parse(ev.data);
         if (data.event === 'message' && data.message) {
           const evento = JSON.parse(data.message);
-          processarEventoPortalAdmin(evento);
+          if (evento.tipo === 'confirmacao_agendamento') {
+            if (typeof processarConfirmacaoAgendamento === 'function') processarConfirmacaoAgendamento(evento);
+          } else {
+            processarEventoPortalAdmin(evento);
+          }
         }
       } catch(_) {}
     };
@@ -15723,6 +15730,62 @@ function dispararNotificacaoCompromisso(ev, diffMinutos) {
 let avaliacaoAtivaEventoId = null;
 let notaAvaliacaoSelecionada = 5;
 
+// ── PROCESSAR RESPOSTA / CONFIRMAÇÃO DO CLIENTE EM TEMPO REAL ──
+function processarConfirmacaoAgendamento(dados) {
+  if (!dados) return;
+  const eventos = obterAgendaEventos();
+  if (!eventos || !eventos.length) return;
+
+  let ev = null;
+  if (dados.id) {
+    ev = eventos.find(x => String(x.id) === String(dados.id));
+  }
+  if (!ev && dados.cliente) {
+    const cNome = String(dados.cliente).toLowerCase().trim();
+    ev = eventos.find(x => {
+      const eNome = String(x.cliente || '').toLowerCase().trim();
+      return eNome.includes(cNome) || cNome.includes(eNome);
+    });
+  }
+  if (!ev && dados.telefone) {
+    const telClean = String(dados.telefone).replace(/\D/g, '');
+    if (telClean && telClean.length >= 8) {
+      ev = eventos.find(x => String(x.tel || '').replace(/\D/g, '').includes(telClean));
+    }
+  }
+
+  // Se não encontrou evento exato, usa o mais recente pendente
+  if (!ev) {
+    ev = eventos.find(x => !x.concluido && !x.confirmado);
+  }
+
+  if (ev) {
+    if (dados.acao === 'confirmar') {
+      ev.confirmado = true;
+      ev.status_cliente = 'confirmado';
+      ev.cliente_confirmou = true;
+      ev.confirmado_em = dados.dataHora || new Date().toISOString();
+      mostrarToastAgenda(`✅ <strong>${esc(ev.cliente)}</strong> confirmou o agendamento de <strong>${esc(ev.tipo || 'Medição')}</strong> pelo WhatsApp!`);
+    } else if (dados.acao === 'reagendar') {
+      ev.reagendamento_solicitado = true;
+      ev.status_cliente = 'reagendar';
+      mostrarToastAgenda(`🔄 <strong>${esc(ev.cliente)}</strong> solicitou <strong>REAGENDAMENTO</strong> pelo WhatsApp!`);
+    } else if (dados.acao === 'avaliar') {
+      ev.avaliacao = {
+        nota: Number(dados.nota) || 5,
+        comentario: dados.comentario || '',
+        data: dados.dataHora || new Date().toISOString()
+      };
+      ev.status_cliente = 'avaliado';
+      mostrarToastAgenda(`⭐ <strong>${esc(ev.cliente)}</strong> enviou uma avaliação de <strong>${ev.avaliacao.nota}★</strong>!`);
+    }
+
+    try { tocarAlertaPortal(); } catch(_) {}
+    salvarAgendaEventos(eventos);
+    renderAgenda();
+  }
+}
+
 function alternarConfirmadoAgenda(id) {
   const eventos = obterAgendaEventos();
   const ev = eventos.find(x => x.id === id);
@@ -16095,8 +16158,11 @@ function renderAgenda() {
     const isConfirmado = !!ev.confirmado;
     const temAvaliacao = !!ev.avaliacao;
 
-    // Mensagem WhatsApp limpa: SEM LINKS e SEM NÚMEROS (resposta direta avisa a empresa)
-    const zapTexto = `Olá ${ev.cliente || ''}! 😊\n\nConfirmando o seu agendamento de *${ev.tipo || 'Medição Técnica'}* para o dia *${dataFmt}* às *${ev.hora || ''}* pela *SD Móveis Projetados*.${ev.end ? '\n📍 Local: *' + ev.end + '*' : ''}${ev.obs ? '\n📝 Obs: ' + ev.obs : ''}\n\n👉 *Opções para seu atendimento:*\nResponda diretamente nesta mensagem com uma das opções abaixo:\n\n✅ *CONFIRMAR* - Para confirmar seu agendamento\n🔄 *REAGENDAR* - Para solicitar nova data ou horário\n⭐ *AVALIAR* - Para enviar sua avaliação do atendimento\n\n_Ao responder qualquer uma das opções, nossa equipe é notificada na hora!_\n\nAgradecemos a preferência!\n*SD Móveis Projetados* 🏠`;
+    // Link interativo para o cliente confirmar, reagendar ou avaliar
+    const linkInterativo = `${window.location.origin}/api/confirmar-agendamento?id=${encodeURIComponent(ev.id)}&cliente=${encodeURIComponent(ev.cliente || '')}&tipo=${encodeURIComponent(ev.tipo || 'Medição Técnica')}&data=${encodeURIComponent(ev.data || '')}&hora=${encodeURIComponent(ev.hora || '')}`;
+
+    // Mensagem WhatsApp completa com link interativo + resposta direta
+    const zapTexto = `Olá ${ev.cliente || ''}! 😊\n\nConfirmando o seu agendamento de *${ev.tipo || 'Medição Técnica'}* para o dia *${dataFmt}* às *${ev.hora || ''}* pela *SD Móveis Projetados*.${ev.end ? '\n📍 Local: *' + ev.end + '*' : ''}${ev.obs ? '\n📝 Obs: ' + ev.obs : ''}\n\n👉 *Opções para seu atendimento:*\nToque no link abaixo para escolher sua opção no aplicativo:\n🔗 ${linkInterativo}\n\nOu responda diretamente nesta mensagem com uma das opções abaixo:\n\n✅ *CONFIRMAR* - Para confirmar seu agendamento\n🔄 *REAGENDAR* - Para solicitar nova data ou horário\n⭐ *AVALIAR* - Para enviar sua avaliação do atendimento\n\n_Ao responder ou tocar no link, nossa equipe é notificada na hora!_\n\nAgradecemos a preferência!\n*SD Móveis Projetados* 🏠`;
     const zapMsg = encodeURIComponent(zapTexto);
     const zapLink = zapClean ? `https://wa.me/55${zapClean}?text=${zapMsg}` : '';
     const notifPill = formatarTempoNotificacao(ev.notificar_minutos);
@@ -16112,13 +16178,41 @@ function renderAgenda() {
             ${zapLink ? `<a href="${zapLink}" target="_blank" style="padding:6px 11px;font-size:12px;font-weight:800;border-radius:8px;text-decoration:none;background:linear-gradient(135deg,#25D366,#1cb85a);color:#fff;display:inline-flex;align-items:center;gap:5px;box-shadow:0 3px 10px rgba(37,211,102,0.3);">💬 WhatsApp</a>` : ''}
           </div>
 
+          <!-- BOTÕES TRAVADOS: Só liberam/atualizam quando o cliente escolhe a opção -->
           <div style="display:flex;align-items:center;gap:5px;flex-wrap:wrap;">
-            <button onclick="alternarConfirmadoAgenda('${ev.id}')" title="Confirmar agendamento" style="background:${isConfirmado ? 'rgba(16,185,129,0.25)' : 'rgba(16,185,129,0.12)'};border:1px solid ${isConfirmado ? '#10b981' : 'rgba(16,185,129,0.35)'};color:${isConfirmado ? '#34d399' : '#a7f3d0'};padding:6px 10px;border-radius:8px;cursor:pointer;font-size:11.5px;font-weight:800;display:inline-flex;align-items:center;gap:4px;">
-              ${isConfirmado ? '✅ Confirmado' : '✅ Confirmar'}
-            </button>
-            <button onclick="reagendarCompromissoAgenda('${ev.id}')" style="background:rgba(59,130,246,0.18);border:1px solid rgba(59,130,246,0.4);color:#93c5fd;padding:6px 10px;border-radius:8px;cursor:pointer;font-size:11.5px;font-weight:800;display:inline-flex;align-items:center;gap:4px;">🔄 Reagendar</button>
-            <button onclick="abrirModalAvaliarAgenda('${ev.id}')" title="Avaliar atendimento" style="background:${temAvaliacao ? 'rgba(234,179,8,0.25)' : 'rgba(234,179,8,0.12)'};border:1px solid rgba(234,179,8,0.4);color:#facc15;padding:6px 10px;border-radius:8px;cursor:pointer;font-size:11.5px;font-weight:800;display:inline-flex;align-items:center;gap:4px;">
-              ⭐ ${temAvaliacao ? 'Avaliado (' + ev.avaliacao.nota + '★)' : 'Avaliar'}
+            ${isConfirmado ? `
+              <button style="background:rgba(16,185,129,0.28);border:1.5px solid #10b981;color:#34d399;padding:6px 11px;border-radius:8px;font-size:11.5px;font-weight:900;display:inline-flex;align-items:center;gap:4px;box-shadow:0 0 12px rgba(16,185,129,0.35);" title="Confirmado pelo cliente via WhatsApp">
+                ✅ Status: Confirmado
+              </button>
+            ` : `
+              <button disabled style="background:rgba(255,255,255,0.03);border:1px dashed rgba(255,255,255,0.18);color:#64748b;padding:6px 10px;border-radius:8px;font-size:11.5px;font-weight:700;display:inline-flex;align-items:center;gap:4px;cursor:not-allowed;opacity:0.6;" title="Travado: Aguardando o cliente escolher Confirmar no WhatsApp">
+                🔒 Confirmar
+              </button>
+            `}
+
+            ${ev.reagendamento_solicitado ? `
+              <button onclick="reagendarCompromissoAgenda('${ev.id}')" style="background:rgba(59,130,246,0.25);border:1.5px solid #38bdf8;color:#93c5fd;padding:6px 10px;border-radius:8px;cursor:pointer;font-size:11.5px;font-weight:900;display:inline-flex;align-items:center;gap:4px;box-shadow:0 0 12px rgba(56,189,248,0.35);" title="Cliente solicitou reagendamento pelo WhatsApp">
+                🔄 Reagendar Solicitado
+              </button>
+            ` : `
+              <button disabled style="background:rgba(255,255,255,0.03);border:1px dashed rgba(255,255,255,0.18);color:#64748b;padding:6px 10px;border-radius:8px;font-size:11.5px;font-weight:700;display:inline-flex;align-items:center;gap:4px;cursor:not-allowed;opacity:0.6;" title="Travado: Aguardando solicitação de reagendamento pelo cliente">
+                🔒 Reagendar
+              </button>
+            `}
+
+            ${temAvaliacao ? `
+              <button style="background:rgba(234,179,8,0.25);border:1.5px solid #facc15;color:#facc15;padding:6px 10px;border-radius:8px;font-size:11.5px;font-weight:900;display:inline-flex;align-items:center;gap:4px;box-shadow:0 0 12px rgba(250,204,21,0.35);" title="Avaliação enviada pelo cliente">
+                ⭐ Avaliado (${ev.avaliacao.nota}★)
+              </button>
+            ` : `
+              <button disabled style="background:rgba(255,255,255,0.03);border:1px dashed rgba(255,255,255,0.18);color:#64748b;padding:6px 10px;border-radius:8px;font-size:11.5px;font-weight:700;display:inline-flex;align-items:center;gap:4px;cursor:not-allowed;opacity:0.6;" title="Travado: Aguardando avaliação enviada pelo cliente">
+                🔒 Avaliar
+              </button>
+            `}
+
+            <!-- Desbloqueio manual de contingência (Admin) -->
+            <button onclick="alternarConfirmadoAgenda('${ev.id}')" title="${isConfirmado ? 'Alternar/Desmarcar status manualmente' : 'Desbloquear/Confirmar manualmente (Modo Admin)'}" style="background:transparent;border:1px solid rgba(255,255,255,0.15);color:var(--muted);width:26px;height:26px;border-radius:6px;cursor:pointer;font-size:11px;display:inline-flex;align-items:center;justify-content:center;">
+              ${isConfirmado ? '🔓' : '⚙️'}
             </button>
             <button onclick="abrirModalNovoCompromissoAgenda('${ev.id}')" style="background:rgba(245,158,11,0.15);border:1px solid rgba(245,158,11,0.35);color:#fbbf24;width:28px;height:28px;border-radius:8px;cursor:pointer;font-size:12px;display:inline-flex;align-items:center;justify-content:center;" title="Editar">✏️</button>
             <button class="item-del" onclick="excluirCompromissoAgenda('${ev.id}')" style="background:rgba(239,68,68,0.15);border:1px solid rgba(239,68,68,0.35);color:#f87171;width:28px;height:28px;border-radius:8px;cursor:pointer;font-size:12px;display:inline-flex;align-items:center;justify-content:center;" title="Excluir">✕</button>
@@ -24159,11 +24253,13 @@ function mudarSubAbaEstoque(aba) {
   subAbaEstoqueAtual = aba;
   const btnMat = document.getElementById('btn-subaba-materiais');
   const btnMov = document.getElementById('btn-subaba-movimentacoes');
+  const btnHis = document.getElementById('btn-subaba-historico');
   const btnAle = document.getElementById('btn-subaba-alertas');
   const btnCli = document.getElementById('btn-subaba-clientes');
 
   if (btnMat) btnMat.classList.toggle('active', aba === 'materiais');
   if (btnMov) btnMov.classList.toggle('active', aba === 'movimentacoes');
+  if (btnHis) btnHis.classList.toggle('active', aba === 'historico');
   if (btnAle) btnAle.classList.toggle('active', aba === 'alertas');
   if (btnCli) btnCli.classList.toggle('active', aba === 'clientes');
 
@@ -24173,7 +24269,7 @@ function mudarSubAbaEstoque(aba) {
   const divCli = document.getElementById('estoque-conteudo-clientes');
 
   if (divMat) divMat.style.display = aba === 'materiais' ? 'block' : 'none';
-  if (divMov) divMov.style.display = aba === 'movimentacoes' ? 'block' : 'none';
+  if (divMov) divMov.style.display = (aba === 'movimentacoes' || aba === 'historico') ? 'block' : 'none';
   if (divAle) divAle.style.display = aba === 'alertas' ? 'block' : 'none';
   if (divCli) divCli.style.display = aba === 'clientes' ? 'block' : 'none';
 

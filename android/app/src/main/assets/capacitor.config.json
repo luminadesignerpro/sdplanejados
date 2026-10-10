@@ -1,0 +1,11 @@
+{
+	"appId": "com.sdmoveis.app",
+	"appName": "SD Moveis",
+	"webDir": "dist",
+	"plugins": {
+		"Geolocation": {}
+	},
+	"android": {
+		"allowMixedContent": true
+	}
+}

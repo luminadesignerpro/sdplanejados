@@ -20,13 +20,65 @@ module.exports = async (req, res) => {
     }
 
     texto = String(texto || '').trim();
+    const textoMinusculo = texto.toLowerCase();
 
     if (!texto) {
       return res.status(200).json({ ok: false, msg: 'Nenhum texto de mensagem detectado no payload.' });
     }
 
-    // Verifica se a mensagem contém indicação de aprovação
-    const textoMinusculo = texto.toLowerCase();
+    // ── Resposta de Agendamento (CONFIRMAR, REAGENDAR, AVALIAR) ──
+    const ehConfirmarAgenda = textoMinusculo.includes('confirmar') || textoMinusculo === 'confirmado' || textoMinusculo === 'confirmo';
+    const ehReagendarAgenda = textoMinusculo.includes('reagendar');
+    const ehAvaliarAgenda = textoMinusculo.includes('avaliar');
+
+    if (ehConfirmarAgenda || ehReagendarAgenda || ehAvaliarAgenda) {
+      const acaoAgenda = ehConfirmarAgenda ? 'confirmar' : (ehReagendarAgenda ? 'reagendar' : 'avaliar');
+      const sender = String(body.from || body.phone || body.sender || (body.data && (body.data.from || body.data.phone)) || '').replace(/\D/g, '');
+      const dataHora = new Date().toISOString();
+      const NTFY_TOPIC = 'sdvidros_aprovacoes_85996119824';
+      const NTFY_PORTAL = 'sdvidros_portal_notificacoes';
+
+      try {
+        await Promise.all([
+          fetch(`https://ntfy.sh/${NTFY_TOPIC}`, {
+            method: 'POST',
+            headers: {
+              'Title': `Agendamento ${acaoAgenda.toUpperCase()} via WhatsApp`,
+              'Tags': acaoAgenda === 'confirmar' ? 'white_check_mark' : (acaoAgenda === 'reagendar' ? 'arrows_counterclockwise' : 'star'),
+              'Priority': 'urgent'
+            },
+            body: JSON.stringify({
+              tipo: 'confirmacao_agendamento',
+              acao: acaoAgenda,
+              texto: texto,
+              telefone: sender,
+              dataHora: dataHora,
+              origem: 'whatsapp_resposta_direta'
+            })
+          }),
+          fetch(`https://ntfy.sh/${NTFY_PORTAL}`, {
+            method: 'POST',
+            headers: { 'Title': `Agendamento ${acaoAgenda.toUpperCase()}` },
+            body: JSON.stringify({
+              tipo: 'confirmacao_agendamento',
+              acao: acaoAgenda,
+              texto: texto,
+              telefone: sender,
+              dataHora: dataHora
+            })
+          })
+        ]);
+      } catch (_) {}
+
+      return res.status(200).json({
+        ok: true,
+        tipo: 'agendamento',
+        acao: acaoAgenda,
+        msg: `Agendamento processado como ${acaoAgenda}.`
+      });
+    }
+
+    // Verifica se a mensagem contém indicação de aprovação de O.S.
     const ehAprovacao = textoMinusculo.includes('aprovo') ||
                         textoMinusculo.includes('aprovado') ||
                         textoMinusculo.includes('pode iniciar a produção') ||
@@ -34,7 +86,7 @@ module.exports = async (req, res) => {
                         textoMinusculo.includes('autorizo');
 
     if (!ehAprovacao) {
-      return res.status(200).json({ ok: false, msg: 'Mensagem recebida, mas não é uma confirmação de aprovação.' });
+      return res.status(200).json({ ok: false, msg: 'Mensagem recebida, mas não é uma confirmação de aprovação ou agendamento.' });
     }
 
     // Extrai o número da OS (ex: "#0006" ou "0006")
