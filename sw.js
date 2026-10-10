@@ -1,11 +1,10 @@
-// Service Worker PWA para sdmoveisprojetados - v3.8
-const CACHE_NAME = 'sdmoveisprojetados-v3.8-' + Date.now();
+// Service Worker PWA para sdmoveisprojetados - v3.9
+const CACHE_NAME = 'sdmoveisprojetados-v3.9-' + Date.now();
 const ASSETS = [
   '/',
   '/index.html',
   '/cliente.html',
   '/assinar.html',
-  '/alarme.wav',
   '/manifest.json',
   '/icon-192.png',
   '/icon-512.png'
@@ -60,4 +59,3 @@ self.addEventListener('notificationclick', (event) => {
     })
   );
 });
-

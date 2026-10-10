@@ -1,31 +1,61 @@
-// Minimal Service Worker required for PWA installability
-const CACHE_NAME = 'sd-moveis-v1';
-const ASSETS_TO_CACHE = [
-    '/',
-    '/index.html',
-    '/favicon.jpeg',
-    '/manifest.json'
+// Service Worker PWA para sdmoveisprojetados - v3.9
+const CACHE_NAME = 'sdmoveisprojetados-v3.9-' + Date.now();
+const ASSETS = [
+  '/',
+  '/index.html',
+  '/cliente.html',
+  '/assinar.html',
+  '/manifest.json',
+  '/icon-192.png',
+  '/icon-512.png'
 ];
 
 self.addEventListener('install', (event) => {
-    self.skipWaiting(); // Force active
-    event.waitUntil(
-        caches.open(CACHE_NAME).then((cache) => {
-            return cache.addAll(ASSETS_TO_CACHE);
-        })
-    );
+  self.skipWaiting();
+  event.waitUntil(
+    caches.open(CACHE_NAME).then((cache) => {
+      return cache.addAll(ASSETS).catch((err) => console.log('Aviso cache install:', err));
+    })
+  );
 });
 
 self.addEventListener('activate', (event) => {
-    event.waitUntil(clients.claim()); // Take control immediately
+  event.waitUntil(
+    caches.keys().then((keys) => {
+      return Promise.all(
+        keys.filter((key) => key !== CACHE_NAME).map((key) => caches.delete(key))
+      );
+    }).then(() => self.clients.claim())
+  );
 });
 
 self.addEventListener('fetch', (event) => {
-    // Bypass cache for development or non-GET requests
-    if (event.request.method !== 'GET' || event.request.url.includes('localhost') || event.request.url.includes('127.0.0.1')) {
-        return;
-    }
-    event.respondWith(
-        caches.match(event.request).then((response) => response || fetch(event.request))
-    );
+  if (event.request.method !== 'GET') return;
+  event.respondWith(
+    fetch(event.request)
+      .then((response) => {
+        if (response && response.status === 200) {
+          const clone = response.clone();
+          caches.open(CACHE_NAME).then((cache) => cache.put(event.request, clone));
+        }
+        return response;
+      })
+      .catch(() => caches.match(event.request))
+  );
+});
+
+self.addEventListener('notificationclick', (event) => {
+  event.notification.close();
+  event.waitUntil(
+    self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then((clientList) => {
+      for (const client of clientList) {
+        if ('focus' in client) {
+          return client.focus();
+        }
+      }
+      if (self.clients.openWindow) {
+        return self.clients.openWindow('/');
+      }
+    })
+  );
 });
