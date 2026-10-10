@@ -3919,12 +3919,14 @@
     <!-- Barra de Filtros e Sub-Abas do Estoque -->
     <div class="card" style="margin-bottom:14px;padding:12px;">
       <!-- Sub-Abas em Grid 100% Organizado -->
-      <div style="display:grid;grid-template-columns:repeat(4, 1fr);gap:4px;margin-bottom:12px;width:100%;box-sizing:border-box;">
-        <button type="button" class="btn btn-sec btn-sm btn-estoque-tab active" id="btn-subaba-materiais" onclick="mudarSubAbaEstoque('materiais')" style="justify-content:center;padding:12px 2px;font-size:12px;font-weight:900;width:100%;box-sizing:border-box;white-space:nowrap;">📦 Mat.</button>
-        <button type="button" class="btn btn-sec btn-sm btn-estoque-tab" id="btn-subaba-movimentacoes" onclick="mudarSubAbaEstoque('movimentacoes')" style="justify-content:center;padding:12px 2px;font-size:12px;font-weight:900;width:100%;box-sizing:border-box;white-space:nowrap;">🔄 Entr.</button>
-        <button type="button" class="btn btn-sec btn-sm btn-estoque-tab" id="btn-subaba-historico" onclick="mudarSubAbaEstoque('historico')" style="justify-content:center;padding:12px 2px;font-size:12px;font-weight:900;width:100%;box-sizing:border-box;white-space:nowrap;">📜 Hist.</button>
-        <button type="button" class="btn btn-sec btn-sm btn-estoque-tab" id="btn-subaba-alertas" onclick="mudarSubAbaEstoque('alertas')" style="justify-content:center;padding:12px 2px;font-size:12px;font-weight:900;width:100%;box-sizing:border-box;">⚠️ Aler.</button>
-        <button type="button" class="btn btn-sec btn-sm btn-estoque-tab" id="btn-subaba-clientes" onclick="mudarSubAbaEstoque('clientes')" style="grid-column: span 4;justify-content:center;padding:12px 8px;font-size:12px;font-weight:900;width:100%;box-sizing:border-box;white-space:nowrap;">👤 Por Cliente / Obra</button>
+      <div style="display:grid;grid-template-columns:1fr;gap:6px;margin-bottom:12px;width:100%;box-sizing:border-box;">
+        <div style="display:grid;grid-template-columns:repeat(4, 1fr);gap:4px;width:100%;">
+          <button type="button" class="btn btn-sec btn-sm btn-estoque-tab active" id="btn-subaba-materiais" onclick="mudarSubAbaEstoque('materiais')" style="justify-content:center;padding:10px 2px;font-size:10px;font-weight:900;width:100%;box-sizing:border-box;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">📦 Materiais</button>
+          <button type="button" class="btn btn-sec btn-sm btn-estoque-tab" id="btn-subaba-movimentacoes" onclick="mudarSubAbaEstoque('movimentacoes')" style="justify-content:center;padding:10px 2px;font-size:10px;font-weight:900;width:100%;box-sizing:border-box;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">🔄 Entradas</button>
+          <button type="button" class="btn btn-sec btn-sm btn-estoque-tab" id="btn-subaba-historico" onclick="mudarSubAbaEstoque('historico')" style="justify-content:center;padding:10px 2px;font-size:10px;font-weight:900;width:100%;box-sizing:border-box;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">📜 Histórico</button>
+          <button type="button" class="btn btn-sec btn-sm btn-estoque-tab" id="btn-subaba-alertas" onclick="mudarSubAbaEstoque('alertas')" style="justify-content:center;padding:10px 2px;font-size:10px;font-weight:900;width:100%;box-sizing:border-box;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">⚠️ Alertas</button>
+        </div>
+        <button type="button" class="btn btn-sec btn-sm btn-estoque-tab" id="btn-subaba-clientes" onclick="mudarSubAbaEstoque('clientes')" style="justify-content:center;padding:10px 8px;font-size:12px;font-weight:900;width:100%;box-sizing:border-box;white-space:nowrap;">👤 Por Cliente / Obra</button>
       </div>
 
       <!-- Filtros Responsivos (Sem cortar o texto da busca) -->
