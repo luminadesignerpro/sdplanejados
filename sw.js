@@ -1,22 +1,8 @@
-// Service Worker PWA para sdmoveisprojetados - v3.9
-const CACHE_NAME = 'sdmoveisprojetados-v3.9-' + Date.now();
-const ASSETS = [
-  '/',
-  '/index.html',
-  '/cliente.html',
-  '/assinar.html',
-  '/manifest.json',
-  '/icon-192.png',
-  '/icon-512.png'
-];
+// Service Worker PWA para sdmoveisprojetados - v4.0
+const CACHE_NAME = 'sdmoveisprojetados-v4.0';
 
 self.addEventListener('install', (event) => {
   self.skipWaiting();
-  event.waitUntil(
-    caches.open(CACHE_NAME).then((cache) => {
-      return cache.addAll(ASSETS).catch((err) => console.log('Aviso cache install:', err));
-    })
-  );
 });
 
 self.addEventListener('activate', (event) => {
@@ -31,17 +17,49 @@ self.addEventListener('activate', (event) => {
 
 self.addEventListener('fetch', (event) => {
   if (event.request.method !== 'GET') return;
-  event.respondWith(
-    fetch(event.request)
-      .then((response) => {
-        if (response && response.status === 200) {
-          const clone = response.clone();
-          caches.open(CACHE_NAME).then((cache) => cache.put(event.request, clone));
+
+  const url = new URL(event.request.url);
+  const isHtml = event.request.mode === 'navigate' ||
+                 (event.request.headers.get('accept') && event.request.headers.get('accept').includes('text/html')) ||
+                 url.pathname.endsWith('.html') ||
+                 url.pathname === '/';
+
+  if (isHtml) {
+    // Network First para HTML - Atualiza instantaneamente do Vercel
+    event.respondWith(
+      fetch(event.request)
+        .then((response) => {
+          if (response && response.status === 200) {
+            const clone = response.clone();
+            caches.open(CACHE_NAME).then((cache) => cache.put(event.request, clone));
+          }
+          return response;
+        })
+        .catch(() => caches.match(event.request))
+    );
+  } else {
+    // Cache First com Fallback para Network
+    event.respondWith(
+      caches.match(event.request).then((cached) => {
+        if (cached) {
+          fetch(event.request).then((networkRes) => {
+            if (networkRes && networkRes.status === 200) {
+              const clone = networkRes.clone();
+              caches.open(CACHE_NAME).then((cache) => cache.put(event.request, clone));
+            }
+          }).catch(() => {});
+          return cached;
         }
-        return response;
+        return fetch(event.request).then((networkRes) => {
+          if (networkRes && networkRes.status === 200) {
+            const clone = networkRes.clone();
+            caches.open(CACHE_NAME).then((cache) => cache.put(event.request, clone));
+          }
+          return networkRes;
+        });
       })
-      .catch(() => caches.match(event.request))
-  );
+    );
+  }
 });
 
 self.addEventListener('notificationclick', (event) => {
