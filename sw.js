@@ -1,5 +1,5 @@
-// Service Worker PWA para sdmoveisprojetados - v7.0 (links clicaveis WhatsApp)
-const CACHE_NAME = 'sdmoveisprojetados-v7.0';
+// Service Worker PWA para sdmoveisprojetados - v8.0 (filtro OS por cliente)
+const CACHE_NAME = 'sdmoveisprojetados-v8.0';
 
 self.addEventListener('install', (event) => {
   self.skipWaiting();
