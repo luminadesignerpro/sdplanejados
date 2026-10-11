@@ -404,10 +404,8 @@
     const evLocal    = decodeURIComponent(params.get('local') || '');
     const acaoParam  = decodeURIComponent(params.get('acao') || ''); // pré-seleciona se vier pela URL
 
-    // Canal ntfy (mesmo do app principal)
-    const NTFY_TOPIC = 'sdmoveis-agenda-' + (evId || 'geral').replace(/[^a-z0-9]/gi, '');
-    // Canal fixo do portal admin (mesmo do index.html)
-    const NTFY_PORTAL_ADMIN = 'sdmoveis-portal-admin-v2';
+    // Canal ntfy — DEVE ser o mesmo que o admin escuta em iniciarRealtimePortalAdmin()
+    const NTFY_PORTAL_ADMIN = 'sdvidros_portal_notificacoes';
 
     let notaSelecionada = 5;
     let acaoAtual = '';
@@ -517,29 +515,23 @@
         dataHora: new Date().toISOString()
       };
 
-      // Envia para o canal ntfy do portal admin (mesmo que o app escuta)
+      // Envia para o canal ntfy que o admin app escuta em iniciarRealtimePortalAdmin()
       try {
-        await fetch('https://ntfy.sh/' + NTFY_PORTAL_ADMIN, {
+        const resp = await fetch('https://ntfy.sh/' + NTFY_PORTAL_ADMIN, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(payload)
         });
-        mostrarSucesso();
-      } catch(e) {
-        // Tenta canal alternativo
-        try {
-          await fetch('https://ntfy.sh/sdmoveis-confirmacoes', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(payload)
-          });
+        if (resp.ok) {
           mostrarSucesso();
-        } catch(_) {
-          loader.style.display = 'none';
-          btnEnviar.disabled = false;
-          btnEnviar.style.opacity = '1';
-          alert('Erro ao enviar. Verifique sua conexão e tente novamente.');
+        } else {
+          throw new Error('status ' + resp.status);
         }
+      } catch(e) {
+        loader.style.display = 'none';
+        btnEnviar.disabled = false;
+        btnEnviar.style.opacity = '1';
+        alert('Erro ao enviar confirmação. Verifique sua conexão e tente novamente.\n\nDetalhe: ' + e.message);
       }
     }
 
