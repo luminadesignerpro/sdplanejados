@@ -1,5 +1,5 @@
-// Service Worker PWA para sdmoveisprojetados - v8.0 (filtro OS por cliente)
-const CACHE_NAME = 'sdmoveisprojetados-v8.0';
+// Service Worker PWA para sdmoveisprojetados - v9.0 (filtro OS por telefone)
+const CACHE_NAME = 'sdmoveisprojetados-v9.0';
 
 self.addEventListener('install', (event) => {
   self.skipWaiting();

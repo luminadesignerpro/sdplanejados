@@ -7072,22 +7072,31 @@ function mudarAba(tab) {
         setTimeout(() => inp.focus(), 100);
       }
 
-      // Obtém o nome do cliente logado de todas as fontes possíveis
-      var nomeClienteLogado = '';
-      if (clienteSessao && clienteSessao.nome) {
-        nomeClienteLogado = String(clienteSessao.nome).trim().toLowerCase();
-      }
-      if (!nomeClienteLogado) {
-        var p = new URLSearchParams(window.location.search);
-        nomeClienteLogado = (p.get('nome') || '').trim().toLowerCase();
-      }
-      if (!nomeClienteLogado) {
+      // ── COLETA IDENTIFICADORES DO CLIENTE LOGADO ──
+      var urlP = new URLSearchParams(window.location.search);
+
+      // Telefone (mais confiável - vem direto da URL do link)
+      var telLogado = '';
+      if (clienteSessao && clienteSessao.telefone) telLogado = String(clienteSessao.telefone).replace(/\D/g, '');
+      if (!telLogado && clienteSessao && clienteSessao.iden) telLogado = String(clienteSessao.iden).replace(/\D/g, '');
+      if (!telLogado) telLogado = (urlP.get('tel') || urlP.get('whatsapp') || '').replace(/\D/g, '');
+
+      // Nome do cliente
+      var nomeLogado = '';
+      if (clienteSessao && clienteSessao.nome) nomeLogado = String(clienteSessao.nome).trim().toLowerCase();
+      if (!nomeLogado) nomeLogado = (urlP.get('nome') || '').trim().toLowerCase();
+      if (!nomeLogado) {
         var elN = document.getElementById('lbl-cliente-nome');
-        if (elN) nomeClienteLogado = elN.textContent.trim().toLowerCase();
+        if (elN) nomeLogado = elN.textContent.trim().toLowerCase();
       }
 
-      // Armazena o nome filtrado globalmente para renderizarListaModalOrdens usar
-      window._filtroNomeClienteOS = nomeClienteLogado;
+      // Número da OS atual
+      var osLogado = '';
+      if (clienteSessao && clienteSessao.os) osLogado = String(clienteSessao.os).replace(/\D/g, '');
+      if (!osLogado) osLogado = (urlP.get('os') || '').replace(/\D/g, '');
+
+      // Armazena globalmente para renderizarListaModalOrdens usar
+      window._filtroClienteOS = { tel: telLogado, nome: nomeLogado, os: osLogado };
 
       renderizarListaModalOrdens('');
     }
@@ -7107,63 +7116,68 @@ function mudarAba(tab) {
 
       const todasOrdens = (typeof carregarOrdensDoStorage === 'function') ? carregarOrdensDoStorage() : [];
 
-      // ── FILTRO: usa o nome gravado em abrirSeletorTrocaOs ──
-      var nomeRef = (window._filtroNomeClienteOS || '').trim().toLowerCase();
+      // ── COLETA REFERÊNCIAS DO CLIENTE ──
+      var fc = window._filtroClienteOS || {};
+      var urlP2 = new URLSearchParams(window.location.search);
 
-      // Fallback: tenta obter de outras fontes caso _filtroNomeClienteOS não esteja definido
-      if (!nomeRef && clienteSessao && clienteSessao.nome) {
-        nomeRef = String(clienteSessao.nome).trim().toLowerCase();
-      }
-      if (!nomeRef) {
-        var pp = new URLSearchParams(window.location.search);
-        nomeRef = (pp.get('nome') || '').trim().toLowerCase();
-      }
+      // Telefone
+      var telRef = fc.tel || '';
+      if (!telRef && clienteSessao && clienteSessao.telefone) telRef = String(clienteSessao.telefone).replace(/\D/g, '');
+      if (!telRef && clienteSessao && clienteSessao.iden) telRef = String(clienteSessao.iden).replace(/\D/g, '');
+      if (!telRef) telRef = (urlP2.get('tel') || urlP2.get('whatsapp') || '').replace(/\D/g, '');
+
+      // Nome
+      var nomeRef = fc.nome || '';
+      if (!nomeRef && clienteSessao && clienteSessao.nome) nomeRef = String(clienteSessao.nome).trim().toLowerCase();
+      if (!nomeRef) nomeRef = (urlP2.get('nome') || '').trim().toLowerCase();
       if (!nomeRef) {
         var elNome2 = document.getElementById('lbl-cliente-nome');
         if (elNome2) nomeRef = elNome2.textContent.trim().toLowerCase();
       }
 
-      // Telefone do cliente como critério secundário
-      var telRef = '';
-      if (clienteSessao && clienteSessao.telefone) telRef = String(clienteSessao.telefone).replace(/\D/g, '');
-      if (!telRef) {
-        var pp2 = new URLSearchParams(window.location.search);
-        telRef = (pp2.get('tel') || pp2.get('whatsapp') || '').replace(/\D/g, '');
+      // Número da OS atual
+      var osRef = fc.os || '';
+      if (!osRef && clienteSessao && clienteSessao.os) osRef = String(clienteSessao.os).replace(/\D/g, '');
+      if (!osRef) osRef = (urlP2.get('os') || '').replace(/\D/g, '');
+
+      // ── APLICA FILTRO ──
+      // Função auxiliar para extrair telefone de uma OS
+      function getTelOS(o) {
+        return String((o.dados && (o.dados.tel || o.dados.telefone || o.dados.whatsapp)) || o.tel || o.whatsapp || o.telefone || o.iden || '').replace(/\D/g, '');
+      }
+      // Função auxiliar para extrair nome de uma OS
+      function getNomeOS(o) {
+        return String(o.nome || (o.dados && o.dados.nome) || o.nomeCliente || o.cliente || '').trim().toLowerCase();
       }
 
-      // Número da OS atual como critério terciário
-      var osRef = clienteSessao ? String(clienteSessao.os || '').replace(/\D/g, '') : '';
-      if (!osRef) {
-        var pp3 = new URLSearchParams(window.location.search);
-        osRef = (pp3.get('os') || '').replace(/\D/g, '');
-      }
-
-      // Aplica o filtro
       var ordensDoCliente;
-      if (nomeRef && nomeRef.length >= 2) {
-        // Filtro principal: por nome
+
+      if (telRef && telRef.length >= 8) {
+        // CRITÉRIO 1 (MAIS CONFIÁVEL): Filtro por telefone
         ordensDoCliente = todasOrdens.filter(function(o) {
-          var oNome = String(o.nome || '').trim().toLowerCase();
-          if (oNome.indexOf(nomeRef) !== -1) return true;
-          // Verifica também por telefone
-          var oTel = String((o.dados && o.dados.tel) || o.tel || o.whatsapp || o.telefone || '').replace(/\D/g, '');
-          if (telRef && telRef.length >= 8 && oTel && oTel.length >= 8 && oTel.slice(-8) === telRef.slice(-8)) return true;
-          // Verifica pelo número da OS
+          var oTel = getTelOS(o);
+          if (oTel && oTel.length >= 8 && oTel.slice(-8) === telRef.slice(-8)) return true;
+          // Fallback: verifica pelo nome caso o telefone não bata
+          if (nomeRef && nomeRef.length >= 2) {
+            var oN = getNomeOS(o);
+            if (oN && oN.indexOf(nomeRef) !== -1) return true;
+          }
+          // Fallback: verifica pela OS atual
           var oNum = String(o.numero || '').replace(/\D/g, '');
           if (osRef && oNum && osRef === oNum) return true;
           return false;
         });
-      } else if (telRef && telRef.length >= 8) {
-        // Filtro por telefone se não tiver nome
+      } else if (nomeRef && nomeRef.length >= 2) {
+        // CRITÉRIO 2: Filtro por nome
         ordensDoCliente = todasOrdens.filter(function(o) {
-          var oTel = String((o.dados && o.dados.tel) || o.tel || o.whatsapp || o.telefone || '').replace(/\D/g, '');
-          if (oTel && oTel.length >= 8 && oTel.slice(-8) === telRef.slice(-8)) return true;
+          var oN = getNomeOS(o);
+          if (oN && oN.indexOf(nomeRef) !== -1) return true;
           var oNum = String(o.numero || '').replace(/\D/g, '');
           if (osRef && oNum && osRef === oNum) return true;
           return false;
         });
       } else if (osRef) {
-        // Último recurso: só a OS atual
+        // CRITÉRIO 3: Só a OS atual (último recurso)
         ordensDoCliente = todasOrdens.filter(function(o) {
           return String(o.numero || '').replace(/\D/g, '') === osRef;
         });
