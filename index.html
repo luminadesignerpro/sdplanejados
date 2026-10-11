@@ -5255,16 +5255,21 @@
         </div>
       </div>
 
-            <!-- 🔍 BUSCA RÁPIDA DE CLIENTES / CONTATOS -->
+      <!-- BUSCA RÁPIDA DE CLIENTES / CONTATOS -->
       <div style="margin-bottom:12px;position:relative;">
         <label style="font-size:11px;font-weight:800;color:var(--gold-light);text-transform:uppercase;letter-spacing:0.05em;margin-bottom:6px;display:flex;align-items:center;gap:5px;">
-          <span>🔍</span> <span>Buscar Cliente Cadastrado (Filtro Rápido):</span>
+          <span>&#128269;</span> <span>Buscar Cliente Cadastrado:</span>
         </label>
         <div style="display:flex;gap:6px;align-items:center;">
-          <input type="text" id="agenda-busca-rapida-inp" oninput="aoBuscarClienteRapidoAgenda(this.value)" placeholder="Digite o nome ou telefone para buscar..." style="width:100%;padding:10px 12px;border-radius:10px;background:#05060d;border:1.5px solid var(--gold);color:#fff;font-size:13px;box-shadow:inset 0 2px 6px rgba(0,0,0,0.5);" />
-          <button type="button" onclick="limparBuscaRapidaAgenda()" style="padding:10px 14px;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.15);border-radius:10px;color:#cbd5e1;cursor:pointer;font-size:12px;font-weight:700;">✕</button>
+          <input type="text" id="agenda-busca-rapida-inp"
+            oninput="aoBuscarClienteRapidoAgenda(this.value)"
+            onfocus="aoBuscarClienteRapidoAgenda(this.value || '__todos__')"
+            placeholder="Digite o nome ou clique para ver todos..."
+            style="width:100%;padding:10px 12px;border-radius:10px;background:#05060d;border:1.5px solid var(--gold);color:#fff;font-size:13px;box-shadow:inset 0 2px 6px rgba(0,0,0,0.5);" />
+          <button type="button" onclick="limparBuscaRapidaAgenda()" style="padding:10px 14px;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.15);border-radius:10px;color:#cbd5e1;cursor:pointer;font-size:12px;font-weight:700;">&#10005;</button>
         </div>
-        <div id="agenda-busca-resultados-box" style="display:none;position:absolute;top:calc(100% + 4px);left:0;right:0;max-height:220px;overflow-y:auto;background:#0d0e19;border:1.5px solid var(--gold);border-radius:10px;z-index:999999;box-shadow:0 12px 30px rgba(0,0,0,0.9);padding:6px;"></div>
+        <!-- Painel de resultados com cards -->
+        <div id="agenda-busca-resultados-box" style="display:none;position:absolute;top:calc(100% + 4px);left:0;right:0;max-height:320px;overflow-y:auto;background:#0d0e19;border:1.5px solid var(--gold);border-radius:12px;z-index:999999;box-shadow:0 16px 40px rgba(0,0,0,0.95);padding:8px;"></div>
       </div>
 
 <div class="field" style="margin-bottom:12px;">
@@ -16436,63 +16441,101 @@ function abrirModalNovoCompromissoAgenda(id = null) {
 function aoBuscarClienteRapidoAgenda(termo) {
   const box = document.getElementById('agenda-busca-resultados-box');
   if (!box) return;
-  const q = (termo || '').trim().toLowerCase();
-  if (q.length < 1) {
+
+  const mostrarTodos = termo === '__todos__';
+  const q = mostrarTodos ? '' : (termo || '').trim().toLowerCase();
+
+  // Se campo vazio e não é "mostrar todos", fechar
+  if (!mostrarTodos && q.length < 1) {
     box.style.display = 'none';
     box.innerHTML = '';
     return;
   }
 
   const lista = [];
-  const telVistos = new Set();
+  const idsVistos = new Set();
 
-  // 1. Clientes cadastrados
+  // 1. Clientes cadastrados (prioridade)
   if (typeof clientes !== 'undefined' && Array.isArray(clientes)) {
     clientes.forEach(c => {
-      const nome = c.nome || '';
-      const tel = c.tel || '';
-      const end = c.end || '';
-      if (nome.toLowerCase().includes(q) || tel.includes(q) || end.toLowerCase().includes(q)) {
-        lista.push({ nome, tel, end: end + (c.cidade ? ' - ' + c.cidade : ''), origem: 'Cadastro' });
-        if (tel) telVistos.add(tel.replace(/\D/g, ''));
+      const nome = (c.nome || '').trim();
+      const tel = c.whatsapp || c.tel || '';
+      const bairro = c.bairro || '';
+      const cidade = c.cidade || '';
+      const senha = c.senha || '';
+      if (!nome) return;
+      const bate = mostrarTodos ||
+        nome.toLowerCase().includes(q) ||
+        tel.includes(q) ||
+        bairro.toLowerCase().includes(q) ||
+        cidade.toLowerCase().includes(q);
+      if (bate) {
+        lista.push({ id: c.id, nome, tel, bairro, cidade, senha, origem: 'Cadastro' });
+        idsVistos.add(String(c.id));
       }
     });
   }
 
-  // 2. Eventos da agenda
+  // 2. Complementar com eventos da agenda (sem duplicar)
   const evs = (typeof obterAgendaEventos === 'function') ? obterAgendaEventos() : [];
   evs.forEach(e => {
-    const nome = e.cliente || '';
+    const nome = (e.cliente || '').trim();
     const tel = e.tel || '';
-    const telClean = tel.replace(/\D/g, '');
-    if (telClean && telVistos.has(telClean)) return;
-    if (nome.toLowerCase().includes(q) || tel.includes(q) || (e.end && e.end.toLowerCase().includes(q))) {
-      lista.push({ nome, tel, end: e.end || '', tipo: e.tipo, origem: 'Agenda' });
-      if (telClean) telVistos.add(telClean);
+    if (!nome) return;
+    const jaExiste = lista.some(x => x.nome.toLowerCase() === nome.toLowerCase() && (!tel || x.tel === tel));
+    if (jaExiste) return;
+    const bate = mostrarTodos ||
+      nome.toLowerCase().includes(q) ||
+      tel.includes(q);
+    if (bate) {
+      lista.push({ id: 'ev_' + e.id, nome, tel, bairro: '', cidade: '', senha: '', origem: 'Agenda' });
     }
   });
 
   if (lista.length === 0) {
     box.style.display = 'block';
-    box.innerHTML = '<div style="padding:10px;text-align:center;color:#94a3b8;font-size:12px;">Nenhum cliente encontrado para "' + esc(termo) + '"</div>';
+    box.innerHTML = `
+      <div style="padding:16px;text-align:center;color:#94a3b8;">
+        <div style="font-size:24px;margin-bottom:6px;">&#128269;</div>
+        <div style="font-size:12px;">Nenhum cliente encontrado${q ? ' para "' + esc(q) + '"' : ''}.</div>
+      </div>`;
     return;
   }
 
-  box.style.display = 'block';
-  box.innerHTML = lista.slice(0, 15).map(item => `
-    <div onclick="selecionarClienteBuscaRapida('${esc(item.nome)}', '${esc(item.tel)}', '${esc(item.end)}')" style="padding:8px 10px;border-radius:8px;border-bottom:1px solid rgba(255,255,255,0.06);cursor:pointer;display:flex;justify-content:space-between;align-items:center;transition:background 0.2s;" onmouseover="this.style.background='rgba(201,168,76,0.18)'" onmouseout="this.style.background='transparent'">
-      <div>
-        <div style="font-weight:800;font-size:13px;color:#fff;">👤 ${esc(item.nome)}</div>
-        <div style="font-size:11px;color:var(--muted);margin-top:2px;">
-          ${item.tel ? '📞 ' + esc(item.tel) : ''} ${item.end ? ' · 📍 ' + esc(item.end) : ''}
+  // Header com contagem
+  const total = lista.length;
+  let html = `
+    <div style="display:flex;justify-content:space-between;align-items:center;padding:4px 6px 8px;border-bottom:1px solid rgba(255,255,255,0.08);margin-bottom:6px;">
+      <span style="font-size:11px;font-weight:800;color:var(--gold-light);">&#128101; Clientes salvos</span>
+      <span style="font-size:11px;font-weight:900;background:rgba(201,168,76,0.2);color:var(--gold-light);padding:2px 8px;border-radius:999px;">${total}</span>
+    </div>`;
+
+  // Renderizar cards estilo "Clientes salvos"
+  lista.slice(0, 20).forEach(item => {
+    const senhaDisplay = item.senha ? item.senha : '****';
+    const telDisplay = item.tel || '(sem tel)';
+    const localDisplay = [item.bairro, item.cidade].filter(Boolean).join(' · ');
+    html += `
+      <div style="background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.1);border-radius:10px;padding:10px 12px;margin-bottom:6px;display:flex;justify-content:space-between;align-items:center;gap:8px;">
+        <div style="flex:1;min-width:0;">
+          <div style="font-weight:900;font-size:14px;color:#fff;margin-bottom:2px;">${esc(item.nome)}</div>
+          <div style="font-size:11.5px;color:#94a3b8;">${esc(telDisplay)}${localDisplay ? ' &middot; ' + esc(localDisplay) : ''}</div>
+          ${item.senha ? `<div style="font-size:11px;color:var(--gold-light);margin-top:3px;">&#128273; Senha Portal: ${esc(senhaDisplay)}</div>` : ''}
+          ${item.origem === 'Agenda' ? `<div style="font-size:10px;color:#64748b;margin-top:2px;">Da agenda</div>` : ''}
         </div>
-      </div>
-      <span style="font-size:10px;padding:2px 6px;border-radius:4px;background:rgba(201,168,76,0.15);color:var(--gold-light);font-weight:700;">${item.origem}</span>
-    </div>
-  `).join('');
+        <button type="button"
+          onclick="selecionarClienteBuscaRapidaCard('${escAttr(item.nome)}','${escAttr(item.tel)}','${escAttr([item.bairro,item.cidade].filter(Boolean).join(', '))}')"
+          style="flex-shrink:0;padding:7px 14px;background:rgba(16,185,129,0.2);border:1.5px solid #10b981;border-radius:8px;color:#34d399;font-size:12px;font-weight:900;cursor:pointer;display:flex;align-items:center;gap:4px;white-space:nowrap;">
+          &#128190; Usar
+        </button>
+      </div>`;
+  });
+
+  box.style.display = 'block';
+  box.innerHTML = html;
 }
 
-function selecionarClienteBuscaRapida(nome, tel, end) {
+function selecionarClienteBuscaRapidaCard(nome, tel, end) {
   const nomeEl = document.getElementById('agenda-novo-cliente');
   const telEl = document.getElementById('agenda-novo-tel');
   const endEl = document.getElementById('agenda-novo-end');
@@ -16509,11 +16552,15 @@ function selecionarClienteBuscaRapida(nome, tel, end) {
     if (typeof atualizarBotaoMapsAgenda === 'function') atualizarBotaoMapsAgenda();
   }
   if (inpBusca) inpBusca.value = '';
-  if (box) box.style.display = 'none';
+  if (box) { box.style.display = 'none'; box.innerHTML = ''; }
 
   if (typeof mostrarToastAprovacao === 'function') {
-    mostrarToastAprovacao('✅ Dados de ' + nome + ' carregados com sucesso!');
+    mostrarToastAprovacao('&#10003; Dados de ' + nome + ' carregados!');
   }
+}
+
+function selecionarClienteBuscaRapida(nome, tel, end) {
+  selecionarClienteBuscaRapidaCard(nome, tel, end);
 }
 
 function limparBuscaRapidaAgenda() {
