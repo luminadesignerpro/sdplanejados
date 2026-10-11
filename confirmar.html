@@ -1,0 +1,571 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0" />
+  <title>SD Móveis Projetados — Confirmação de Agendamento</title>
+  <meta name="description" content="Confirme, reagende ou avalie seu atendimento da SD Móveis Projetados." />
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap');
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --gold: #c9a84c;
+      --gold-light: #f3d98a;
+      --green: #10b981;
+      --blue: #38bdf8;
+      --red: #ef4444;
+      --bg: #07080f;
+      --card: #10111c;
+      --text: #e2e8f0;
+      --muted: #64748b;
+    }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-start;
+      padding: 20px 16px 40px;
+      background-image: radial-gradient(ellipse at 50% -10%, rgba(201,168,76,0.10) 0%, transparent 60%);
+    }
+
+    .logo-box {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      margin-bottom: 24px;
+      margin-top: 8px;
+    }
+    .logo-box img {
+      width: 72px;
+      height: 72px;
+      border-radius: 18px;
+      box-shadow: 0 6px 24px rgba(201,168,76,0.3);
+      margin-bottom: 10px;
+      object-fit: cover;
+    }
+    .logo-box h1 {
+      font-size: 17px;
+      font-weight: 900;
+      color: var(--gold-light);
+      letter-spacing: 0.04em;
+      text-align: center;
+    }
+    .logo-box p {
+      font-size: 12px;
+      color: var(--muted);
+      margin-top: 2px;
+    }
+
+    .card {
+      background: var(--card);
+      border: 1.5px solid rgba(201,168,76,0.25);
+      border-radius: 20px;
+      padding: 24px 20px;
+      width: 100%;
+      max-width: 420px;
+      box-shadow: 0 12px 40px rgba(0,0,0,0.6), 0 0 0 1px rgba(201,168,76,0.06);
+    }
+
+    .agendamento-label {
+      font-size: 11px;
+      font-weight: 800;
+      color: var(--gold-light);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .cliente-nome {
+      font-size: 22px;
+      font-weight: 900;
+      color: #fff;
+      margin-bottom: 4px;
+      line-height: 1.2;
+    }
+
+    .badge-tipo {
+      display: inline-block;
+      padding: 4px 12px;
+      background: rgba(201,168,76,0.18);
+      border: 1px solid rgba(201,168,76,0.35);
+      border-radius: 999px;
+      color: var(--gold-light);
+      font-size: 12px;
+      font-weight: 800;
+      margin-bottom: 16px;
+      margin-top: 4px;
+    }
+
+    .info-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 13px;
+      color: #94a3b8;
+      margin-bottom: 6px;
+    }
+    .info-row strong { color: #fff; }
+    .info-icon { font-size: 15px; flex-shrink: 0; }
+
+    .divider {
+      height: 1px;
+      background: rgba(255,255,255,0.07);
+      margin: 18px 0;
+    }
+
+    .opcoes-titulo {
+      font-size: 13px;
+      font-weight: 800;
+      color: var(--gold-light);
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .btn-opcao {
+      width: 100%;
+      padding: 14px 16px;
+      border-radius: 14px;
+      border: 2px solid;
+      font-size: 15px;
+      font-weight: 900;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 10px;
+      transition: all 0.2s;
+      letter-spacing: 0.02em;
+      text-align: left;
+      background: transparent;
+      position: relative;
+      overflow: hidden;
+    }
+    .btn-opcao::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      opacity: 0;
+      transition: opacity 0.2s;
+    }
+    .btn-opcao:active { transform: scale(0.97); }
+
+    .btn-confirmar {
+      border-color: var(--green);
+      color: #6ee7b7;
+    }
+    .btn-confirmar::before { background: rgba(16,185,129,0.12); }
+    .btn-confirmar:hover::before, .btn-confirmar:focus::before { opacity: 1; }
+
+    .btn-reagendar {
+      border-color: var(--blue);
+      color: #7dd3fc;
+    }
+    .btn-reagendar::before { background: rgba(56,189,248,0.12); }
+    .btn-reagendar:hover::before, .btn-reagendar:focus::before { opacity: 1; }
+
+    .btn-avaliar {
+      border-color: var(--gold);
+      color: var(--gold-light);
+    }
+    .btn-avaliar::before { background: rgba(201,168,76,0.12); }
+    .btn-avaliar:hover::before, .btn-avaliar:focus::before { opacity: 1; }
+
+    .btn-icon { font-size: 20px; flex-shrink: 0; }
+    .btn-text { flex: 1; }
+    .btn-text strong { display: block; font-size: 15px; }
+    .btn-text span { font-size: 11.5px; font-weight: 600; opacity: 0.8; }
+
+    /* Tela de confirmação de ação */
+    #tela-acao { display: none; }
+
+    .acao-card {
+      background: var(--card);
+      border-radius: 20px;
+      padding: 32px 20px;
+      width: 100%;
+      max-width: 420px;
+      text-align: center;
+      border: 2px solid;
+    }
+    .acao-card.confirmar { border-color: var(--green); }
+    .acao-card.reagendar { border-color: var(--blue); }
+    .acao-card.avaliar { border-color: var(--gold); }
+
+    .acao-icone { font-size: 52px; margin-bottom: 12px; }
+    .acao-titulo { font-size: 22px; font-weight: 900; color: #fff; margin-bottom: 6px; }
+    .acao-sub { font-size: 13px; color: var(--muted); margin-bottom: 20px; line-height: 1.5; }
+
+    /* Estrelas de avaliação */
+    .estrelas-box { display: flex; justify-content: center; gap: 10px; margin-bottom: 16px; }
+    .estrela {
+      font-size: 36px;
+      cursor: pointer;
+      transition: transform 0.15s;
+      filter: grayscale(1);
+      opacity: 0.4;
+    }
+    .estrela.ativa { filter: none; opacity: 1; transform: scale(1.1); }
+
+    .textarea-aval {
+      width: 100%;
+      padding: 12px;
+      border-radius: 10px;
+      background: rgba(255,255,255,0.05);
+      border: 1px solid rgba(255,255,255,0.12);
+      color: #fff;
+      font-size: 13px;
+      font-family: 'Inter', sans-serif;
+      resize: none;
+      margin-bottom: 16px;
+    }
+    .textarea-aval::placeholder { color: var(--muted); }
+
+    .btn-confirmar-acao {
+      width: 100%;
+      padding: 14px;
+      border-radius: 14px;
+      font-size: 16px;
+      font-weight: 900;
+      border: none;
+      cursor: pointer;
+      margin-bottom: 10px;
+      transition: all 0.2s;
+    }
+    .btn-confirmar-acao:active { transform: scale(0.97); }
+    .btn-confirmar-acao.verde { background: linear-gradient(135deg, #059669, #10b981); color: #fff; }
+    .btn-confirmar-acao.azul { background: linear-gradient(135deg, #0284c7, #38bdf8); color: #fff; }
+    .btn-confirmar-acao.dourado { background: linear-gradient(135deg, #92400e, #c9a84c); color: #fff; }
+
+    .btn-voltar {
+      background: transparent;
+      border: 1px solid rgba(255,255,255,0.15);
+      color: var(--muted);
+      width: 100%;
+      padding: 10px;
+      border-radius: 10px;
+      font-size: 13px;
+      font-weight: 700;
+      cursor: pointer;
+      margin-top: 4px;
+    }
+
+    /* Tela de sucesso */
+    #tela-sucesso { display: none; }
+    .sucesso-card {
+      background: var(--card);
+      border-radius: 20px;
+      padding: 40px 24px;
+      width: 100%;
+      max-width: 420px;
+      text-align: center;
+      border: 2px solid var(--green);
+      box-shadow: 0 0 40px rgba(16,185,129,0.15);
+    }
+    .sucesso-icone { font-size: 64px; margin-bottom: 14px; }
+    .sucesso-titulo { font-size: 22px; font-weight: 900; color: #fff; margin-bottom: 8px; }
+    .sucesso-sub { font-size: 13px; color: #a7f3d0; line-height: 1.6; }
+
+    /* Loader */
+    .loader {
+      display: none;
+      width: 30px; height: 30px;
+      border: 3px solid rgba(255,255,255,0.1);
+      border-top-color: var(--green);
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+      margin: 0 auto 10px;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .rodape {
+      margin-top: 28px;
+      font-size: 11px;
+      color: var(--muted);
+      text-align: center;
+      line-height: 1.6;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Logo -->
+  <div class="logo-box">
+    <img src="icon-192.png" alt="SD Móveis Projetados" onerror="this.style.display='none'" />
+    <h1>SD Móveis Projetados</h1>
+    <p>Confirmação de Agendamento</p>
+  </div>
+
+  <!-- TELA 1: Dados do agendamento + 3 opções -->
+  <div id="tela-opcoes">
+    <div class="card">
+      <div class="agendamento-label">&#128197; Seu Agendamento</div>
+      <div class="cliente-nome" id="el-cliente">—</div>
+      <div class="badge-tipo" id="el-tipo">—</div>
+
+      <div class="info-row">
+        <span class="info-icon">&#128197;</span>
+        <span><strong id="el-data">—</strong></span>
+      </div>
+      <div class="info-row" id="row-hora" style="display:none">
+        <span class="info-icon">&#128336;</span>
+        <span>às <strong id="el-hora">—</strong></span>
+      </div>
+      <div class="info-row" id="row-local" style="display:none">
+        <span class="info-icon">&#128205;</span>
+        <span id="el-local">—</span>
+      </div>
+
+      <div class="divider"></div>
+
+      <div class="opcoes-titulo">&#128072; Escolha uma opção:</div>
+
+      <button class="btn-opcao btn-confirmar" onclick="escolherAcao('confirmar')">
+        <span class="btn-icon">&#10003;&#65038;</span>
+        <span class="btn-text">
+          <strong>CONFIRMAR</strong>
+          <span>Confirmar minha presença no agendamento</span>
+        </span>
+      </button>
+
+      <button class="btn-opcao btn-reagendar" onclick="escolherAcao('reagendar')">
+        <span class="btn-icon">&#128260;</span>
+        <span class="btn-text">
+          <strong>REAGENDAR</strong>
+          <span>Solicitar nova data ou horário</span>
+        </span>
+      </button>
+
+      <button class="btn-opcao btn-avaliar" onclick="escolherAcao('avaliar')">
+        <span class="btn-icon">&#11088;</span>
+        <span class="btn-text">
+          <strong>AVALIAR</strong>
+          <span>Enviar minha avaliação do atendimento</span>
+        </span>
+      </button>
+    </div>
+  </div>
+
+  <!-- TELA 2: Confirmação da ação escolhida -->
+  <div id="tela-acao">
+    <div class="acao-card" id="acao-card">
+      <div class="acao-icone" id="acao-icone"></div>
+      <div class="acao-titulo" id="acao-titulo"></div>
+      <div class="acao-sub" id="acao-sub"></div>
+
+      <!-- Estrelas (só avaliação) -->
+      <div class="estrelas-box" id="estrelas-box" style="display:none">
+        <span class="estrela" data-val="1" onclick="selecionarEstrela(1)">&#11088;</span>
+        <span class="estrela" data-val="2" onclick="selecionarEstrela(2)">&#11088;</span>
+        <span class="estrela" data-val="3" onclick="selecionarEstrela(3)">&#11088;</span>
+        <span class="estrela" data-val="4" onclick="selecionarEstrela(4)">&#11088;</span>
+        <span class="estrela" data-val="5" onclick="selecionarEstrela(5)">&#11088;</span>
+      </div>
+      <textarea id="textarea-comentario" class="textarea-aval" rows="3" placeholder="Deixe um comentário (opcional)..." style="display:none"></textarea>
+
+      <div class="loader" id="loader-acao"></div>
+      <button class="btn-confirmar-acao verde" id="btn-enviar" onclick="enviarConfirmacao()">Confirmar</button>
+      <button class="btn-voltar" onclick="voltarOpcoes()">&#8592; Voltar</button>
+    </div>
+  </div>
+
+  <!-- TELA 3: Sucesso -->
+  <div id="tela-sucesso">
+    <div class="sucesso-card">
+      <div class="sucesso-icone" id="sucesso-icone">&#10003;</div>
+      <div class="sucesso-titulo" id="sucesso-titulo">Enviado com sucesso!</div>
+      <div class="sucesso-sub" id="sucesso-sub"></div>
+    </div>
+  </div>
+
+  <div class="rodape">
+    SD Móveis Projetados &bull; Atendimento ao Cliente<br>
+    Esta página é segura e exclusiva para seu agendamento.
+  </div>
+
+  <script>
+    // ── Lê parâmetros da URL ──
+    const params = new URLSearchParams(window.location.search);
+    const evId       = params.get('id') || '';
+    const evCliente  = decodeURIComponent(params.get('cliente') || 'Cliente');
+    const evTipo     = decodeURIComponent(params.get('tipo') || 'Agendamento');
+    const evData     = decodeURIComponent(params.get('data') || '');
+    const evHora     = decodeURIComponent(params.get('hora') || '');
+    const evLocal    = decodeURIComponent(params.get('local') || '');
+    const acaoParam  = decodeURIComponent(params.get('acao') || ''); // pré-seleciona se vier pela URL
+
+    // Canal ntfy (mesmo do app principal)
+    const NTFY_TOPIC = 'sdmoveis-agenda-' + (evId || 'geral').replace(/[^a-z0-9]/gi, '');
+    // Canal fixo do portal admin (mesmo do index.html)
+    const NTFY_PORTAL_ADMIN = 'sdmoveis-portal-admin-v2';
+
+    let notaSelecionada = 5;
+    let acaoAtual = '';
+
+    // ── Preenche dados ──
+    document.getElementById('el-cliente').textContent = evCliente;
+    document.getElementById('el-tipo').textContent    = evTipo;
+
+    if (evData) {
+      const partes = evData.split('-');
+      const dataFmt = partes.length === 3 ? partes[2] + '/' + partes[1] + '/' + partes[0] : evData;
+      document.getElementById('el-data').textContent = dataFmt;
+    }
+    if (evHora) {
+      document.getElementById('el-hora').textContent = evHora;
+      document.getElementById('row-hora').style.display = 'flex';
+    }
+    if (evLocal) {
+      document.getElementById('el-local').textContent = evLocal;
+      document.getElementById('row-local').style.display = 'flex';
+    }
+
+    // Se a ação já vem na URL, vai direto
+    if (acaoParam && ['confirmar','reagendar','avaliar'].includes(acaoParam)) {
+      setTimeout(() => escolherAcao(acaoParam), 300);
+    }
+
+    // ── Escolher ação ──
+    function escolherAcao(acao) {
+      acaoAtual = acao;
+      const card = document.getElementById('acao-card');
+      const icone = document.getElementById('acao-icone');
+      const titulo = document.getElementById('acao-titulo');
+      const sub = document.getElementById('acao-sub');
+      const btnEnviar = document.getElementById('btn-enviar');
+      const estrelas = document.getElementById('estrelas-box');
+      const textarea = document.getElementById('textarea-comentario');
+
+      card.className = 'acao-card ' + acao;
+      estrelas.style.display = 'none';
+      textarea.style.display = 'none';
+
+      if (acao === 'confirmar') {
+        icone.textContent = '✅';
+        titulo.textContent = 'Confirmar Agendamento';
+        sub.textContent = 'Ao confirmar, nossa equipe será notificada imediatamente e seu atendimento está garantido.';
+        btnEnviar.textContent = '✅ Confirmar minha presença';
+        btnEnviar.className = 'btn-confirmar-acao verde';
+      } else if (acao === 'reagendar') {
+        icone.textContent = '🔄';
+        titulo.textContent = 'Solicitar Reagendamento';
+        sub.textContent = 'Nossa equipe entrará em contato para definir uma nova data e horário que fique melhor para você.';
+        btnEnviar.textContent = '🔄 Solicitar Reagendamento';
+        btnEnviar.className = 'btn-confirmar-acao azul';
+        textarea.placeholder = 'Informe um motivo ou preferência de data (opcional)...';
+        textarea.style.display = 'block';
+      } else if (acao === 'avaliar') {
+        icone.textContent = '⭐';
+        titulo.textContent = 'Avaliar Atendimento';
+        sub.textContent = 'Sua opinião é muito importante para nós! Selecione as estrelas e deixe um comentário.';
+        btnEnviar.textContent = '⭐ Enviar Avaliação';
+        btnEnviar.className = 'btn-confirmar-acao dourado';
+        estrelas.style.display = 'flex';
+        textarea.placeholder = 'Deixe um comentário sobre o atendimento (opcional)...';
+        textarea.style.display = 'block';
+        selecionarEstrela(5);
+      }
+
+      document.getElementById('tela-opcoes').style.display = 'none';
+      document.getElementById('tela-acao').style.display = 'block';
+    }
+
+    function voltarOpcoes() {
+      document.getElementById('tela-acao').style.display = 'none';
+      document.getElementById('tela-opcoes').style.display = 'block';
+    }
+
+    // ── Estrelas ──
+    function selecionarEstrela(val) {
+      notaSelecionada = val;
+      document.querySelectorAll('.estrela').forEach((el, i) => {
+        if (i < val) {
+          el.classList.add('ativa');
+        } else {
+          el.classList.remove('ativa');
+        }
+      });
+    }
+
+    // ── Enviar confirmação via ntfy ──
+    async function enviarConfirmacao() {
+      const loader = document.getElementById('loader-acao');
+      const btnEnviar = document.getElementById('btn-enviar');
+      const comentario = document.getElementById('textarea-comentario').value.trim();
+
+      loader.style.display = 'block';
+      btnEnviar.disabled = true;
+      btnEnviar.style.opacity = '0.6';
+
+      const payload = {
+        tipo: 'confirmacao_agendamento',
+        id: evId,
+        cliente: evCliente,
+        acao: acaoAtual,
+        nota: acaoAtual === 'avaliar' ? notaSelecionada : undefined,
+        comentario: comentario || undefined,
+        dataHora: new Date().toISOString()
+      };
+
+      // Envia para o canal ntfy do portal admin (mesmo que o app escuta)
+      try {
+        await fetch('https://ntfy.sh/' + NTFY_PORTAL_ADMIN, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+        mostrarSucesso();
+      } catch(e) {
+        // Tenta canal alternativo
+        try {
+          await fetch('https://ntfy.sh/sdmoveis-confirmacoes', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+          });
+          mostrarSucesso();
+        } catch(_) {
+          loader.style.display = 'none';
+          btnEnviar.disabled = false;
+          btnEnviar.style.opacity = '1';
+          alert('Erro ao enviar. Verifique sua conexão e tente novamente.');
+        }
+      }
+    }
+
+    function mostrarSucesso() {
+      const icone = document.getElementById('sucesso-icone');
+      const titulo = document.getElementById('sucesso-titulo');
+      const sub = document.getElementById('sucesso-sub');
+
+      if (acaoAtual === 'confirmar') {
+        icone.textContent = '✅';
+        titulo.textContent = 'Presença Confirmada!';
+        sub.innerHTML = 'Obrigado, <strong>' + evCliente + '</strong>!<br>Seu agendamento de <strong>' + evTipo + '</strong> está confirmado.<br><br>Nos vemos em breve! 😊';
+      } else if (acaoAtual === 'reagendar') {
+        icone.textContent = '🔄';
+        titulo.textContent = 'Reagendamento Solicitado!';
+        sub.innerHTML = 'Recebemos sua solicitação, <strong>' + evCliente + '</strong>!<br>Nossa equipe entrará em contato em breve para definir um novo horário.';
+      } else if (acaoAtual === 'avaliar') {
+        const estrelinhas = '⭐'.repeat(notaSelecionada);
+        icone.textContent = '⭐';
+        titulo.textContent = 'Avaliação Enviada!';
+        sub.innerHTML = 'Obrigado pela sua avaliação, <strong>' + evCliente + '</strong>!<br>' + estrelinhas + '<br><br>Sua opinião nos ajuda a melhorar cada vez mais.';
+      }
+
+      document.getElementById('tela-acao').style.display = 'none';
+      document.getElementById('tela-sucesso').style.display = 'block';
+    }
+  </script>
+</body>
+</html>

@@ -16212,11 +16212,15 @@ function renderAgenda() {
     const isConfirmado = !!ev.confirmado;
     const temAvaliacao = !!ev.avaliacao;
 
-    // Link interativo para o cliente confirmar, reagendar ou avaliar
-    const linkInterativo = `${window.location.origin}/api/confirmar-agendamento?id=${encodeURIComponent(ev.id)}&cliente=${encodeURIComponent(ev.cliente || '')}&tipo=${encodeURIComponent(ev.tipo || 'Medição Técnica')}&data=${encodeURIComponent(ev.data || '')}&hora=${encodeURIComponent(ev.hora || '')}`;
+    // Links clicáveis separados para cada ação do cliente
+    const baseConfirmar = `${window.location.origin}/confirmar.html`;
+    const paramsBase = `id=${encodeURIComponent(ev.id)}&cliente=${encodeURIComponent(ev.cliente || '')}&tipo=${encodeURIComponent(ev.tipo || 'Medição Técnica')}&data=${encodeURIComponent(ev.data || '')}&hora=${encodeURIComponent(ev.hora || '')}${ev.end ? '&local=' + encodeURIComponent(ev.end) : ''}`;
+    const linkConfirmar = `${baseConfirmar}?${paramsBase}&acao=confirmar`;
+    const linkReagendar = `${baseConfirmar}?${paramsBase}&acao=reagendar`;
+    const linkAvaliar   = `${baseConfirmar}?${paramsBase}&acao=avaliar`;
 
-    // Mensagem WhatsApp completa com link interativo + resposta direta
-    const zapTexto = `Olá ${ev.cliente || ''}! 😊\n\nConfirmando o seu agendamento de *${ev.tipo || 'Medição Técnica'}* para o dia *${dataFmt}* às *${ev.hora || ''}* pela *SD Móveis Projetados*.${ev.end ? '\n📍 Local: *' + ev.end + '*' : ''}${ev.obs ? '\n📝 Obs: ' + ev.obs : ''}\n\n👉 *Opções para seu atendimento:*\nToque no link abaixo para escolher sua opção no aplicativo:\n🔗 ${linkInterativo}\n\nOu responda diretamente nesta mensagem com uma das opções abaixo:\n\n✅ *CONFIRMAR* - Para confirmar seu agendamento\n🔄 *REAGENDAR* - Para solicitar nova data ou horário\n⭐ *AVALIAR* - Para enviar sua avaliação do atendimento\n\n_Ao responder ou tocar no link, nossa equipe é notificada na hora!_\n\nAgradecemos a preferência!\n*SD Móveis Projetados* 🏠`;
+    // Mensagem WhatsApp com 3 links clicáveis (um para cada ação)
+    const zapTexto = `Olá ${ev.cliente || ''}! 😊\n\nConfirmando o seu agendamento de *${ev.tipo || 'Medição Técnica'}* para o dia *${dataFmt}* às *${ev.hora || ''}* pela *SD Móveis Projetados*.${ev.end ? '\n📍 Local: *' + ev.end + '*' : ''}${ev.obs ? '\n📝 Obs: ' + ev.obs : ''}\n\n👉 *Toque em uma das opções abaixo:*\n\n✅ *CONFIRMAR* minha presença:\n${linkConfirmar}\n\n🔄 *REAGENDAR* para outro dia/horário:\n${linkReagendar}\n\n⭐ *AVALIAR* o atendimento recebido:\n${linkAvaliar}\n\n_Ao tocar no link, nossa equipe é notificada na hora!_\n\nAgradecemos a preferência!\n*SD Móveis Projetados* 🏠`;
     const zapMsg = encodeURIComponent(zapTexto);
     const zapLink = zapClean ? `https://wa.me/55${zapClean}?text=${zapMsg}` : '';
     const notifPill = formatarTempoNotificacao(ev.notificar_minutos);
