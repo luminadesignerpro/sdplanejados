@@ -2344,6 +2344,8 @@
             🚪 Sair
           </button>
         </div>
+        <!-- Nome do cliente da O.S. selecionada -->
+        <div id="lbl-nome-cliente-os" style="display:none;text-align:center;padding:6px 16px;background:linear-gradient(135deg,rgba(201,168,76,0.18),rgba(201,168,76,0.06));border-top:1px solid rgba(201,168,76,0.25);font-size:13px;font-weight:800;color:var(--gold-light);letter-spacing:0.03em;"></div>
       </div>
 
       <!-- ══ CARD DE AÇÕES E NAVEGAÇÃO ORGANIZADO & PADRONIZADO ══ -->
@@ -8784,12 +8786,22 @@ function baterPontoNoCliente(tipo) {
         clienteSessao = { nome: nomeCliente, os: numOs };
       } else {
         clienteSessao.os = numOs;
+        // Salva o nome do cliente da O.S. separado do nome do funcionário
+        clienteSessao.nomeClienteOs = nomeCliente || '';
         if (nomeCliente && !clienteSessao.isFuncionario) clienteSessao.nome = nomeCliente;
       }
       localStorage.setItem('sdv_cliente_sessao', JSON.stringify(clienteSessao));
-      
+
+      // Atualiza o label da O.S. com o nome do cliente
       const lblOs = document.getElementById('lbl-cliente-os-texto') || document.getElementById('lbl-cliente-os');
       if (lblOs) lblOs.textContent = 'O.S. ' + numOs;
+
+      // Atualiza o nome do CLIENTE da O.S. no cabeçalho (terceira imagem)
+      const lblNomeCliente = document.getElementById('lbl-nome-cliente-os');
+      if (lblNomeCliente) {
+        lblNomeCliente.textContent = nomeCliente ? '👤 Cliente: ' + nomeCliente : '';
+        lblNomeCliente.style.display = nomeCliente ? 'block' : 'none';
+      }
 
       carregarDadosStatus(clienteSessao);
       carregarGaleriaFotos(clienteSessao);
