@@ -1,5 +1,5 @@
-// Service Worker PWA para sdmoveisprojetados - v10.0 (auto-update force)
-const CACHE_NAME = 'sdmoveisprojetados-v10.0';
+// Service Worker PWA para sdmoveisprojetados - v11.0 (force-reload)
+const CACHE_NAME = 'sdmoveisprojetados-v11.0';
 
 self.addEventListener('install', (event) => {
   self.skipWaiting();
@@ -11,7 +11,14 @@ self.addEventListener('activate', (event) => {
       return Promise.all(
         keys.filter((key) => key !== CACHE_NAME).map((key) => caches.delete(key))
       );
-    }).then(() => self.clients.claim())
+    }).then(() => self.clients.claim()).then(() => {
+      // Notifica todas as abas abertas para recarregar e pegar o HTML novo
+      return self.clients.matchAll({ type: 'window' }).then(clients => {
+        clients.forEach(client => {
+          client.postMessage({ type: 'SW_UPDATED', version: CACHE_NAME });
+        });
+      });
+    })
   );
 });
 
