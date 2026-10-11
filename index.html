@@ -1,7 +1,9 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <!-- PWA Automático: Manifest + Meta Tags + Service Worker -->
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <!-- PWA: Manifest + Meta Tags + Service Worker -->
   <link rel="manifest" href="/manifest.json">
   <meta name="theme-color" content="#080811">
   <meta name="mobile-web-app-capable" content="yes">
@@ -13,32 +15,11 @@
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', function() {
         navigator.serviceWorker.register('/sw.js')
-          .then(function(reg){ console.log('SW registrado com sucesso:', reg.scope); })
-          .catch(function(err){ console.warn('Erro ao registrar SW:', err); });
+          .then(function(reg){ console.log('SW registrado:', reg.scope); })
+          .catch(function(err){ console.warn('Erro SW:', err); });
       });
     }
   </script>
-
-  <!-- PWA Automático: Manifest + Meta Tags + Service Worker -->
-  
-  
-  
-  
-  
-  
-  
-  <script>
-    if ('serviceWorker' in navigator) {
-      window.addEventListener('load', function() {
-        navigator.serviceWorker.register('/sw.js')
-          .then(function(reg){ console.log('SW registrado com sucesso:', reg.scope); })
-          .catch(function(err){ console.warn('Erro ao registrar SW:', err); });
-      });
-    }
-  </script>
-
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
@@ -3947,7 +3928,7 @@
         <div id="estoque-lista-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:12px;"></div>
       </div>
 
-      <!-- Conteúdo: Histórico de Movimentações -->
+      <!-- Conteúdo: Histórico de Movimentações (tabela completa - abas Entradas) -->
       <div id="estoque-conteudo-movimentacoes" style="display:none;">
         <div style="overflow-x:auto;">
           <table style="width:100%;min-width:640px;border-collapse:collapse;font-size:12.5px;text-align:left;">
@@ -3964,6 +3945,16 @@
             </thead>
             <tbody id="estoque-tabela-movimentacoes"></tbody>
           </table>
+        </div>
+      </div>
+
+      <!-- Conteúdo: Histórico Agrupado por Mês/Material -->
+      <div id="estoque-conteudo-historico" style="display:none;">
+        <div id="estoque-historico-container">
+          <div style="text-align:center;padding:32px;color:var(--muted);">
+            <div style="font-size:32px;margin-bottom:8px;">📜</div>
+            <div style="font-weight:700;">Nenhuma movimentação registrada ainda.</div>
+          </div>
         </div>
       </div>
 
@@ -7385,6 +7376,7 @@ function atualizarBadge() {
 //  ITEMS & M² CALCULATIONS (EXCEL SPREADSHEET FORMULA)
 // ══════════════════════════════════════════════
 function esc(s) { return String(s||'').replace(/"/g,'&quot;'); }
+function escAttr(s) { return String(s||'').replace(/\\/g,'\\\\').replace(/'/g,"\\'").replace(/"/g,'&quot;'); }
 
 function formatarValorPtBr(val) {
   if (val === '' || val === null || val === undefined) return '0,00';
@@ -10616,7 +10608,7 @@ function renderHist() {
           ${btnVerAssinatura}
           ${btnPdf}
           <button class="btn btn-whats btn-sm" onclick="enviarWhatsOs('${o.id}')" title="Enviar WhatsApp com links de aprovação">📱 WhatsApp</button>
-          <button class="btn btn-sm" onclick="abrirPortalClienteComOs('${o.id}', '${esc(o.numero)}', '${esc(o.nome)}')" style="background:rgba(201,168,76,0.15);border:1px solid rgba(201,168,76,0.5);color:var(--gold-light);font-weight:800;" title="Abrir Portal do Cliente com esta OS">🚀 Portal</button>
+          <button class="btn btn-sm" onclick="abrirPortalClienteComOs('${o.id}', '${escAttr(o.numero)}', '${escAttr(o.nome)}')" style="background:rgba(201,168,76,0.15);border:1px solid rgba(201,168,76,0.5);color:var(--gold-light);font-weight:800;" title="Abrir Portal do Cliente com esta OS">🚀 Portal</button>
           <button class="btn btn-sec btn-sm" onclick="editarOs('${o.id}')">✏️ Editar</button>
           <button class="btn btn-danger btn-sm" onclick="deletarOs('${o.id}')">✕</button>
         </div>
@@ -24265,15 +24257,128 @@ function mudarSubAbaEstoque(aba) {
 
   const divMat = document.getElementById('estoque-conteudo-materiais');
   const divMov = document.getElementById('estoque-conteudo-movimentacoes');
+  const divHis = document.getElementById('estoque-conteudo-historico');
   const divAle = document.getElementById('estoque-conteudo-alertas');
   const divCli = document.getElementById('estoque-conteudo-clientes');
 
   if (divMat) divMat.style.display = aba === 'materiais' ? 'block' : 'none';
-  if (divMov) divMov.style.display = (aba === 'movimentacoes' || aba === 'historico') ? 'block' : 'none';
+  if (divMov) divMov.style.display = aba === 'movimentacoes' ? 'block' : 'none';
+  if (divHis) divHis.style.display = aba === 'historico' ? 'block' : 'none';
   if (divAle) divAle.style.display = aba === 'alertas' ? 'block' : 'none';
   if (divCli) divCli.style.display = aba === 'clientes' ? 'block' : 'none';
 
   renderEstoqueView();
+
+  if (aba === 'historico') renderHistoricoEstoque();
+}
+
+function renderHistoricoEstoque() {
+  const container = document.getElementById('estoque-historico-container');
+  if (!container) return;
+
+  const movs = obterMovimentacoesEstoque();
+  if (!movs || movs.length === 0) {
+    container.innerHTML = `
+      <div style="text-align:center;padding:40px;color:var(--muted);">
+        <div style="font-size:40px;margin-bottom:10px;">📜</div>
+        <div style="font-weight:800;font-size:15px;color:#fff;margin-bottom:6px;">Nenhuma movimentação registrada ainda</div>
+        <div style="font-size:12px;">Registre entradas e saídas no estoque para ver o histórico aqui.</div>
+      </div>`;
+    return;
+  }
+
+  // Ordena do mais recente para o mais antigo
+  const ordenados = [...movs].sort((a, b) => {
+    const dA = (a.data || '') + (a.hora || '');
+    const dB = (b.data || '') + (b.hora || '');
+    return dB.localeCompare(dA);
+  });
+
+  // Agrupa por mês/ano
+  const grupos = {};
+  ordenados.forEach(m => {
+    const d = m.data ? new Date(m.data + 'T00:00:00') : null;
+    const chave = d ? d.toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' }) : 'Sem Data';
+    const chaveNorm = chave.charAt(0).toUpperCase() + chave.slice(1);
+    if (!grupos[chaveNorm]) grupos[chaveNorm] = [];
+    grupos[chaveNorm].push(m);
+  });
+
+  const totalEntradas = movs.filter(m => m.tipo === 'entrada').reduce((s, m) => s + Number(m.qtd || 0), 0);
+  const totalSaidas = movs.filter(m => m.tipo === 'saida').reduce((s, m) => s + Number(m.qtd || 0), 0);
+
+  let html = `
+    <!-- Resumo rápido -->
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:16px;">
+      <div style="background:rgba(16,185,129,0.1);border:1px solid rgba(16,185,129,0.35);border-radius:12px;padding:12px;text-align:center;">
+        <div style="font-size:10px;font-weight:800;color:#34d399;text-transform:uppercase;">Total Entradas</div>
+        <div style="font-size:22px;font-weight:900;color:#10b981;margin-top:4px;">${totalEntradas}</div>
+        <div style="font-size:10px;color:var(--muted);">unidades</div>
+      </div>
+      <div style="background:rgba(239,68,68,0.1);border:1px solid rgba(239,68,68,0.35);border-radius:12px;padding:12px;text-align:center;">
+        <div style="font-size:10px;font-weight:800;color:#f87171;text-transform:uppercase;">Total Saídas</div>
+        <div style="font-size:22px;font-weight:900;color:#ef4444;margin-top:4px;">${totalSaidas}</div>
+        <div style="font-size:10px;color:var(--muted);">unidades</div>
+      </div>
+      <div style="background:rgba(201,168,76,0.1);border:1px solid rgba(201,168,76,0.35);border-radius:12px;padding:12px;text-align:center;">
+        <div style="font-size:10px;font-weight:800;color:var(--gold-light);text-transform:uppercase;">Movimentações</div>
+        <div style="font-size:22px;font-weight:900;color:var(--gold-light);margin-top:4px;">${movs.length}</div>
+        <div style="font-size:10px;color:var(--muted);">registros</div>
+      </div>
+    </div>`;
+
+  // Linha do tempo por mês
+  Object.entries(grupos).forEach(([mes, items]) => {
+    const entMes = items.filter(i => i.tipo === 'entrada').length;
+    const saiMes = items.filter(i => i.tipo === 'saida').length;
+
+    html += `
+      <div style="margin-bottom:16px;">
+        <!-- Cabeçalho do mês -->
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px;">
+          <div style="height:1px;flex:1;background:rgba(255,255,255,0.08);"></div>
+          <div style="background:rgba(201,168,76,0.15);border:1px solid rgba(201,168,76,0.35);border-radius:999px;padding:4px 14px;font-size:11.5px;font-weight:900;color:var(--gold-light);white-space:nowrap;">
+            📅 ${mes}
+            <span style="margin-left:8px;font-size:10px;opacity:0.8;">↑${entMes} ↓${saiMes}</span>
+          </div>
+          <div style="height:1px;flex:1;background:rgba(255,255,255,0.08);"></div>
+        </div>
+
+        <!-- Cards do mês -->
+        <div style="display:flex;flex-direction:column;gap:6px;">`;
+
+    items.forEach(m => {
+      const isEntrada = m.tipo === 'entrada';
+      const cor = isEntrada ? '#10b981' : '#ef4444';
+      const corBg = isEntrada ? 'rgba(16,185,129,0.1)' : 'rgba(239,68,68,0.1)';
+      const corBorda = isEntrada ? 'rgba(16,185,129,0.3)' : 'rgba(239,68,68,0.3)';
+      const icone = isEntrada ? '↑ ENTRADA' : '↓ SAÍDA';
+      const dataFmt = m.data ? m.data.split('-').reverse().join('/') : '';
+      const hora = m.hora ? ' ' + m.hora : '';
+
+      html += `
+          <div style="display:flex;align-items:center;gap:10px;padding:10px 12px;background:${corBg};border:1px solid ${corBorda};border-radius:10px;border-left:3px solid ${cor};">
+            <div style="min-width:64px;text-align:center;">
+              <div style="font-size:9px;font-weight:900;color:${cor};letter-spacing:0.05em;">${icone}</div>
+              <div style="font-size:10px;color:var(--muted);margin-top:2px;">${dataFmt}${hora}</div>
+            </div>
+            <div style="flex:1;min-width:0;">
+              <div style="font-size:13px;font-weight:800;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${esc(m.material || m.nome || '—')}</div>
+              <div style="font-size:11px;color:var(--muted);margin-top:1px;">
+                ${m.destino_cliente ? '👤 ' + esc(m.destino_cliente) + ' · ' : ''}${m.fornecedor ? '🏭 ' + esc(m.fornecedor) : ''}${m.obs ? ' · ' + esc(m.obs) : ''}
+              </div>
+            </div>
+            <div style="text-align:right;min-width:44px;">
+              <div style="font-size:16px;font-weight:900;color:${cor};">${isEntrada ? '+' : '-'}${m.qtd || 0}</div>
+              <div style="font-size:9.5px;color:var(--muted);">${m.unidade || 'un'}</div>
+            </div>
+          </div>`;
+    });
+
+    html += `</div></div>`;
+  });
+
+  container.innerHTML = html;
 }
 
 function filtrarListaEstoque() {
