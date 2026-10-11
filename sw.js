@@ -1,5 +1,5 @@
-// Service Worker PWA para sdmoveisprojetados - v11.0 (force-reload)
-const CACHE_NAME = 'sdmoveisprojetados-v11.0';
+// Service Worker PWA para sdmoveisprojetados - v12.0 (force-reload)
+const CACHE_NAME = 'sdmoveisprojetados-v12.0';
 
 self.addEventListener('install', (event) => {
   self.skipWaiting();
@@ -29,11 +29,13 @@ self.addEventListener('fetch', (event) => {
   const isHtml = event.request.mode === 'navigate' ||
                  (event.request.headers.get('accept') && event.request.headers.get('accept').includes('text/html')) ||
                  url.pathname.endsWith('.html') ||
-                 url.pathname === '/';
+                 url.pathname === '/' ||
+                 url.pathname === '/cliente' ||
+                 url.pathname === '/funcionario';
 
   if (isHtml) {
     event.respondWith(
-      fetch(event.request)
+      fetch(event.request, { cache: 'no-store' })
         .then((response) => {
           if (response && response.status === 200) {
             const clone = response.clone();

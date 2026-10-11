@@ -2159,7 +2159,7 @@
         <div class="banner-bottom-bar" style="display:flex;align-items:center;justify-content:space-between;gap:8px;">
           <div class="user-pill" style="flex:1;justify-content:center;">
             <span>👤</span>
-            <span id="lbl-cliente-nome">Samuel David</span>
+            <span id="lbl-cliente-nome">Cliente</span>
           </div>
           <button type="button" onclick="sairCliente()" style="background:rgba(239,68,68,0.22);border:1.5px solid #ef4444;color:#fca5a5;padding:7px 14px;border-radius:20px;font-size:12px;font-weight:800;cursor:pointer;display:inline-flex;align-items:center;gap:5px;flex-shrink:0;transition:all 0.2s;">
             🚪 Sair
@@ -3472,8 +3472,8 @@
       <div style="display:flex;align-items:center;gap:10px;">
         <span style="font-size:22px;">📋</span>
         <div>
-          <div style="font-size:16px;font-weight:900;color:#facc15;">Ordens de Serviço</div>
-          <div style="font-size:11px;color:#94a3b8;">Toque na ordem para abrir e acompanhar</div>
+          <div id="titulo-modal-ordens" style="font-size:16px;font-weight:900;color:#facc15;">Ordens de Serviço</div>
+          <div id="subtitulo-modal-ordens" style="font-size:11px;color:#94a3b8;">Toque na ordem para abrir e acompanhar</div>
         </div>
       </div>
       <button type="button" onclick="fecharModalSeletorOrdens()" style="background:rgba(255,255,255,0.08);border:none;color:#94a3b8;width:32px;height:32px;border-radius:50%;font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;">✕</button>
@@ -7062,6 +7062,46 @@ function mudarAba(tab) {
       mostrarToastNotificacao('O.S. Selecionada', `Visualizando agora ${numOs} - ${nomeCliente}`, '📋');
     }
 
+    function nomesSaoDoMesmoCliente(nomeA, nomeB) {
+      if (!nomeA || !nomeB) return false;
+      var nA = String(nomeA).toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').trim();
+      var nB = String(nomeB).toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').trim();
+      if (!nA || !nB) return false;
+      if (nA === nB) return true;
+      if (nA.includes(nB) || nB.includes(nA)) return true;
+      var stopwords = ['de', 'da', 'do', 'das', 'dos', 'e', 'dr', 'dra', 'sr', 'sra', 'cliente'];
+      var partsA = nA.split(/\s+/).filter(p => p.length >= 3 && !stopwords.includes(p));
+      var partsB = nB.split(/\s+/).filter(p => p.length >= 3 && !stopwords.includes(p));
+      for (var i = 0; i < partsA.length; i++) {
+        for (var j = 0; j < partsB.length; j++) {
+          if (partsA[i] === partsB[j]) return true;
+        }
+      }
+      return false;
+    }
+
+    function obterNomeClienteAtivo() {
+      var n = '';
+      if (clienteSessao && clienteSessao.nome && clienteSessao.nome.trim() && clienteSessao.nome.trim().toLowerCase() !== 'cliente') {
+        n = clienteSessao.nome.trim();
+      }
+      if (!n) {
+        var elN = document.getElementById('lbl-cliente-nome');
+        if (elN && elN.textContent.trim() && elN.textContent.trim().toLowerCase() !== 'cliente') {
+          n = elN.textContent.trim();
+        }
+      }
+      if (!n) {
+        var urlP = new URLSearchParams(window.location.search);
+        var urlNome = (urlP.get('nome') || '').trim();
+        if (urlNome && urlNome.toLowerCase() !== 'cliente') n = urlNome;
+      }
+      if (!n && clienteSessao && clienteSessao.ordem && clienteSessao.ordem.nome) {
+        n = String(clienteSessao.ordem.nome).trim();
+      }
+      return n;
+    }
+
     function abrirSeletorTrocaOs() {
       const m = document.getElementById('modal-seletor-ordens');
       if (!m) return;
@@ -7072,31 +7112,15 @@ function mudarAba(tab) {
         setTimeout(() => inp.focus(), 100);
       }
 
-      // ── COLETA IDENTIFICADORES DO CLIENTE LOGADO ──
-      var urlP = new URLSearchParams(window.location.search);
-
-      // Telefone (mais confiável - vem direto da URL do link)
-      var telLogado = '';
-      if (clienteSessao && clienteSessao.telefone) telLogado = String(clienteSessao.telefone).replace(/\D/g, '');
-      if (!telLogado && clienteSessao && clienteSessao.iden) telLogado = String(clienteSessao.iden).replace(/\D/g, '');
-      if (!telLogado) telLogado = (urlP.get('tel') || urlP.get('whatsapp') || '').replace(/\D/g, '');
-
-      // Nome do cliente
-      var nomeLogado = '';
-      if (clienteSessao && clienteSessao.nome) nomeLogado = String(clienteSessao.nome).trim().toLowerCase();
-      if (!nomeLogado) nomeLogado = (urlP.get('nome') || '').trim().toLowerCase();
-      if (!nomeLogado) {
-        var elN = document.getElementById('lbl-cliente-nome');
-        if (elN) nomeLogado = elN.textContent.trim().toLowerCase();
+      var nomeLogado = obterNomeClienteAtivo();
+      var subEl = document.getElementById('subtitulo-modal-ordens');
+      if (subEl) {
+        if (nomeLogado) {
+          subEl.textContent = 'Ordens de Serviço do cliente: ' + nomeLogado;
+        } else {
+          subEl.textContent = 'Toque na ordem para abrir e acompanhar';
+        }
       }
-
-      // Número da OS atual
-      var osLogado = '';
-      if (clienteSessao && clienteSessao.os) osLogado = String(clienteSessao.os).replace(/\D/g, '');
-      if (!osLogado) osLogado = (urlP.get('os') || '').replace(/\D/g, '');
-
-      // Armazena globalmente para renderizarListaModalOrdens usar
-      window._filtroClienteOS = { tel: telLogado, nome: nomeLogado, os: osLogado };
 
       renderizarListaModalOrdens('');
     }
@@ -7117,73 +7141,48 @@ function mudarAba(tab) {
       const todasOrdens = (typeof carregarOrdensDoStorage === 'function') ? carregarOrdensDoStorage() : [];
 
       // ── COLETA REFERÊNCIAS DO CLIENTE ──
-      var fc = window._filtroClienteOS || {};
-      var urlP2 = new URLSearchParams(window.location.search);
+      var nomeRef = obterNomeClienteAtivo();
 
-      // Telefone
-      var telRef = fc.tel || '';
-      if (!telRef && clienteSessao && clienteSessao.telefone) telRef = String(clienteSessao.telefone).replace(/\D/g, '');
+      var urlP2 = new URLSearchParams(window.location.search);
+      var telRef = '';
+      if (clienteSessao && clienteSessao.telefone) telRef = String(clienteSessao.telefone).replace(/\D/g, '');
       if (!telRef && clienteSessao && clienteSessao.iden) telRef = String(clienteSessao.iden).replace(/\D/g, '');
       if (!telRef) telRef = (urlP2.get('tel') || urlP2.get('whatsapp') || '').replace(/\D/g, '');
 
-      // Nome
-      var nomeRef = fc.nome || '';
-      if (!nomeRef && clienteSessao && clienteSessao.nome) nomeRef = String(clienteSessao.nome).trim().toLowerCase();
-      if (!nomeRef) nomeRef = (urlP2.get('nome') || '').trim().toLowerCase();
-      if (!nomeRef) {
-        var elNome2 = document.getElementById('lbl-cliente-nome');
-        if (elNome2) nomeRef = elNome2.textContent.trim().toLowerCase();
-      }
-
-      // Número da OS atual
-      var osRef = fc.os || '';
-      if (!osRef && clienteSessao && clienteSessao.os) osRef = String(clienteSessao.os).replace(/\D/g, '');
+      var osRef = '';
+      if (clienteSessao && clienteSessao.os) osRef = String(clienteSessao.os).replace(/\D/g, '');
       if (!osRef) osRef = (urlP2.get('os') || '').replace(/\D/g, '');
 
-      // ── APLICA FILTRO ──
-      // Função auxiliar para extrair telefone de uma OS
       function getTelOS(o) {
         return String((o.dados && (o.dados.tel || o.dados.telefone || o.dados.whatsapp)) || o.tel || o.whatsapp || o.telefone || o.iden || '').replace(/\D/g, '');
       }
-      // Função auxiliar para extrair nome de uma OS
       function getNomeOS(o) {
-        return String(o.nome || (o.dados && o.dados.nome) || o.nomeCliente || o.cliente || '').trim().toLowerCase();
+        return String(o.nome || (o.dados && o.dados.nome) || o.nomeCliente || o.cliente || '').trim();
       }
 
-      var ordensDoCliente;
+      // ── FILTRAGEM: EXCLUSIVAMENTE ORDENS DO CLIENTE LOGADO (EX: DAVID) ──
+      var ordensDoCliente = todasOrdens.filter(function(o) {
+        var nomeOS = getNomeOS(o);
+        var telOS = getTelOS(o);
+        var numOS = String(o.numero || o.id || '').replace(/\D/g, '');
 
-      if (telRef && telRef.length >= 8) {
-        // CRITÉRIO 1 (MAIS CONFIÁVEL): Filtro por telefone
-        ordensDoCliente = todasOrdens.filter(function(o) {
-          var oTel = getTelOS(o);
-          if (oTel && oTel.length >= 8 && oTel.slice(-8) === telRef.slice(-8)) return true;
-          // Fallback: verifica pelo nome caso o telefone não bata
-          if (nomeRef && nomeRef.length >= 2) {
-            var oN = getNomeOS(o);
-            if (oN && oN.indexOf(nomeRef) !== -1) return true;
-          }
-          // Fallback: verifica pela OS atual
-          var oNum = String(o.numero || '').replace(/\D/g, '');
-          if (osRef && oNum && osRef === oNum) return true;
-          return false;
-        });
-      } else if (nomeRef && nomeRef.length >= 2) {
-        // CRITÉRIO 2: Filtro por nome
-        ordensDoCliente = todasOrdens.filter(function(o) {
-          var oN = getNomeOS(o);
-          if (oN && oN.indexOf(nomeRef) !== -1) return true;
-          var oNum = String(o.numero || '').replace(/\D/g, '');
-          if (osRef && oNum && osRef === oNum) return true;
-          return false;
-        });
-      } else if (osRef) {
-        // CRITÉRIO 3: Só a OS atual (último recurso)
-        ordensDoCliente = todasOrdens.filter(function(o) {
-          return String(o.numero || '').replace(/\D/g, '') === osRef;
-        });
-      } else {
-        ordensDoCliente = [];
-      }
+        // 1. Se temos o nome do cliente (ex: "David"), SÓ entram OS cujo nome pertença ao mesmo cliente
+        if (nomeRef && nomeRef.length >= 2) {
+          return nomesSaoDoMesmoCliente(nomeRef, nomeOS);
+        }
+
+        // 2. Se não temos o nome, usa o telefone (mínimo 8 dígitos)
+        if (telRef && telRef.length >= 8 && telOS && telOS.length >= 8) {
+          return telOS.slice(-8) === telRef.slice(-8);
+        }
+
+        // 3. Fallback: apenas a própria OS aberta
+        if (osRef && numOS && osRef === numOS) {
+          return true;
+        }
+
+        return false;
+      });
 
       const fLimpo = (filtro || '').trim().toLowerCase();
 
@@ -7197,11 +7196,14 @@ function mudarAba(tab) {
       }
 
       if (!filtradas.length) {
+        var msgDesc = nomeRef 
+          ? `Nenhuma O.S. cadastrada para o cliente <strong>${nomeRef}</strong>.`
+          : 'Nenhuma O.S. corresponde ao termo pesquisado.';
         container.innerHTML = `
           <div style="text-align:center;padding:30px 10px;color:#94a3b8;">
             <div style="font-size:32px;margin-bottom:8px;">🔍</div>
             <div style="font-size:14px;font-weight:700;color:#fff;">Nenhuma Ordem de Serviço encontrada</div>
-            <div style="font-size:12px;margin-top:4px;">Nenhuma O.S. corresponde ao termo pesquisado.</div>
+            <div style="font-size:12px;margin-top:6px;color:#cbd5e1;">${msgDesc}</div>
           </div>
         `;
         return;
