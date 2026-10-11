@@ -24486,13 +24486,13 @@ function renderEstoqueView() {
             <div style="display:flex;gap:6px;justify-content:space-between;align-items:center;padding-top:8px;border-top:1px solid rgba(255,255,255,0.08);flex-wrap:wrap;">
               <div style="display:flex;gap:4px;flex-wrap:wrap;">
                 <button type="button" onclick="abrirModalEntradaEstoque('${m.id}')" title="Registrar Entrada" style="padding:6px 9px;font-size:11px;font-weight:800;background:rgba(16,185,129,0.2);border:1px solid #10b981;border-radius:6px;color:#34d399;cursor:pointer;">
-                  📥 Entrada
+                  + Entrada
                 </button>
-                <button type="button" onclick="abrirModalSaidaEstoque('${m.id}')" title="Registrar Saída" style="padding:6px 9px;font-size:11px;font-weight:800;background:rgba(239,68,68,0.2);border:1px solid #ef4444;border-radius:6px;color:#f87171;cursor:pointer;">
-                  📤 Saída
+                <button type="button" onclick="abrirModalSaidaEstoque('${m.id}')" title="Registrar Sa&#237;da" style="padding:6px 9px;font-size:11px;font-weight:800;background:rgba(239,68,68,0.2);border:1px solid #ef4444;border-radius:6px;color:#f87171;cursor:pointer;">
+                  - Sa&#237;da
                 </button>
-                <button type="button" onclick="abrirModalSaidaClienteEstoque('${m.id}')" title="Saída para Cliente / Obra" style="padding:6px 9px;font-size:11px;font-weight:800;background:rgba(201,168,76,0.2);border:1px solid #c9a84c;border-radius:6px;color:#f3d98a;cursor:pointer;">
-                  👤 Cliente
+                <button type="button" onclick="abrirModalSaidaClienteEstoque('${m.id}')" title="Sa&#237;da para Cliente / Obra" style="padding:6px 9px;font-size:11px;font-weight:800;background:rgba(201,168,76,0.2);border:1px solid #c9a84c;border-radius:6px;color:#f3d98a;cursor:pointer;">
+                  &#128100; Cliente
                 </button>
               </div>
 
@@ -24521,8 +24521,8 @@ function renderEstoqueView() {
       tabMovEl.innerHTML = movsOrdenadas.map(mv => {
         const isEntrada = mv.tipo === 'entrada';
         const badge = isEntrada
-          ? `<span style="padding:3px 8px;border-radius:999px;background:rgba(16,185,129,0.2);border:1px solid #10b981;color:#34d399;font-weight:900;font-size:10.5px;">📥 ENTRADA</span>`
-          : `<span style="padding:3px 8px;border-radius:999px;background:rgba(239,68,68,0.2);border:1px solid #ef4444;color:#f87171;font-weight:900;font-size:10.5px;">📤 SAÍDA</span>`;
+          ? `<span style="padding:3px 8px;border-radius:999px;background:rgba(16,185,129,0.2);border:1px solid #10b981;color:#34d399;font-weight:900;font-size:10.5px;">&#8679; ENTRADA</span>`
+          : `<span style="padding:3px 8px;border-radius:999px;background:rgba(239,68,68,0.2);border:1px solid #ef4444;color:#f87171;font-weight:900;font-size:10.5px;">&#8681; SA&#205;DA</span>`;
 
         return `
           <tr style="border-bottom:1px solid rgba(255,255,255,0.06);">
@@ -24578,7 +24578,7 @@ function renderEstoqueView() {
               ${m.fornecedor ? `<div style="font-size:11.5px;color:var(--gold-light);margin-top:4px;">Fornecedor Sugerido: <strong>${esc(m.fornecedor)}</strong></div>` : ''}
             </div>
             <button type="button" class="btn btn-primary" onclick="abrirModalEntradaEstoque('${m.id}')" style="padding:8px 12px;font-size:12px;font-weight:800;background:linear-gradient(135deg,#059669,#10b981);border:none;">
-              📥 Comprar / Registrar Entrada
+              + Comprar / Registrar Entrada
             </button>
           </div>
         `;
