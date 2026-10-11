@@ -17252,8 +17252,8 @@ function aoCapturarFotoAgenda(event) {
         const imgEl = document.createElement('img');
         imgEl.src = dataUrl;
         imgEl.style.cssText = 'width:56px;height:56px;object-fit:cover;border-radius:8px;border:1.5px solid #06b6d4;flex-shrink:0;cursor:pointer;';
-        imgEl.onclick = abrirGaleriaAgenda;
-        imgEl.title = 'Clique para ver na Galeria';
+        imgEl.onclick = () => abrirLightboxFotoAgenda(dataUrl);
+        imgEl.title = 'Toque para ver a foto em tela cheia';
         thumbs.insertBefore(imgEl, thumbs.firstChild);
         count.textContent = thumbs.children.length;
       }
@@ -17263,6 +17263,44 @@ function aoCapturarFotoAgenda(event) {
     img.src = rawDataUrl;
   };
   reader.readAsDataURL(file);
+}
+
+// ── LIGHTBOX: abre a foto em tela cheia ao clicar na miniatura ──
+function abrirLightboxFotoAgenda(dataUrl) {
+  // Remove lightbox anterior se existir
+  const old = document.getElementById('lightbox-foto-agenda');
+  if (old) old.remove();
+
+  const overlay = document.createElement('div');
+  overlay.id = 'lightbox-foto-agenda';
+  overlay.style.cssText = 'position:fixed;inset:0;z-index:9999999;background:rgba(0,0,0,0.96);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:16px;';
+
+  // Botão fechar
+  const btnFechar = document.createElement('button');
+  btnFechar.textContent = '✕ Fechar';
+  btnFechar.style.cssText = 'position:absolute;top:16px;right:16px;background:rgba(255,255,255,0.12);border:1px solid rgba(255,255,255,0.25);color:#fff;padding:8px 18px;border-radius:8px;font-size:14px;font-weight:700;cursor:pointer;z-index:2;';
+  btnFechar.onclick = () => overlay.remove();
+
+  // Botão download
+  const btnDown = document.createElement('a');
+  btnDown.href = dataUrl;
+  btnDown.download = 'foto-agendamento-' + Date.now() + '.jpg';
+  btnDown.textContent = '⬇ Baixar';
+  btnDown.style.cssText = 'position:absolute;top:16px;left:16px;background:rgba(6,182,212,0.25);border:1px solid #06b6d4;color:#22d3ee;padding:8px 18px;border-radius:8px;font-size:14px;font-weight:700;text-decoration:none;z-index:2;';
+
+  // Imagem
+  const imgEl = document.createElement('img');
+  imgEl.src = dataUrl;
+  imgEl.style.cssText = 'max-width:100%;max-height:85vh;object-fit:contain;border-radius:10px;box-shadow:0 8px 40px rgba(0,0,0,0.8);';
+
+  overlay.appendChild(btnFechar);
+  overlay.appendChild(btnDown);
+  overlay.appendChild(imgEl);
+
+  // Fechar ao clicar fora da imagem
+  overlay.onclick = (e) => { if (e.target === overlay) overlay.remove(); };
+
+  document.body.appendChild(overlay);
 }
 
 function abrirAppWhatsApp(tipo) {
