@@ -15774,16 +15774,24 @@ function processarConfirmacaoAgendamento(dados) {
   }
 
   if (ev) {
+    let notifTitulo = '';
+    let notifBody = '';
+    let notifTag = 'confirmacao-' + ev.id;
+
     if (dados.acao === 'confirmar') {
       ev.confirmado = true;
       ev.status_cliente = 'confirmado';
       ev.cliente_confirmou = true;
       ev.confirmado_em = dados.dataHora || new Date().toISOString();
-      mostrarToastAgenda(`✅ <strong>${esc(ev.cliente)}</strong> confirmou o agendamento de <strong>${esc(ev.tipo || 'Medição')}</strong> pelo WhatsApp!`);
+      notifTitulo = '✅ CONFIRMADO: ' + (ev.cliente || 'Cliente').toUpperCase();
+      notifBody = (ev.tipo || 'Agendamento') + (ev.hora ? ' - ' + ev.hora : '') + '\nCliente confirmou pelo WhatsApp!';
+      mostrarToastAgenda(`<strong>${esc(ev.cliente)}</strong> CONFIRMOU o agendamento de <strong>${esc(ev.tipo || 'Medição')}</strong>!`);
     } else if (dados.acao === 'reagendar') {
       ev.reagendamento_solicitado = true;
       ev.status_cliente = 'reagendar';
-      mostrarToastAgenda(`🔄 <strong>${esc(ev.cliente)}</strong> solicitou <strong>REAGENDAMENTO</strong> pelo WhatsApp!`);
+      notifTitulo = '🔄 REAGENDAR: ' + (ev.cliente || 'Cliente').toUpperCase();
+      notifBody = (ev.tipo || 'Agendamento') + (ev.hora ? ' - ' + ev.hora : '') + '\nCliente quer REAGENDAR!';
+      mostrarToastAgenda(`<strong>${esc(ev.cliente)}</strong> solicitou <strong>REAGENDAMENTO</strong>!`);
     } else if (dados.acao === 'avaliar') {
       ev.avaliacao = {
         nota: Number(dados.nota) || 5,
@@ -15791,7 +15799,39 @@ function processarConfirmacaoAgendamento(dados) {
         data: dados.dataHora || new Date().toISOString()
       };
       ev.status_cliente = 'avaliado';
-      mostrarToastAgenda(`⭐ <strong>${esc(ev.cliente)}</strong> enviou uma avaliação de <strong>${ev.avaliacao.nota}★</strong>!`);
+      notifTitulo = '⭐ AVALIACAO: ' + (ev.cliente || 'Cliente').toUpperCase();
+      notifBody = 'Nota: ' + (dados.nota || 5) + '/5 estrelas' + (dados.comentario ? '\n"' + dados.comentario + '"' : '');
+      mostrarToastAgenda(`<strong>${esc(ev.cliente)}</strong> enviou avaliacao de <strong>${(ev.avaliacao.nota)}★</strong>!`);
+    }
+
+    // ── Notificacao nativa na tela bloqueada para o admin ──
+    if (notifTitulo) {
+      const notifOpcoes = {
+        body: notifBody,
+        icon: '/icon-192.png',
+        badge: '/icon-192.png',
+        tag: notifTag,
+        requireInteraction: true,
+        renotify: true,
+        vibrate: [300, 100, 300, 100, 600],
+        silent: false,
+        data: { url: '/?aba=agenda', acao: dados.acao, cliente: ev.cliente }
+      };
+
+      if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
+        navigator.serviceWorker.controller.postMessage({
+          tipo: 'DISPARAR_ALARME_NOTIFICACAO',
+          cliente: notifTitulo,
+          tipo_atendimento: notifBody,
+          hora: ev.hora || '',
+          local: '',
+          diff_minutos: 0
+        });
+      } else if ('serviceWorker' in navigator && navigator.serviceWorker.ready) {
+        navigator.serviceWorker.ready.then(reg => reg.showNotification(notifTitulo, notifOpcoes)).catch(() => {});
+      } else if ('Notification' in window && Notification.permission === 'granted') {
+        try { new Notification(notifTitulo, notifOpcoes); } catch(_) {}
+      }
     }
 
     try { tocarAlertaPortal(); } catch(_) {}
