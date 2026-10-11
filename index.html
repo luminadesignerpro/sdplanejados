@@ -24521,8 +24521,8 @@ function renderEstoqueView() {
       tabMovEl.innerHTML = movsOrdenadas.map(mv => {
         const isEntrada = mv.tipo === 'entrada';
         const badge = isEntrada
-          ? `<span style="padding:3px 8px;border-radius:999px;background:rgba(16,185,129,0.2);border:1px solid #10b981;color:#34d399;font-weight:900;font-size:10.5px;">&#8679; ENTRADA</span>`
-          : `<span style="padding:3px 8px;border-radius:999px;background:rgba(239,68,68,0.2);border:1px solid #ef4444;color:#f87171;font-weight:900;font-size:10.5px;">&#8681; SA&#205;DA</span>`;
+          ? `<span style="padding:4px 10px;border-radius:999px;background:rgba(16,185,129,0.25);border:1.5px solid #10b981;color:#34d399;font-weight:900;font-size:11px;letter-spacing:0.05em;">ENTRADA</span>`
+          : `<span style="padding:4px 10px;border-radius:999px;background:rgba(239,68,68,0.25);border:1.5px solid #ef4444;color:#f87171;font-weight:900;font-size:11px;letter-spacing:0.05em;">SAÍDA</span>`;
 
         return `
           <tr style="border-bottom:1px solid rgba(255,255,255,0.06);">
