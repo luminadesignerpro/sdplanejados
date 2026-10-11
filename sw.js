@@ -1,5 +1,5 @@
-// Service Worker PWA para sdmoveisprojetados - v6.0 (com alarme de tela bloqueada)
-const CACHE_NAME = 'sdmoveisprojetados-v6.0';
+// Service Worker PWA para sdmoveisprojetados - v7.0 (links clicaveis WhatsApp)
+const CACHE_NAME = 'sdmoveisprojetados-v7.0';
 
 self.addEventListener('install', (event) => {
   self.skipWaiting();
