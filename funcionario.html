@@ -8042,7 +8042,6 @@ function mudarAba(tab) {
     let _saidaFinalCliPendente = null;
 
     
-let _saidaFinalCliPendente = null;
 
 function abrirModalSaidaFinalCliente(horaStr) {
   const colab = (typeof obterFuncionarioAtivoPonto === 'function') ? obterFuncionarioAtivoPonto() : null;
@@ -11395,6 +11394,26 @@ function salvarConfigHorariosAlarmeCliente() {
   }
 }
 
+function puxarHorarioPrevistoParaAlarmeFuncionario() {
+  try {
+    const colab = (typeof obterFuncionarioAtivoPonto === 'function') ? obterFuncionarioAtivoPonto() : null;
+    if (!colab) return;
+    const entEl = document.getElementById('cfg-ponto-ent-func');
+    const almEl = document.getElementById('cfg-ponto-alm-func');
+    const volEl = document.getElementById('cfg-ponto-vol-func');
+    const saiEl = document.getElementById('cfg-ponto-sai-func');
+    if (entEl && colab.horarioEntrada) entEl.value = colab.horarioEntrada;
+    const almVal = colab.horarioAlmocoSai || colab.horarioAlmoco;
+    if (almEl && almVal) almEl.value = almVal;
+    if (volEl && colab.horarioAlmocoVolta) volEl.value = colab.horarioAlmocoVolta;
+    if (saiEl && colab.horarioSaida) saiEl.value = colab.horarioSaida;
+    if (typeof atualizarBadgeResumoDiasAlarmeFunc === 'function') atualizarBadgeResumoDiasAlarmeFunc();
+    if (typeof mostrarToastNotificacao === 'function') {
+      mostrarToastNotificacao('Horário Previsto', 'Horário do colaborador aplicado ao alarme.', '⚡');
+    }
+  } catch (_) {}
+}
+
 function testarSireneFuncionario() {
   if (typeof tocarSireneAlarmePonto === 'function') {
     tocarSireneAlarmePonto(true);
@@ -11421,9 +11440,6 @@ function testarSireneFuncionario() {
   if (typeof mostrarToastNotificacao === 'function') {
     mostrarToastNotificacao('Teste de Som', 'Sirene de alarme executada com sucesso!', '🔊');
   }
-}
-
-
 }
 
 function salvarConfigHorariosAlarmeCliente() {

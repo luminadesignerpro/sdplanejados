@@ -1592,7 +1592,49 @@
         <label for="cfg-rec-cidade">Cidade / UF</label>
         <input type="text" id="cfg-rec-cidade" placeholder="Ex: Itaitinga - CE">
 
-        <div style="display:flex;gap:10px;margin-top:14px;">
+        <!-- SEÇÃO: CONFIGURAR QR CODE PIX -->
+        <div style="margin-top:20px;border-top:1px solid rgba(201,160,56,0.25);padding-top:16px;">
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px;">
+            <span style="font-size:18px;">📷</span>
+            <span style="font-size:14px;font-weight:800;color:#f3c760;">QR Code Pix Personalizado</span>
+          </div>
+          <p style="font-size:11.5px;color:#94a3b8;margin-bottom:12px;line-height:1.5;">Faça upload ou cole a URL do QR Code gerado pelo seu banco. Se não configurado, usamos o gerado pela chave Pix acima.</p>
+
+          <!-- Preview do QR atual -->
+          <div id="cfg-qr-preview-wrap" style="display:none;text-align:center;margin-bottom:12px;">
+            <div style="font-size:11px;color:#94a3b8;margin-bottom:6px;text-transform:uppercase;letter-spacing:0.05em;">QR Code Atual</div>
+            <img id="cfg-qr-preview-img" src="" alt="QR Code Preview"
+              style="width:140px;height:140px;object-fit:contain;border-radius:12px;border:2px solid rgba(201,160,56,0.45);background:#fff;padding:6px;display:block;margin:0 auto;"/>
+            <button type="button" onclick="removerQRCodePersonalizado()"
+              style="margin-top:8px;background:rgba(239,68,68,0.15);border:1px solid rgba(239,68,68,0.4);color:#f87171;font-size:11px;padding:5px 14px;border-radius:8px;cursor:pointer;font-weight:700;">
+              🗑️ Remover QR Code
+            </button>
+          </div>
+
+          <!-- Upload de arquivo -->
+          <div style="margin-bottom:10px;">
+            <label style="display:block;font-size:11.5px;font-weight:700;color:#cbd5e1;margin-bottom:6px;">📁 Upload de imagem (galeria)</label>
+            <label for="cfg-qr-upload" style="display:flex;align-items:center;justify-content:center;gap:8px;width:100%;padding:12px;border:1.5px dashed rgba(201,160,56,0.5);border-radius:10px;background:rgba(201,160,56,0.07);color:#f3c760;font-size:13px;font-weight:700;cursor:pointer;box-sizing:border-box;">
+              📤 Escolher imagem
+            </label>
+            <input type="file" id="cfg-qr-upload" accept="image/*" onchange="carregarQRCodeUpload(this)" style="display:none;">
+          </div>
+
+          <!-- URL manual -->
+          <div>
+            <label for="cfg-qr-url" style="display:block;font-size:11.5px;font-weight:700;color:#cbd5e1;margin-bottom:6px;">🔗 Ou cole a URL da imagem do QR Code</label>
+            <div style="display:flex;gap:8px;">
+              <input type="url" id="cfg-qr-url" placeholder="https://..." style="flex:1;font-size:13px;">
+              <button type="button" onclick="aplicarQRCodeUrl()"
+                style="padding:10px 14px;background:rgba(201,160,56,0.18);border:1px solid rgba(201,160,56,0.5);color:#f3c760;border-radius:10px;font-size:13px;font-weight:800;cursor:pointer;white-space:nowrap;">
+                ✓ Usar
+              </button>
+            </div>
+          </div>
+        </div>
+        <!-- FIM QR CODE CONFIG -->
+
+        <div style="display:flex;gap:10px;margin-top:18px;">
           <button type="button" class="btn btn-gold" onclick="salvarDadosRecebedor()" style="flex:1;">💾 Salvar Dados</button>
           <button type="button" class="btn btn-outline" onclick="fecharModalRecebedor()" style="width:auto;">Cancelar</button>
         </div>
@@ -2036,7 +2078,13 @@
     if (elCidade) elCidade.textContent = rec.cidade;
     if (pixChaveVal) pixChaveVal.textContent = rec.pix;
     if (qrImg) {
-      qrImg.src = 'https://api.qrserver.com/v1/create-qr-code/?size=170x170&data=' + encodeURIComponent(rec.pix);
+      var qrCustom = '';
+      try { qrCustom = localStorage.getItem('sdv_qr_code_img') || ''; } catch(_) {}
+      if (qrCustom) {
+        qrImg.src = qrCustom;
+      } else {
+        qrImg.src = 'https://api.qrserver.com/v1/create-qr-code/?size=170x170&data=' + encodeURIComponent(rec.pix);
+      }
     }
   }
 
@@ -2143,6 +2191,21 @@
     if (document.getElementById('cfg-rec-banco')) document.getElementById('cfg-rec-banco').value = rec.banco;
     if (document.getElementById('cfg-rec-pix')) document.getElementById('cfg-rec-pix').value = rec.pix;
     if (document.getElementById('cfg-rec-cidade')) document.getElementById('cfg-rec-cidade').value = rec.cidade;
+    // Carrega QR Code configurado
+    var qrCustom = '';
+    try { qrCustom = localStorage.getItem('sdv_qr_code_img') || ''; } catch(_) {}
+    var qrWrap = document.getElementById('cfg-qr-preview-wrap');
+    var qrPrev = document.getElementById('cfg-qr-preview-img');
+    var qrUrlInp = document.getElementById('cfg-qr-url');
+    if (qrCustom) {
+      if (qrWrap) qrWrap.style.display = 'block';
+      if (qrPrev) qrPrev.src = qrCustom;
+      if (qrUrlInp && qrCustom.startsWith('http')) qrUrlInp.value = qrCustom;
+    } else {
+      if (qrWrap) qrWrap.style.display = 'none';
+      if (qrPrev) qrPrev.src = '';
+      if (qrUrlInp) qrUrlInp.value = '';
+    }
     // Limpa form alterar senha
     var fa = document.getElementById('form-alterar-senha');
     if (fa) fa.classList.remove('visible');
@@ -2186,6 +2249,64 @@
       });
       if (msgEl) msgEl.textContent = '';
     }, 1800);
+  };
+
+  // ===== FUNÇÕES QR CODE PERSONALIZADO =====
+  function _atualizarPreviewQR(src) {
+    var qrWrap = document.getElementById('cfg-qr-preview-wrap');
+    var qrPrev = document.getElementById('cfg-qr-preview-img');
+    if (src) {
+      if (qrPrev) qrPrev.src = src;
+      if (qrWrap) qrWrap.style.display = 'block';
+    } else {
+      if (qrPrev) qrPrev.src = '';
+      if (qrWrap) qrWrap.style.display = 'none';
+    }
+  }
+
+  window.carregarQRCodeUpload = function(input) {
+    var file = input && input.files && input.files[0];
+    if (!file) return;
+    if (!file.type.startsWith('image/')) {
+      alert('Por favor selecione uma imagem válida.');
+      return;
+    }
+    var reader = new FileReader();
+    reader.onload = function(e) {
+      var dataUrl = e.target.result;
+      try { localStorage.setItem('sdv_qr_code_img', dataUrl); } catch(_) {
+        alert('Imagem muito grande para salvar. Tente uma URL da imagem em vez disso.');
+        return;
+      }
+      _atualizarPreviewQR(dataUrl);
+      var urlInp = document.getElementById('cfg-qr-url');
+      if (urlInp) urlInp.value = '';
+      renderizarDadosRecebedor();
+    };
+    reader.readAsDataURL(file);
+    input.value = '';
+  };
+
+  window.aplicarQRCodeUrl = function() {
+    var urlInp = document.getElementById('cfg-qr-url');
+    var url = (urlInp ? urlInp.value : '').trim();
+    if (!url || !url.startsWith('http')) {
+      alert('Cole uma URL válida começando com http ou https.');
+      return;
+    }
+    try { localStorage.setItem('sdv_qr_code_img', url); } catch(_) {}
+    _atualizarPreviewQR(url);
+    renderizarDadosRecebedor();
+  };
+
+  window.removerQRCodePersonalizado = function() {
+    try { localStorage.removeItem('sdv_qr_code_img'); } catch(_) {}
+    _atualizarPreviewQR('');
+    var urlInp = document.getElementById('cfg-qr-url');
+    if (urlInp) urlInp.value = '';
+    var fileInp = document.getElementById('cfg-qr-upload');
+    if (fileInp) fileInp.value = '';
+    renderizarDadosRecebedor();
   };
 
   window.salvarDadosRecebedor = function() {
