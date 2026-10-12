@@ -7217,8 +7217,9 @@ function mudarAba(tab) {
         const isAtiva = (osAtual && osAtual === numLimpo);
         const nome = o.nome || 'Cliente';
         const serv = o.servico || o.descricao || 'Projeto / Instalação sob medida';
-        const st = o.status || 'Em Andamento';
-        const val = o.valorTotal ? (typeof o.valorTotal === 'number' ? 'R$ ' + o.valorTotal.toFixed(2).replace('.', ',') : o.valorTotal) : '';
+        const valBruto = o.total || o.valorTotal || o.valor || (o.dados && (o.dados.total || o.dados.valorTotal || o.dados.valor)) || '';
+        const valNum = parseMoedaBRL(valBruto);
+        const val = valNum > 0 ? ('R$ ' + Number(valNum).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })) : '';
 
         return `
           <div class="card-ordem-clicavel" onclick="selecionarOsNoPortal('${numOs}', '${(nome||'').replace(/'/g, "\\'")}'); fecharModalSeletorOrdens();" style="background:${isAtiva ? 'linear-gradient(135deg,rgba(212,175,55,0.22),rgba(20,20,35,0.95))' : 'rgba(255,255,255,0.035)'};border:${isAtiva ? '1.5px solid var(--gold)' : '1px solid rgba(255,255,255,0.1)'};border-radius:14px;padding:12px 14px;cursor:pointer;display:flex;justify-content:space-between;align-items:center;gap:10px;transition:all 0.2s ease;box-shadow:0 4px 14px rgba(0,0,0,0.35);">
@@ -7628,6 +7629,29 @@ function mudarAba(tab) {
     // ══════════════════════════════════════════════
     //  SETOR FINANCEIRO DO CLIENTE
     // ══════════════════════════════════════════════
+    function parseMoedaBRL(val) {
+      if (val === null || val === undefined || val === '') return 0;
+      if (typeof val === 'number') return isNaN(val) ? 0 : val;
+      var str = String(val).replace(/R\$/gi, '').replace(/\s/g, '').trim();
+      if (!str) return 0;
+      if (str.includes('.') && str.includes(',')) {
+        if (str.lastIndexOf(',') > str.lastIndexOf('.')) {
+          str = str.replace(/\./g, '').replace(',', '.');
+        } else {
+          str = str.replace(/,/g, '');
+        }
+      } else if (str.includes(',')) {
+        str = str.replace(',', '.');
+      } else if (str.includes('.')) {
+        var partes = str.split('.');
+        if (partes.length === 2 && partes[1].length === 3 && partes[0].length >= 1) {
+          str = partes[0] + partes[1];
+        }
+      }
+      var n = parseFloat(str);
+      return isNaN(n) ? 0 : n;
+    }
+
     function carregarDadosFinanceiros(sessao) {
       if (!sessao) return;
       const ordens = carregarOrdensDoStorage();
@@ -7668,25 +7692,30 @@ function mudarAba(tab) {
         btnZap.href = `https://wa.me/55${telLimpo}?text=${encodeURIComponent('Olá, estou enviando o comprovante de pagamento da minha O.S. ' + sessao.os)}`;
       }
 
-      // Extrai valor total real
-      let totalNum = 0;
-      let totalStr = (osData && (osData.total || (osData.dados && osData.dados.total))) || '';
-      if (totalStr) {
-        const numLimpo = String(totalStr).replace(/[^\d,\.]/g, '').replace(',', '.');
-        totalNum = parseFloat(numLimpo) || 0;
-      }
+      // Extrai valor total real (suporta número, formato BRL 8.000,00 e variações)
+      let totalBruto = (osData && (
+        osData.total || 
+        osData.valorTotal || 
+        osData.valor || 
+        (osData.dados && (osData.dados.total || osData.dados.valorTotal || osData.dados.valor || osData.dados.orcamento_total))
+      )) || 0;
+      let totalNum = parseMoedaBRL(totalBruto);
 
       // Extrai condição de pagamento
       const forma = (osData && osData.dados && osData.dados.forma) || (osData && osData.forma) || 'À vista';
       const condEl = document.getElementById('fin-condicao-pagamento');
       if (condEl) condEl.textContent = forma;
 
-      // Extrai valor pago e saldo restante (SEM dados fake)
+      // Extrai valor pago e saldo restante (SEM truncar milhares)
+      let valorPagoBruto = (osData && (
+        osData.valor_pago !== undefined ? osData.valor_pago :
+        (osData.valorPago !== undefined ? osData.valorPago :
+        (osData.dados && (osData.dados.valor_pago !== undefined ? osData.dados.valor_pago : osData.dados.valorPago)))
+      ));
       let valorPagoNum = 0;
-      if (osData && osData.valor_pago !== undefined && osData.valor_pago !== '') {
-        const vLimp = String(osData.valor_pago).replace(/[^\d,\.]/g, '').replace(',', '.');
-        valorPagoNum = parseFloat(vLimp) || 0;
-      } else if (osData && osData.status === 'pago') {
+      if (valorPagoBruto !== undefined && valorPagoBruto !== null && valorPagoBruto !== '') {
+        valorPagoNum = parseMoedaBRL(valorPagoBruto);
+      } else if (osData && (osData.status === 'pago' || (osData.dados && osData.dados.status === 'pago'))) {
         valorPagoNum = totalNum;
       } else {
         valorPagoNum = 0;

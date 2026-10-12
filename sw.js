@@ -1,5 +1,5 @@
-// Service Worker PWA para sdmoveisprojetados - v12.0 (force-reload)
-const CACHE_NAME = 'sdmoveisprojetados-v12.0';
+// Service Worker PWA para sdmoveisprojetados - v13.0 (force-reload)
+const CACHE_NAME = 'sdmoveisprojetados-v13.0';
 
 self.addEventListener('install', (event) => {
   self.skipWaiting();
