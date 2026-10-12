@@ -448,6 +448,40 @@
   .pay-method-btn.selected {
     background: rgba(201,160,56,0.15);
   }
+  .badge-card-bloq {
+    position: absolute;
+    top: 6px;
+    right: 6px;
+    background: rgba(239, 68, 68, 0.22);
+    border: 1px solid rgba(239, 68, 68, 0.45);
+    color: #fca5a5;
+    font-size: 8.5px;
+    font-weight: 800;
+    padding: 2px 5px;
+    border-radius: 6px;
+    letter-spacing: 0.02em;
+    display: inline-flex;
+    align-items: center;
+    gap: 2px;
+  }
+  .sub-card-bloq {
+    font-size: 9.5px;
+    color: #38bdf8;
+    margin-top: 3px;
+    font-weight: 700;
+    display: block;
+  }
+  .pay-btn-bloqueado {
+    position: relative;
+    border-color: rgba(239, 68, 68, 0.35);
+  }
+  .pay-btn-bloqueado:hover,
+  .pay-btn-bloqueado.selected {
+    border-color: #3b82f6 !important;
+    background: rgba(59, 130, 246, 0.15) !important;
+    color: #93c5fd !important;
+    box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.3) !important;
+  }
   /* Pix full-width row */
   .pay-pix-row {
     display: grid;
@@ -1349,21 +1383,25 @@
 
       <!-- Method buttons -->
       <div class="pay-methods-grid">
-        <button class="pay-method-btn" id="pay-btn-credito" onclick="selecionarPagamento('credito')">
+        <button type="button" class="pay-method-btn pay-btn-bloqueado" id="pay-btn-credito" onclick="selecionarPagamento('credito')" title="Digitação online bloqueada - Opção Enviar Maquininha">
+          <span class="badge-card-bloq">🔒 Bloqueado</span>
           <span class="pay-icon">💳</span>
           Cartão de<br>Crédito
+          <span class="sub-card-bloq">🚚 Enviar Maquininha</span>
         </button>
-        <button class="pay-method-btn" id="pay-btn-debito" onclick="selecionarPagamento('debito')">
+        <button type="button" class="pay-method-btn pay-btn-bloqueado" id="pay-btn-debito" onclick="selecionarPagamento('debito')" title="Digitação online bloqueada - Opção Enviar Maquininha">
+          <span class="badge-card-bloq">🔒 Bloqueado</span>
           <span class="pay-icon">🏧</span>
           Cartão de<br>Débito
+          <span class="sub-card-bloq">🚚 Enviar Maquininha</span>
         </button>
       </div>
       <div class="pay-pix-row">
-        <button class="pay-method-btn" id="pay-btn-pix-copia" onclick="selecionarPagamento('pix-copia')">
+        <button type="button" class="pay-method-btn" id="pay-btn-pix-copia" onclick="selecionarPagamento('pix-copia')">
           <span class="pay-icon">📋</span>
           Pix<br>Copiar/Colar
         </button>
-        <button class="pay-method-btn" id="pay-btn-pix-qr" onclick="selecionarPagamento('pix-qr')">
+        <button type="button" class="pay-method-btn" id="pay-btn-pix-qr" onclick="selecionarPagamento('pix-qr')">
           <span class="pay-icon">📲</span>
           Pix<br>QR Code
         </button>
@@ -1385,88 +1423,88 @@
         <p class="pix-qr-hint">Aponte a câmera do seu banco para o QR Code para pagar via Pix diretamente ao recebedor.</p>
       </div>
 
-      <!-- Card detail panel (Crédito / Débito) -->
+      <!-- Card detail panel (Opção Enviar Maquininha - Cartão Bloqueado Online) -->
       <div class="card-detail-panel" id="card-maquina-panel">
-        <!-- Visual Mockup -->
-        <div class="credit-card-mockup" id="mockup-card">
-          <div class="cc-top">
-            <div class="cc-chip">
-              <div class="cc-chip-line"></div>
-              <div class="cc-chip-line"></div>
+        <!-- Alerta de Bloqueio Online & Segurança -->
+        <div style="background:linear-gradient(135deg,rgba(239,68,68,0.14),rgba(15,21,33,0.95));border:1.5px solid rgba(239,68,68,0.45);border-radius:12px;padding:12px 14px;margin-bottom:14px;display:flex;align-items:center;gap:12px;">
+          <span style="font-size:26px;flex-shrink:0;">🔒</span>
+          <div>
+            <div style="font-size:13px;font-weight:900;color:#fca5a5;display:flex;align-items:center;gap:6px;">
+              <span>Digitação de Cartão Online Bloqueada</span>
+              <span style="background:rgba(239,68,68,0.25);font-size:10px;padding:1px 6px;border-radius:4px;">100% Seguro</span>
             </div>
-            <div style="font-size:18px;">📶</div>
-            <div class="cc-brand-badge" id="mockup-brand">CARTÃO</div>
-          </div>
-          <div class="cc-number" id="mockup-number">•••• •••• •••• ••••</div>
-          <div class="cc-bottom">
-            <div>
-              <div class="cc-label">TITULAR DO CARTÃO</div>
-              <div class="cc-val" id="mockup-name">NOME DO CLIENTE</div>
-            </div>
-            <div>
-              <div class="cc-label">VALIDADE</div>
-              <div class="cc-val" id="mockup-exp">MM/AA</div>
+            <div style="font-size:11.5px;color:#cbd5e1;margin-top:3px;line-height:1.4;">
+              Não coletamos dados de cartão pelo site. O pagamento é realizado na <strong>maquininha física</strong> que enviamos até você!
             </div>
           </div>
         </div>
 
-        <div class="card-form-title">
-          <span id="card-tipo-badge" class="badge-tipo-cartao">Cartão de Crédito</span>
-          <span style="font-size:12px;color:#94a3b8;">Preencha os dados do cartão</span>
-        </div>
+        <!-- Box Principal de Envio da Maquininha -->
+        <div style="background:linear-gradient(145deg,#0e1526,#162035);border:1.5px solid #3b82f6;border-radius:14px;padding:18px 16px;box-shadow:0 8px 24px rgba(0,0,0,0.5);">
+          
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;flex-wrap:wrap;gap:8px;">
+            <div style="display:flex;align-items:center;gap:10px;">
+              <span style="font-size:28px;">🚚📟</span>
+              <div>
+                <div style="font-size:15px;font-weight:900;color:#93c5fd;">Opção: Enviar Maquininha</div>
+                <div style="font-size:11px;color:#94a3b8;">Levamos a maquininha no momento da entrega / visita</div>
+              </div>
+            </div>
+            <span id="badge-tipo-maquininha" style="background:rgba(59,130,246,0.22);border:1px solid #3b82f6;color:#93c5fd;font-size:11px;padding:4px 10px;border-radius:999px;font-weight:800;">
+              💳 Crédito na Maquininha
+            </span>
+          </div>
 
-        <div class="card-inputs-grid">
-          <div>
-            <label for="card-num-input">Número do Cartão</label>
-            <div class="input-with-icon">
-              <input type="text" id="card-num-input" inputmode="numeric" placeholder="0000 0000 0000 0000" maxlength="19" oninput="aoDigitarCartaoNumero(this)">
-              <span class="card-brand-icon" id="card-brand-flag">💳 Cartão</span>
+          <!-- Seletor do Tipo de Operação na Maquininha -->
+          <div style="margin-bottom:14px;">
+            <label style="display:block;font-size:11px;font-weight:800;color:#94a3b8;text-transform:uppercase;margin-bottom:6px;letter-spacing:0.04em;">
+              Tipo de Pagamento na Maquininha
+            </label>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+              <button type="button" id="btn-tipo-maq-credito" onclick="alternarTipoMaquininha('credito')" style="padding:11px;border-radius:8px;border:1.5px solid #3b82f6;background:rgba(59,130,246,0.25);color:#fff;font-weight:800;font-size:12.5px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;">
+                <span>💳</span> <span>Cartão de Crédito</span>
+              </button>
+              <button type="button" id="btn-tipo-maq-debito" onclick="alternarTipoMaquininha('debito')" style="padding:11px;border-radius:8px;border:1px solid #334155;background:#0b111e;color:#94a3b8;font-weight:700;font-size:12.5px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;">
+                <span>🏧</span> <span>Cartão de Débito</span>
+              </button>
             </div>
           </div>
 
-          <div>
-            <label for="card-nome-input">Nome Impresso no Cartão</label>
-            <input type="text" id="card-nome-input" placeholder="Como gravado no cartão" autocomplete="cc-name" oninput="aoDigitarCartaoNome(this)">
-          </div>
-
-          <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
-            <div>
-              <label for="card-val-input">Validade</label>
-              <input type="text" id="card-val-input" inputmode="numeric" placeholder="MM/AA" maxlength="5" oninput="aoDigitarCartaoValidade(this)">
-            </div>
-            <div>
-              <label for="card-cvv-input">CVV</label>
-              <input type="password" id="card-cvv-input" inputmode="numeric" placeholder="123" maxlength="4" oninput="aoDigitarCartaoCvv(this)">
-            </div>
-          </div>
-
-          <div>
-            <label for="card-cpf-input">CPF do Titular do Cartão</label>
-            <input type="text" id="card-cpf-input" inputmode="numeric" placeholder="000.000.000-00" maxlength="14" oninput="aoDigitarCartaoCpf(this)">
-          </div>
-
-          <!-- Parcelamento (Crédito) -->
-          <div id="wrap-parcelas">
-            <label for="card-parcelas-select">Opções de Parcelamento</label>
-            <select id="card-parcelas-select" class="select-parcelas">
-              <option value="1">1x à vista (sem juros)</option>
+          <!-- Parcelamento (se Crédito) -->
+          <div id="wrap-parcelas-maquininha" style="margin-bottom:14px;">
+            <label for="select-parcelas-maquininha" style="display:block;font-size:11px;font-weight:800;color:#cbd5e1;text-transform:uppercase;margin-bottom:6px;letter-spacing:0.04em;">
+              Opções de Parcelamento na Maquininha
+            </label>
+            <select id="select-parcelas-maquininha" style="width:100%;box-sizing:border-box;padding:11px 12px;background:#090e18;border:1px solid #334155;border-radius:8px;color:#f3c760;font-size:13.5px;font-weight:700;outline:none;">
+              <option value="1">1x à vista na maquininha</option>
             </select>
           </div>
 
-          <!-- Info (Débito) -->
-          <div id="wrap-debito-info" class="hidden" style="background:rgba(34,197,94,0.1);border:1px solid rgba(34,197,94,0.3);padding:10px 12px;border-radius:8px;font-size:12px;color:#4ade80;display:flex;align-items:center;gap:8px;">
-            <span>🏧</span>
-            <span>Pagamento no débito à vista debitado diretamente na conta corrente do titular.</span>
+          <!-- Info (se Débito) -->
+          <div id="wrap-debito-maquininha" class="hidden" style="margin-bottom:14px;background:rgba(16,185,129,0.12);border:1px solid rgba(16,185,129,0.35);padding:11px 14px;border-radius:8px;font-size:12px;color:#4ade80;display:flex;align-items:center;gap:8px;">
+            <span style="font-size:18px;">🏧</span>
+            <span>Pagamento no <strong>débito à vista</strong> passado diretamente na maquininha na entrega/visita.</span>
           </div>
 
-          <div class="card-security-badge">
-            <span>🔒</span>
-            <span>Ambiente seguro. Criptografia bancária de ponta a ponta (SSL 256 bits).</span>
+          <!-- Local de Envio da Maquininha -->
+          <div style="background:rgba(0,0,0,0.3);border:1px solid rgba(255,255,255,0.08);border-radius:8px;padding:11px 14px;margin-bottom:16px;font-size:12px;">
+            <div style="font-weight:800;color:#93c5fd;margin-bottom:3px;display:flex;align-items:center;gap:6px;">
+              <span>📍</span> <span>Local onde a Maquininha será enviada:</span>
+            </div>
+            <div id="maq-endereco-display" style="color:#e2e8f0;font-size:12.5px;">Endereço cadastrado na Ordem de Serviço (momento da entrega/visita).</div>
           </div>
 
-          <a id="pay-btn-zap-card" href="https://wa.me/5585996119824" target="_blank" class="btn btn-outline" style="margin-top:6px;font-size:13px;">
-            💬 Prefiro pagar na maquininha na entrega / WhatsApp
-          </a>
+          <!-- Botões de Ação -->
+          <div style="display:flex;flex-direction:column;gap:10px;">
+            <button type="button" class="btn btn-primary" onclick="confirmarOpcaoEnviarMaquininha()" style="width:100%;padding:14px;border-radius:10px;font-size:14px;font-weight:900;background:linear-gradient(135deg,#2563eb,#3b82f6);border:none;box-shadow:0 4px 18px rgba(37,99,235,0.45);display:flex;align-items:center;justify-content:center;gap:8px;cursor:pointer;">
+              <span>🚚</span> <span>Confirmar e Enviar Maquininha (Ir para Assinar)</span>
+            </button>
+
+            <a id="btn-solicitar-maq-zap" href="https://wa.me/5585985749686" target="_blank" style="text-decoration:none;display:flex;align-items:center;justify-content:center;gap:7px;background:rgba(37,211,102,0.15);border:1px solid rgba(37,211,102,0.4);color:#25D366;padding:11px;border-radius:8px;font-size:13px;font-weight:800;transition:all 0.2s;">
+              <span>💬</span> <span>Solicitar Envio da Maquininha no WhatsApp</span>
+            </a>
+          </div>
+
         </div>
       </div>
 
@@ -2325,6 +2363,125 @@
   };
 
   let formaPagamentoEscolhida = '';
+  window.tipoMaquininha = 'credito';
+
+  window.alternarTipoMaquininha = function(tipo) {
+    window.tipoMaquininha = tipo;
+    formaPagamentoEscolhida = 'maquininha';
+    
+    // Atualiza botões principais do topo
+    const btnCred = document.getElementById('pay-btn-credito');
+    const btnDeb = document.getElementById('pay-btn-debito');
+    if (btnCred) btnCred.classList.toggle('selected', tipo === 'credito');
+    if (btnDeb) btnDeb.classList.toggle('selected', tipo === 'debito');
+    
+    // Atualiza botões internos do painel
+    const btnInCred = document.getElementById('btn-tipo-maq-credito');
+    const btnInDeb = document.getElementById('btn-tipo-maq-debito');
+    const badge = document.getElementById('badge-tipo-maquininha');
+    const wrapParc = document.getElementById('wrap-parcelas-maquininha');
+    const wrapDeb = document.getElementById('wrap-debito-maquininha');
+
+    if (tipo === 'credito') {
+      if (badge) badge.innerHTML = '💳 Crédito na Maquininha';
+      if (btnInCred) {
+        btnInCred.style.background = 'rgba(59,130,246,0.25)';
+        btnInCred.style.borderColor = '#3b82f6';
+        btnInCred.style.color = '#fff';
+      }
+      if (btnInDeb) {
+        btnInDeb.style.background = '#0b111e';
+        btnInDeb.style.borderColor = '#334155';
+        btnInDeb.style.color = '#94a3b8';
+      }
+      if (wrapParc) wrapParc.classList.remove('hidden');
+      if (wrapDeb) wrapDeb.classList.add('hidden');
+      popularParcelasMaquininha();
+    } else {
+      if (badge) badge.innerHTML = '🏧 Débito na Maquininha';
+      if (btnInDeb) {
+        btnInDeb.style.background = 'rgba(16,185,129,0.25)';
+        btnInDeb.style.borderColor = '#10b981';
+        btnInDeb.style.color = '#fff';
+      }
+      if (btnInCred) {
+        btnInCred.style.background = '#0b111e';
+        btnInCred.style.borderColor = '#334155';
+        btnInCred.style.color = '#94a3b8';
+      }
+      if (wrapParc) wrapParc.classList.add('hidden');
+      if (wrapDeb) wrapDeb.classList.remove('hidden');
+    }
+    
+    atualizarLinkZapMaquininha();
+  };
+
+  function popularParcelasMaquininha() {
+    const sel = document.getElementById('select-parcelas-maquininha');
+    if (!sel) return;
+    let num = 0;
+    if (contratoCache) {
+      const vStr = contratoCache.total || contratoCache.v || contratoCache.valor || '';
+      if (typeof vStr === 'number') num = vStr;
+      else if (vStr) {
+        const limpo = String(vStr).replace(/[^\d,\.]/g, '').replace(/\./g, '').replace(',', '.');
+        num = parseFloat(limpo) || 0;
+      }
+    }
+    if (num <= 0) num = 1449.50;
+    sel.innerHTML = '';
+    for (let p = 1; p <= 12; p++) {
+      const vParc = num / p;
+      const vFormat = vParc.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+      const opt = document.createElement('option');
+      opt.value = p;
+      opt.textContent = `${p}x de ${vFormat} (sem juros na entrega)`;
+      sel.appendChild(opt);
+    }
+  }
+
+  function atualizarEnderecoMaquininha() {
+    const endEl = document.getElementById('maq-endereco-display');
+    if (!endEl) return;
+    if (contratoCache) {
+      const partes = [
+        contratoCache.end || contratoCache.e || contratoCache.endereco,
+        contratoCache.num || contratoCache.numero,
+        contratoCache.apto || contratoCache.complemento,
+        contratoCache.bairro || contratoCache.b,
+        contratoCache.cidade || 'Itaitinga - CE'
+      ].filter(Boolean);
+      if (partes.length) {
+        endEl.innerHTML = `<strong>${partes.join(', ')}</strong>`;
+        return;
+      }
+    }
+    endEl.textContent = 'Endereço cadastrado na Ordem de Serviço (no momento da entrega/visita).';
+  }
+
+  function atualizarLinkZapMaquininha() {
+    const btnZap = document.getElementById('btn-solicitar-maq-zap');
+    if (!btnZap) return;
+    const numOs = (contratoCache && (contratoCache.numero_os || contratoCache.n)) || '#0014';
+    const cliNome = (contratoCache && (contratoCache.cliente_nome || contratoCache.c)) || 'Cliente';
+    const telEmpresa = '5585985749686';
+    const opcTexto = window.tipoMaquininha === 'debito' ? 'Cartão de Débito' : 'Cartão de Crédito';
+    const msg = `Olá SD Móveis Projetados! Na Ordem de Serviço ${numOs} (${cliNome}), optei pelo pagamento via ${opcTexto}. Por favor, enviem a maquininha para passar o cartão no momento da entrega/visita! 🚚💳`;
+    btnZap.href = 'https://wa.me/' + telEmpresa + '?text=' + encodeURIComponent(msg);
+  }
+
+  window.confirmarOpcaoEnviarMaquininha = function() {
+    formaPagamentoEscolhida = 'maquininha';
+    const sel = document.getElementById('select-parcelas-maquininha');
+    if (window.tipoMaquininha === 'credito' && sel && sel.options[sel.selectedIndex]) {
+      dadosCartaoCliente.parcelas = sel.options[sel.selectedIndex].textContent;
+    } else {
+      dadosCartaoCliente.parcelas = 'À vista no débito';
+    }
+    
+    comprovantePendente = false;
+    irParaAssinaturaApos();
+  };
 
   window.selecionarPagamento = function(metodo) {
     formaPagamentoEscolhida = metodo;
@@ -2335,6 +2492,8 @@
     const pixCopiaPanel = document.getElementById('pix-copia-panel');
     const pixQrPanel = document.getElementById('pix-qr-panel');
     const cardMaqPanel = document.getElementById('card-maquina-panel');
+    const blocoComp = document.getElementById('bloco-comprovante-pagamento');
+
     if (pixCopiaPanel) pixCopiaPanel.classList.remove('visible');
     if (pixQrPanel) pixQrPanel.classList.remove('visible');
     if (cardMaqPanel) cardMaqPanel.classList.remove('visible');
@@ -2344,37 +2503,32 @@
 
     if (metodo === 'pix-copia') {
       if (pixCopiaPanel) pixCopiaPanel.classList.add('visible');
+      if (blocoComp) {
+        blocoComp.classList.remove('hidden');
+        setTimeout(function() {
+          blocoComp.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        }, 100);
+      }
     } else if (metodo === 'pix-qr') {
       if (pixQrPanel) pixQrPanel.classList.add('visible');
-    } else if (metodo === 'credito') {
+      if (blocoComp) {
+        blocoComp.classList.remove('hidden');
+        setTimeout(function() {
+          blocoComp.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        }, 100);
+      }
+    } else if (metodo === 'credito' || metodo === 'debito') {
       if (cardMaqPanel) cardMaqPanel.classList.add('visible');
-      const badge = document.getElementById('card-tipo-badge');
-      if (badge) badge.textContent = 'Cartão de Crédito';
-      const wParc = document.getElementById('wrap-parcelas');
-      const wDeb = document.getElementById('wrap-debito-info');
-      if (wParc) wParc.classList.remove('hidden');
-      if (wDeb) wDeb.classList.add('hidden');
-    } else if (metodo === 'debito') {
-      if (cardMaqPanel) cardMaqPanel.classList.add('visible');
-      const badge = document.getElementById('card-tipo-badge');
-      if (badge) badge.textContent = 'Cartão de Débito';
-      const wParc = document.getElementById('wrap-parcelas');
-      const wDeb = document.getElementById('wrap-debito-info');
-      if (wParc) wParc.classList.add('hidden');
-      if (wDeb) wDeb.classList.remove('hidden');
+      if (blocoComp) blocoComp.classList.add('hidden'); // Maquininha é presencial, não requer comprovante bancário antes
+      alternarTipoMaquininha(metodo);
+      atualizarEnderecoMaquininha();
+      setTimeout(function() {
+        cardMaqPanel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      }, 100);
     }
 
     const btnContinuar = document.getElementById('btn-continuar-assinar');
     if (btnContinuar) btnContinuar.disabled = false;
-
-    // Exibe seção de comprovante e opções de avanço
-    const blocoComp = document.getElementById('bloco-comprovante-pagamento');
-    if (blocoComp) {
-      blocoComp.classList.remove('hidden');
-      setTimeout(function() {
-        blocoComp.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-      }, 100);
-    }
   };
 
   // ===== GESTÃO DE COMPROVANTE DE PAGAMENTO =====
@@ -2508,12 +2662,12 @@
   };
 
   window.irParaAssinaturaApos = function() {
-    if (formaPagamentoEscolhida === 'credito' || formaPagamentoEscolhida === 'debito') {
-      const selParc = document.getElementById('card-parcelas-select');
-      if (selParc && formaPagamentoEscolhida === 'credito') {
-        dadosCartaoCliente.parcelas = selParc.options[selParc.selectedIndex] ? selParc.options[selParc.selectedIndex].textContent : '1x à vista';
+    if (formaPagamentoEscolhida === 'credito' || formaPagamentoEscolhida === 'debito' || formaPagamentoEscolhida === 'maquininha') {
+      const selParc = document.getElementById('select-parcelas-maquininha');
+      if (selParc && window.tipoMaquininha === 'credito') {
+        dadosCartaoCliente.parcelas = selParc.options[selParc.selectedIndex] ? selParc.options[selParc.selectedIndex].textContent : '1x à vista na maquininha';
       } else {
-        dadosCartaoCliente.parcelas = 'À vista no débito';
+        dadosCartaoCliente.parcelas = 'À vista no débito na maquininha';
       }
     }
     const cardPagamento = document.getElementById('card-pagamento');
@@ -3071,10 +3225,9 @@ WhatsApp: ${d.tel || d.t || '_________________________________'}`;
 
           const rec = obterDadosRecebedor();
           let descPagamentoTexto = '';
-          if (formaPagamentoEscolhida === 'credito') {
-            descPagamentoTexto = `Cartão de Crédito (${dadosCartaoCliente.bandeira || 'Cartão'} final ${dadosCartaoCliente.numero ? dadosCartaoCliente.numero.slice(-4) : '••••'} - ${dadosCartaoCliente.parcelas || '1x'})`;
-          } else if (formaPagamentoEscolhida === 'debito') {
-            descPagamentoTexto = `Cartão de Débito (${dadosCartaoCliente.bandeira || 'Cartão'} final ${dadosCartaoCliente.numero ? dadosCartaoCliente.numero.slice(-4) : '••••'})`;
+          if (formaPagamentoEscolhida === 'maquininha' || formaPagamentoEscolhida === 'credito' || formaPagamentoEscolhida === 'debito') {
+            const detalheMaq = (window.tipoMaquininha === 'debito') ? 'Débito à vista' : (dadosCartaoCliente.parcelas || 'Crédito');
+            descPagamentoTexto = `Maquininha de Cartão (${detalheMaq} - Enviar Maquininha na Entrega)`;
           } else if (formaPagamentoEscolhida === 'pix-copia') {
             descPagamentoTexto = 'Pix (Copia e Cola)';
           } else if (formaPagamentoEscolhida === 'pix-qr') {
@@ -3084,17 +3237,16 @@ WhatsApp: ${d.tel || d.t || '_________________________________'}`;
           let textoPagamentoZap = '';
           if (formaPagamentoEscolhida) {
             textoPagamentoZap = '💳 *Forma de Pagamento:* ' + (descPagamentoTexto || formaPagamentoEscolhida) + '\n';
-            if (dadosCartaoCliente.nome) {
-              textoPagamentoZap += '👤 *Titular do Cartão:* ' + dadosCartaoCliente.nome + '\n';
-            }
-            if (dadosCartaoCliente.cpf) {
-              textoPagamentoZap += '🪪 *CPF do Titular:* ' + dadosCartaoCliente.cpf + '\n';
+            if (formaPagamentoEscolhida === 'maquininha' || formaPagamentoEscolhida === 'credito' || formaPagamentoEscolhida === 'debito') {
+              textoPagamentoZap += '🚚 *Solicitação:* Enviar maquininha de cartão no momento da entrega/visita técnica ✅\n';
             }
             textoPagamentoZap += '🏢 *Recebedor:* ' + rec.nome + ' (Pix: ' + rec.pix + ')\n';
           }
 
           let textoComprovanteZap = '';
-          if (comprovanteArquivo) {
+          if (formaPagamentoEscolhida === 'maquininha' || formaPagamentoEscolhida === 'credito' || formaPagamentoEscolhida === 'debito') {
+            textoComprovanteZap = '📟 *Pagamento:* Presencial na maquininha física na entrega/instalação ✅\n';
+          } else if (comprovanteArquivo) {
             textoComprovanteZap = '🧾 *Comprovante:* Anexado digitalmente ✅\n';
           } else {
             textoComprovanteZap = '⏳ *Comprovante:* A enviar pelo cliente (Prazo: 24 horas) ⚠️\n';
