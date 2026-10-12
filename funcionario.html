@@ -307,7 +307,7 @@
       }
     }
     .portal-tab {
-      height: 48px;
+      height: auto;
       min-height: 48px;
       background: rgba(255,255,255,0.035);
       border: 1.5px solid rgba(255,255,255,0.09);
@@ -323,9 +323,11 @@
       justify-content: center;
       gap: 6px;
       text-align: center;
-      padding: 0 10px;
+      padding: 7px 10px;
+      line-height: 1.15;
       box-sizing: border-box;
       width: 100%;
+      overflow: hidden;
     }
     .portal-tab:hover {
       background: rgba(255,255,255,0.07);
@@ -712,11 +714,22 @@
     .chat-container {
       display: flex;
       flex-direction: column;
-      height: 480px;
+      min-height: 520px;
+      height: auto;
       background: #090911;
       border: 1px solid var(--border-s);
       border-radius: var(--r-lg);
-      overflow: hidden;
+      overflow: visible;
+      margin-bottom: 50px;
+    }
+
+    #lista-os-mensagens-feed {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      max-height: 280px;
+      overflow-y: auto;
+      padding-right: 6px;
     }
 
     .chat-header {
@@ -829,12 +842,64 @@
     }
 
     .chat-input-bar {
-      padding: 12px 14px;
+      padding: 14px 16px;
       background: #11111d;
-      border-top: 1px solid var(--border-s);
+      border-top: 1.5px solid rgba(201,168,76,0.35);
+      border-bottom-left-radius: var(--r-lg);
+      border-bottom-right-radius: var(--r-lg);
       display: flex;
       gap: 10px;
       align-items: center;
+      flex-direction: column;
+      box-sizing: border-box;
+      width: 100%;
+    }
+
+    .chat-input-os-label {
+      width: 100%;
+      font-size: 11.5px;
+      font-weight: 700;
+      color: var(--gold-light);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 0 2px;
+      letter-spacing: 0.04em;
+    }
+
+    .chat-input-row {
+      width: 100%;
+      display: flex;
+      gap: 10px;
+      align-items: center;
+    }
+
+    .chat-input-bar-hidden {
+      display: none !important;
+    }
+
+    .chat-select-prompt {
+      padding: 14px 16px;
+      background: rgba(201,168,76,0.07);
+      border-top: 1px solid var(--border-s);
+      border-radius: 0 0 14px 14px;
+      text-align: center;
+      color: var(--gold-light);
+      font-size: 12.5px;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      opacity: 0.85;
+    }
+
+    @keyframes slideUpInput {
+      from { opacity: 0; transform: translateY(12px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    .chat-input-bar.visible {
+      animation: slideUpInput 0.3s ease;
     }
 
     .chat-input {
@@ -2538,7 +2603,7 @@
                 0 O.S.
               </span>
             </div>
-            <div id="lista-os-mensagens-feed" style="display:flex;flex-direction:column;gap:10px;max-height:260px;overflow-y:auto;padding-right:4px;">
+            <div id="lista-os-mensagens-feed" style="display:flex;flex-direction:column;gap:10px;padding-right:4px;">
               <!-- Cards das ordens de serviço geradas sem valores -->
             </div>
           </div>
@@ -2547,13 +2612,8 @@
             <!-- Balões de mensagens inseridos dinamicamente -->
           </div>
 
-          <div class="chat-input-bar">
-            <input type="text" id="chat-input-text" class="chat-input" placeholder="Digite sua mensagem ou dúvida para a SD Vidros..." onkeydown="if(event.key==='Enter') enviarMensagemCliente()">
-            <button class="btn-send-msg" onclick="enviarMensagemCliente()">
-              Enviar ➔
-            </button>
-          </div>
         </div>
+
       </div>
 
       <!-- ── ABA 4: SETOR FINANCEIRO DO CLIENTE / PONTO DO FUNCIONÁRIO ── -->
@@ -5490,6 +5550,9 @@ function mudarAba(tab) {
           const badge = document.getElementById('badge-msg-count');
           if (badge) badge.style.display = 'none';
           if (typeof renderizarOrdensMensagens === 'function') renderizarOrdensMensagens();
+          if (clienteSessao && clienteSessao.os && typeof mostrarCampoMensagem === 'function') {
+            mostrarCampoMensagem(clienteSessao.os, clienteSessao.nomeClienteOs || clienteSessao.nome);
+          }
           if (typeof scrollChatFim === 'function') scrollChatFim();
         } else if (tab === 'financeiro') {
           if (clienteSessao && clienteSessao.isFuncionario) {
@@ -8668,16 +8731,29 @@ function baterPontoNoCliente(tipo) {
 
     function enviarMensagemCliente() {
       const input = document.getElementById('chat-input-text');
-      const texto = (input.value || '').trim();
-      if (!texto) return;
+      const texto = (input && input.value ? input.value : '').trim();
+      if (!texto) {
+        if (input) {
+          input.focus();
+          input.style.borderColor = '#ef4444';
+          setTimeout(() => { input.style.borderColor = 'rgba(255,255,255,0.2)'; }, 1800);
+        }
+        return;
+      }
+
+      if (!clienteSessao || !clienteSessao.os) {
+        mostrarToastNotificacao('Atenção', 'Selecione uma O.S. antes de enviar a mensagem.', '⚠️');
+        return;
+      }
 
       const key = getChatStorageKey(clienteSessao.os);
       let msgs = [];
       try { msgs = JSON.parse(localStorage.getItem(key) || '[]'); } catch(_) {}
 
+      const remetente = (clienteSessao && clienteSessao.isFuncionario) ? 'funcionario' : 'cliente';
       const novaMsg = {
         id: Date.now(),
-        remetente: 'cliente',
+        remetente: remetente,
         texto: texto,
         hora: new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })
       };
@@ -8687,17 +8763,19 @@ function baterPontoNoCliente(tipo) {
       renderizarMensagens(msgs);
       input.value = '';
 
+      mostrarToastNotificacao('Mensagem Enviada', `Mensagem enviada referente à ${clienteSessao.os}!`, '💬');
+
       // Despacha para o barramento ntfy e API
       fetch('/api/portal-cliente', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           action: 'mensagem',
-          remetente: 'cliente',
-          cliente_nome: clienteSessao.nome,
+          remetente: remetente,
+          cliente_nome: clienteSessao.nomeClienteOs || clienteSessao.nome,
           os: clienteSessao.os,
           texto: texto,
-          telefone: clienteSessao.telefone
+          telefone: clienteSessao.telefone || ''
         })
       }).catch(() => {});
     }
@@ -8756,6 +8834,7 @@ function baterPontoNoCliente(tipo) {
 
         const isAtiva = (clienteSessao && String(clienteSessao.os).replace(/\D/g,'') === String(o.numero).replace(/\D/g,''));
 
+
         return `
           <div style="background:${isAtiva ? 'linear-gradient(135deg,rgba(201,168,76,0.15),rgba(20,20,32,0.95))' : 'rgba(255,255,255,0.03)'};border:1.5px solid ${isAtiva ? 'var(--gold)' : 'rgba(255,255,255,0.09)'};border-radius:10px;padding:12px;box-shadow:0 4px 14px rgba(0,0,0,0.3);position:relative;">
             <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;gap:8px;flex-wrap:wrap;">
@@ -8775,9 +8854,69 @@ function baterPontoNoCliente(tipo) {
               ${local ? `<span>📍 Obra: ${local}</span>` : ''}
             </div>
             ${itensHtml}
+            ${isAtiva ? `
+              <div style="margin-top:12px;padding-top:12px;border-top:1px solid rgba(201,168,76,0.3);">
+                <div style="font-size:11.5px;font-weight:800;color:var(--gold-light);margin-bottom:8px;display:flex;align-items:center;gap:6px;">
+                  <span>💬</span><span>Escreva sua mensagem para esta O.S.:</span>
+                </div>
+                <div style="display:flex;gap:8px;flex-direction:column;">
+                  <textarea id="msg-card-text-${numOs.replace(/[^a-z0-9]/gi,'_')}" rows="2" placeholder="Digite sua mensagem referente à ${numOs}..." style="width:100%;box-sizing:border-box;background:#090911;border:1.5px solid rgba(201,168,76,0.4);border-radius:10px;padding:10px 12px;color:#fff;font-size:13px;font-family:var(--font);outline:none;resize:none;line-height:1.4;" onfocus="this.style.borderColor='var(--gold)'" onblur="this.style.borderColor='rgba(201,168,76,0.4)'"></textarea>
+                  <div style="display:flex;justify-content:flex-end;">
+                    <button type="button" onclick="enviarMensagemCard('${numOs}', '${nomeCliente}')" style="background:linear-gradient(135deg,var(--gold-light),var(--gold));color:#000;border:none;padding:9px 20px;border-radius:8px;font-size:13px;font-weight:800;cursor:pointer;display:flex;align-items:center;gap:6px;font-family:var(--font);box-shadow:0 3px 10px rgba(0,0,0,0.3);">
+                      Enviar ➔
+                    </button>
+                  </div>
+                </div>
+              </div>` : ''}
           </div>
         `;
       }).join('');
+    }
+
+    function enviarMensagemCard(numOs, nomeCliente) {
+      const safeId = String(numOs || '').replace(/[^a-z0-9]/gi, '_');
+      const textarea = document.getElementById('msg-card-text-' + safeId);
+      const texto = (textarea && textarea.value ? textarea.value : '').trim();
+      if (!texto) {
+        if (textarea) {
+          textarea.focus();
+          textarea.style.borderColor = '#ef4444';
+          setTimeout(() => { textarea.style.borderColor = 'rgba(201,168,76,0.4)'; }, 1800);
+        }
+        return;
+      }
+
+      const key = getChatStorageKey(numOs);
+      let msgs = [];
+      try { msgs = JSON.parse(localStorage.getItem(key) || '[]'); } catch(_) {}
+
+      const remetente = (clienteSessao && clienteSessao.isFuncionario) ? 'funcionario' : 'cliente';
+      const novaMsg = {
+        id: Date.now(),
+        remetente: remetente,
+        texto: texto,
+        hora: new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })
+      };
+
+      msgs.push(novaMsg);
+      localStorage.setItem(key, JSON.stringify(msgs));
+      renderizarMensagens(msgs);
+      textarea.value = '';
+
+      mostrarToastNotificacao('Mensagem Enviada', `Mensagem enviada referente à ${numOs}!`, '💬');
+
+      fetch('/api/portal-cliente', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'mensagem',
+          remetente: remetente,
+          cliente_nome: nomeCliente || (clienteSessao && (clienteSessao.nomeClienteOs || clienteSessao.nome)) || '',
+          os: numOs,
+          texto: texto,
+          telefone: (clienteSessao && clienteSessao.telefone) || ''
+        })
+      }).catch(() => {});
     }
 
     function selecionarOsNoPortal(numOs, nomeCliente) {
@@ -8785,7 +8924,6 @@ function baterPontoNoCliente(tipo) {
         clienteSessao = { nome: nomeCliente, os: numOs };
       } else {
         clienteSessao.os = numOs;
-        // Salva o nome do cliente da O.S. separado do nome do funcionário
         clienteSessao.nomeClienteOs = nomeCliente || '';
         if (nomeCliente && !clienteSessao.isFuncionario) clienteSessao.nome = nomeCliente;
       }
@@ -8795,7 +8933,7 @@ function baterPontoNoCliente(tipo) {
       const lblOs = document.getElementById('lbl-cliente-os-texto') || document.getElementById('lbl-cliente-os');
       if (lblOs) lblOs.textContent = 'O.S. ' + numOs;
 
-      // Atualiza o nome do CLIENTE da O.S. no cabeçalho (terceira imagem)
+      // Atualiza o nome do CLIENTE da O.S. no cabeçalho
       const lblNomeCliente = document.getElementById('lbl-nome-cliente-os');
       if (lblNomeCliente) {
         lblNomeCliente.textContent = nomeCliente ? '👤 Cliente: ' + nomeCliente : '';
@@ -8807,7 +8945,23 @@ function baterPontoNoCliente(tipo) {
       carregarMensagensChat(clienteSessao);
       carregarDadosFinanceiros(clienteSessao);
       renderizarOrdensMensagens();
+      mostrarCampoMensagem(numOs, nomeCliente);
       mostrarToastNotificacao('O.S. Selecionada', `Visualizando agora ${numOs} - ${nomeCliente}`, '📋');
+    }
+
+    function mostrarCampoMensagem(numOs, nomeCliente) {
+      const safeId = String(numOs || '').replace(/[^a-z0-9]/gi, '_');
+      const textarea = document.getElementById('msg-card-text-' + safeId);
+      if (textarea) {
+        setTimeout(() => {
+          textarea.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          textarea.focus();
+        }, 200);
+      }
+    }
+
+    function abrirCampoMensagem(numOs, nomeCliente) {
+      mostrarCampoMensagem(numOs, nomeCliente);
     }
 
     function abrirSeletorTrocaOs() {
