@@ -1832,7 +1832,7 @@
       <div class="user-pill" style="display:flex;align-items:center;gap:6px;background:#101018;border:1px solid rgba(255,255,255,0.12);padding:6px 12px;border-radius:20px;">
         <span id="usuario-logado" style="font-size:12px;font-weight:700;color:#93c5fd;"><span style="color:#3b82f6;">👤</span> Samuel</span>
       </div>
-      <button type="button" onclick="abrirModalOrganizarAbas()" style="display:flex;align-items:center;gap:5px;background:#181824;border:1px solid rgba(201,168,76,0.35);color:var(--gold-light);padding:6px 12px;border-radius:20px;cursor:pointer;font-size:12px;font-weight:800;" title="Reordenar os botões do menu">
+      <button type="button" id="btn-top-organizar-abas" onclick="abrirModalOrganizarAbas()" style="display:flex;align-items:center;gap:5px;background:#181824;border:1px solid rgba(201,168,76,0.35);color:var(--gold-light);padding:6px 12px;border-radius:20px;cursor:pointer;font-size:12px;font-weight:800;" title="Reordenar os botões do menu">
         🔀 Organizar Abas
       </button>
       <button class="btn-sair" onclick="sair()" style="display:flex;align-items:center;gap:5px;background:#181824;border:1px solid rgba(239,68,68,0.3);color:#fca5a5;padding:6px 12px;border-radius:20px;cursor:pointer;font-size:12px;font-weight:700;">📕 Sair</button>
@@ -13143,6 +13143,41 @@ async function enviarOrcamentoParaAssinaturaDigital() {
     updateDatalistProdutos();
     renderProdutos();
 
+    // 2. Atualiza ou cadastra cliente na base de clientes (K.clients)
+    if (d.nome) {
+      const telLimpo = String(d.tel || '').replace(/\D/g, '');
+      let cli = clientes.find(c => {
+        const cTel = String(c.whatsapp || '').replace(/\D/g, '');
+        return (telLimpo && cTel && (cTel === telLimpo || cTel.includes(telLimpo) || telLimpo.includes(cTel))) ||
+               (c.nome && c.nome.toLowerCase().trim() === d.nome.toLowerCase().trim());
+      });
+      if (cli) {
+        cli.nome = d.nome;
+        if (d.tel) cli.whatsapp = d.tel;
+        if (d.cnpj) cli.cnpj = d.cnpj;
+        if (d.bairro) cli.bairro = d.bairro;
+        if (d.end) cli.endereco = d.end;
+        if (d.num) cli.numero = d.num;
+        if (d.apto) cli.complemento = d.apto;
+      } else {
+        clientes.push({
+          id: Date.now(),
+          nome: d.nome,
+          whatsapp: d.tel || '',
+          cnpj: d.cnpj || '',
+          bairro: d.bairro || '',
+          endereco: d.end || '',
+          numero: d.num || '',
+          complemento: d.apto || '',
+          data_cadastro: new Date().toLocaleDateString('pt-BR')
+        });
+      }
+      save(K.clients, clientes);
+      renderCli();
+    }
+
+    const licAtivaParaPayload = (typeof obterLicencaAtiva === "function") ? obterLicencaAtiva() : { id: "sdmoveis", nome: "SD Móveis Projetados" };
+
     const novoStatus = ehReenvio ? (statusEdicaoSelecionado || 'reajustar') : 'pendente';
 
     if (editandoOsId) {
@@ -13180,6 +13215,8 @@ async function enviarOrcamentoParaAssinaturaDigital() {
           data_orc: d.data,
           dados: d,
           status: novoStatus,
+          empresaId: licAtivaParaPayload.id,
+          empresaNome: licAtivaParaPayload.nome,
           versoes_pdf: ordAntiga.versoes_pdf,
           enviado_assinatura: true,
           enviado_assinatura_em: new Date().toISOString()
@@ -13188,6 +13225,7 @@ async function enviarOrcamentoParaAssinaturaDigital() {
         if (novoStatus === 'reajustar') {
           historico[idx].assinado_por = 'Aguardando Nova Assinatura';
         }
+        notificarNovaOrdemGerada(historico[idx]);
       }
     } else {
       const ord = {
@@ -13198,6 +13236,8 @@ async function enviarOrcamentoParaAssinaturaDigital() {
         data_orc: d.data,
         dados: d,
         status: 'pendente',
+        empresaId: licAtivaParaPayload.id,
+        empresaNome: licAtivaParaPayload.nome,
         enviado_assinatura: true,
         enviado_assinatura_em: new Date().toISOString(),
         versoes_pdf: [{
@@ -13215,9 +13255,27 @@ async function enviarOrcamentoParaAssinaturaDigital() {
       save(K.nextNum, proxNumero);
       atualizarNumeroDisplay();
     }
+
     save(K.orders, historico);
+    try {
+      if (licAtivaParaPayload && licAtivaParaPayload.id) {
+        localStorage.setItem('sdv_ordens_' + licAtivaParaPayload.id, JSON.stringify(historico));
+      }
+      localStorage.setItem('sdv_ordens', JSON.stringify(historico));
+    } catch(_) {}
     renderHist();
     renderSelectContratos();
+
+    const btnSalvar = document.getElementById('btn-salvar-os');
+    if (btnSalvar) {
+      btnSalvar.innerHTML = '✅ O.S. Salva Automaticamente';
+      setTimeout(() => {
+        if (btnSalvar) btnSalvar.innerHTML = '✅ Salvar Ordem de Serviço';
+      }, 4000);
+    }
+    if (typeof showToast === 'function') {
+      showToast('✅ Ordem de Serviço ' + d.numero + ' salva automaticamente com sucesso!', 'success');
+    }
 
     // 2. Gerar texto do contrato e links
     const textoContrato = montarTextoContrato(d);
@@ -19324,8 +19382,8 @@ function trocarPosicaoAbas(tabA, tabB) {
 }
 
 function abrirModalOrganizarAbas() {
-  // O botão de topo agora ativa o modo interativo direto na grade, com máxima precisão!
-  alternarModoOrganizarAbas(true);
+  // O botão de topo ativa ou desativa o modo de organização das abas
+  alternarModoOrganizarAbas();
 }
 
 function fecharModalOrganizarAbas() {
@@ -19475,7 +19533,8 @@ function moverAbaPosicao(tabId, direcao) {
     }
 
     function handlePointerDown(e) {
-      if (modoOrganizarAbasAtivo) return; // No modo tocar-para-mover, não inicia drag acidental
+      // 🔒 BOTÕES BLOQUEADOS: Se não clicou em "Organizar Abas", o movimento fica 100% BLOQUEADO!
+      if (!modoOrganizarAbasAtivo) return;
 
       const tab = e.target.closest('.tab');
       if (!tab) return;
@@ -19487,11 +19546,12 @@ function moverAbaPosicao(tabId, direcao) {
       clearTimeout(holdTimer);
       holdTimer = setTimeout(() => {
         startDrag(tab);
-      }, 260);
+      }, 200);
     }
 
     function handlePointerMove(e) {
-      if (modoOrganizarAbasAtivo) return;
+      // 🔒 BOTÕES BLOQUEADOS: Não permite arrastar fora do modo Organizar
+      if (!modoOrganizarAbasAtivo) return;
 
       const touch = e.touches ? e.touches[0] : e;
       const dx = touch.clientX - startX;
