@@ -13280,7 +13280,6 @@ async function enviarOrcamentoParaAssinaturaDigital() {
     // 2. Gerar texto do contrato e links
     const textoContrato = montarTextoContrato(d);
 
-    const licAtivaParaPayload = (typeof obterLicencaAtiva === "function") ? obterLicencaAtiva() : { id: "sdmoveis", nome: "SD Móveis Projetados" };
     const ehMoveisPayload = (licAtivaParaPayload.tipoContrato === "moveis" || licAtivaParaPayload.id === "sdmoveis" || (licAtivaParaPayload.nome && licAtivaParaPayload.nome.toLowerCase().includes("moveis")) || licAtivaParaPayload.id === "emp_1789700331599");
 
     const payloadCompacto = {

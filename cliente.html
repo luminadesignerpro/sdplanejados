@@ -2215,14 +2215,19 @@
       <div id="pane-status" class="tab-pane active">
         <!-- Card Destaque de Status -->
         <div class="status-hero">
-          <div>
-            <div class="status-current-label">Status Atual do seu Pedido</div>
+          <div style="flex:1;min-width:220px;">
+            <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:6px;">
+              <div class="status-current-label" style="margin-bottom:0;">Status Atual do seu Pedido</div>
+              <button type="button" onclick="abrirModalConfigurarStatusPedido()" style="background:rgba(201,168,76,0.18);border:1px solid var(--gold);color:var(--gold-light);padding:4px 12px;border-radius:8px;font-size:11px;font-weight:800;cursor:pointer;display:inline-flex;align-items:center;gap:5px;box-shadow:0 2px 8px rgba(0,0,0,0.3);" title="Editar configuração do status desta O.S.">
+                <span>⚙️</span> <span>Editar Status</span>
+              </button>
+            </div>
             <div class="status-current-title">
               <span class="status-pulse-dot"></span>
-              <span id="hero-status-nome">Em Fabricação & Têmpera</span>
+              <span id="hero-status-nome">Em Fabricação & Marcenaria</span>
             </div>
             <div class="status-details-box" id="hero-status-desc" style="margin-top: 8px;">
-              Vidros temperados e ferragens em processo de corte e usinagem na fábrica.
+              Móveis sob medida em fase de fabricação: corte, fitamento e montagem dos módulos em MDF.
             </div>
           </div>
           <div style="background: rgba(0,0,0,0.35); border: 1px solid rgba(201,168,76,0.3); border-radius: 14px; padding: 12px 18px; text-align: right;">
@@ -2277,17 +2282,22 @@
               <span id="hist-os-assinante">✍️ Assinado digitalmente</span>
               <span style="color:var(--gold);font-weight:800;">SD Móveis Projetados</span>
             </div>
-            <!-- ── AÇÕES DO CLIENTE: CONFIRMAR, REAGENDAR E AVALIAR (5ª IMAGEM) ── -->
-            <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:12px;padding-top:10px;border-top:1px solid rgba(255,255,255,0.08);">
-              <button type="button" onclick="clienteConfirmarAgendamento()" id="btn-cli-confirmar" style="flex:1;min-width:115px;padding:10px 12px;background:linear-gradient(135deg,#16a34a,#15803d);border:1.5px solid #22c55e;border-radius:10px;color:#fff;font-weight:800;font-size:12px;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;gap:6px;box-shadow:0 3px 12px rgba(34,197,94,0.25);" title="Confirmar presença no agendamento">
-                <span>✅</span> <span>Confirmar</span>
+            <!-- ── AÇÕES DO HISTÓRICO: SALVAR VISITA, CONFIRMAR, REAGENDAR E AVALIAR ── -->
+            <div style="margin-top:12px;padding-top:10px;border-top:1px solid rgba(255,255,255,0.08);display:flex;flex-direction:column;gap:8px;">
+              <button type="button" onclick="abrirModalEditarHistoricoVisita()" style="width:100%;padding:10px 14px;background:linear-gradient(135deg,rgba(201,168,76,0.22),rgba(201,168,76,0.42));border:1.5px solid var(--gold);border-radius:10px;color:var(--gold-light);font-weight:900;font-size:12.5px;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;gap:8px;box-shadow:0 4px 14px rgba(201,168,76,0.2);" id="btn-salvar-hist-visita" title="Preencher ou atualizar dados do histórico de visita e medição">
+                <span>💾</span> <span>Salvar Histórico de Visita & Medição Técnica</span>
               </button>
-              <button type="button" onclick="clienteReagendarAgendamento()" id="btn-cli-reagendar" style="flex:1;min-width:115px;padding:10px 12px;background:rgba(59,130,246,0.18);border:1.5px solid #3b82f6;border-radius:10px;color:#93c5fd;font-weight:800;font-size:12px;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;gap:6px;" title="Reagendar visita">
-                <span>🔄</span> <span>Reagendar</span>
-              </button>
-              <button type="button" onclick="clienteAvaliarAtendimento()" id="btn-cli-avaliar" style="flex:1;min-width:115px;padding:10px 12px;background:linear-gradient(135deg,rgba(201,168,76,0.18),rgba(201,168,76,0.3));border:1.5px solid var(--gold);border-radius:10px;color:var(--gold-light);font-weight:800;font-size:12px;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;gap:6px;box-shadow:0 3px 12px rgba(201,168,76,0.2);" title="Avaliar atendimento">
-                <span>⭐</span> <span>Avaliar</span>
-              </button>
+              <div style="display:flex;gap:8px;flex-wrap:wrap;">
+                <button type="button" onclick="clienteConfirmarAgendamento()" id="btn-cli-confirmar" style="flex:1;min-width:100px;padding:9px 10px;background:linear-gradient(135deg,#16a34a,#15803d);border:1.5px solid #22c55e;border-radius:10px;color:#fff;font-weight:800;font-size:11.5px;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;gap:5px;box-shadow:0 3px 12px rgba(34,197,94,0.25);" title="Confirmar presença no agendamento">
+                  <span>✅</span> <span>Confirmar</span>
+                </button>
+                <button type="button" onclick="clienteReagendarAgendamento()" id="btn-cli-reagendar" style="flex:1;min-width:100px;padding:9px 10px;background:rgba(59,130,246,0.18);border:1.5px solid #3b82f6;border-radius:10px;color:#93c5fd;font-weight:800;font-size:11.5px;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;gap:5px;" title="Reagendar visita">
+                  <span>🔄</span> <span>Reagendar</span>
+                </button>
+                <button type="button" onclick="clienteAvaliarAtendimento()" id="btn-cli-avaliar" style="flex:1;min-width:100px;padding:9px 10px;background:linear-gradient(135deg,rgba(201,168,76,0.18),rgba(201,168,76,0.3));border:1.5px solid var(--gold);border-radius:10px;color:var(--gold-light);font-weight:800;font-size:11.5px;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;gap:5px;" title="Avaliar atendimento">
+                  <span>⭐</span> <span>Avaliar</span>
+                </button>
+              </div>
             </div>
           </div>
         </div>
@@ -2318,39 +2328,39 @@
               </div>
             </div>
 
-            <!-- 3. Fabricação & Têmpera -->
+            <!-- 3. Fabricação & Marcenaria -->
             <div class="timeline-item active" id="step-3">
               <div class="timeline-icon-wrap">⚙️</div>
               <div class="timeline-content">
-                <div class="timeline-item-title">3. Em Fabricação & Têmpera dos Vidros</div>
-                <div class="timeline-item-desc">Vidros cortados, lapidados e submetidos ao forno de têmpera.</div>
+                <div class="timeline-item-title">3. Em Fabricação & Marcenaria</div>
+                <div class="timeline-item-desc">Móveis cortados, fitados e montados na fábrica por marceneiros especializados.</div>
               </div>
             </div>
 
-            <!-- 4. Pronto para Instalação -->
+            <!-- 4. Acabamento & Pronto para Entrega -->
             <div class="timeline-item" id="step-4">
-              <div class="timeline-icon-wrap">🚚</div>
+              <div class="timeline-icon-wrap">✨</div>
               <div class="timeline-content">
-                <div class="timeline-item-title">4. Pronto para Transporte & Montagem</div>
-                <div class="timeline-item-desc">Peças revisadas, embaladas e separadas para rota.</div>
+                <div class="timeline-item-title">4. Acabamento & Pronto para Entrega</div>
+                <div class="timeline-item-desc">Revisão final, embalagem e separação para transporte até o local.</div>
               </div>
             </div>
 
-            <!-- 5. Em Instalação -->
+            <!-- 5. Instalação no Local -->
             <div class="timeline-item" id="step-5">
               <div class="timeline-icon-wrap">🔧</div>
               <div class="timeline-content">
-                <div class="timeline-item-title">5. Em Instalação no Local</div>
-                <div class="timeline-item-desc">Equipe de vidraceiros realizando a montagem e ajustes finos.</div>
+                <div class="timeline-item-title">5. Instalação no Local</div>
+                <div class="timeline-item-desc">Equipe de marceneiros realizando a instalação e ajustes finos dos móveis.</div>
               </div>
             </div>
 
-            <!-- 6. Concluído -->
+            <!-- 6. Entregue com Sucesso -->
             <div class="timeline-item" id="step-6">
               <div class="timeline-icon-wrap">🏆</div>
               <div class="timeline-content">
-                <div class="timeline-item-title">6. Concluído com Sucesso</div>
-                <div class="timeline-item-desc">Serviço entregue, limpo e termo de garantia ativado.</div>
+                <div class="timeline-item-title">6. Entregue com Sucesso</div>
+                <div class="timeline-item-desc">Projeto entregue, ambientes organizados e garantia ativada.</div>
               </div>
             </div>
           </div>
@@ -2401,8 +2411,8 @@
             </a>
           </div>
 
-          <!-- Feed de Ordens de Serviço Geradas (Sem Valores, Apenas Cliente e Especificações Técnicas) -->
-          <div id="portal-mensagens-ordens-box" style="padding:14px;background:rgba(0,0,0,0.3);border-bottom:1px solid rgba(255,255,255,0.08);">
+          <!-- Feed de Ordens de Serviço Geradas (Oculto na aba de Mensagens a pedido do cliente) -->
+          <div id="portal-mensagens-ordens-box" style="display:none;padding:14px;background:rgba(0,0,0,0.3);border-bottom:1px solid rgba(255,255,255,0.08);">
             <div style="font-size:12px;font-weight:800;color:var(--gold-light);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:10px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:6px;">
               <span style="display:flex;align-items:center;gap:6px;">
                 <span>📋</span>
@@ -7220,6 +7230,7 @@ function mudarAba(tab) {
         const valBruto = o.total || o.valorTotal || o.valor || (o.dados && (o.dados.total || o.dados.valorTotal || o.dados.valor)) || '';
         const valNum = parseMoedaBRL(valBruto);
         const val = valNum > 0 ? ('R$ ' + Number(valNum).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })) : '';
+        const st = o.status || o.statusServico || (isAtiva ? 'Em Andamento' : 'Aberta');
 
         return `
           <div class="card-ordem-clicavel" onclick="selecionarOsNoPortal('${numOs}', '${(nome||'').replace(/'/g, "\\'")}'); fecharModalSeletorOrdens();" style="background:${isAtiva ? 'linear-gradient(135deg,rgba(212,175,55,0.22),rgba(20,20,35,0.95))' : 'rgba(255,255,255,0.035)'};border:${isAtiva ? '1.5px solid var(--gold)' : '1px solid rgba(255,255,255,0.1)'};border-radius:14px;padding:12px 14px;cursor:pointer;display:flex;justify-content:space-between;align-items:center;gap:10px;transition:all 0.2s ease;box-shadow:0 4px 14px rgba(0,0,0,0.35);">
@@ -8554,6 +8565,282 @@ function baixarSincronizacaoAlarmeCalendario() {
   document.body.removeChild(a);
   URL.revokeObjectURL(url);
   alert('📅 Arquivo de calendário baixado! Toque nele para importar os alarmes no despertador do celular.');
+}
+
+// ══════════════════════════════════════════════
+//  MODAL: EDITAR HISTÓRICO DE VISITA & MEDIÇÃO
+// ══════════════════════════════════════════════
+function abrirModalEditarHistoricoVisita() {
+  let m = document.getElementById('modal-editar-historico-visita');
+  if (m) m.remove();
+
+  const dataAtual = (document.getElementById('hist-os-data') || {}).textContent || '';
+  const horaAtual = ((document.getElementById('hist-os-hora') || {}).textContent || '09:00').replace('às ','');
+  const tipoAtual = (document.getElementById('hist-os-tipo') || {}).textContent || 'Medição Técnica';
+  const endAtual = (document.getElementById('hist-os-endereco') || {}).textContent || '';
+  const obsAtual = (document.getElementById('hist-os-obs') || {}).textContent || '';
+  const dataISO = (dataAtual && dataAtual.includes('/')) ? dataAtual.split('/').reverse().join('-') : '';
+
+  m = document.createElement('div');
+  m.id = 'modal-editar-historico-visita';
+  m.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.88);backdrop-filter:blur(8px);z-index:9999999;display:flex;align-items:center;justify-content:center;padding:16px;';
+  m.onclick = function(e) { if(e.target===m) m.remove(); };
+  m.innerHTML = `
+    <div onclick="event.stopPropagation()" style="background:linear-gradient(145deg,#0e111d,#161b2c);border:1.5px solid rgba(201,168,76,0.45);border-radius:20px;max-width:480px;width:100%;max-height:90vh;overflow-y:auto;box-shadow:0 25px 60px rgba(0,0,0,0.9);">
+      <div style="padding:18px 20px 14px;border-bottom:1px solid rgba(255,255,255,0.08);display:flex;justify-content:space-between;align-items:center;">
+        <div style="display:flex;align-items:center;gap:10px;">
+          <span style="font-size:22px;">📋</span>
+          <div>
+            <div style="font-size:15px;font-weight:900;color:#facc15;">Histórico de Visita & Medição</div>
+            <div style="font-size:11px;color:#94a3b8;">Preencha ou atualize os dados do atendimento</div>
+          </div>
+        </div>
+        <button type="button" onclick="document.getElementById('modal-editar-historico-visita').remove()" style="background:rgba(255,255,255,0.08);border:none;color:#94a3b8;width:32px;height:32px;border-radius:50%;font-size:16px;cursor:pointer;">✕</button>
+      </div>
+      <div style="padding:18px 20px;display:flex;flex-direction:column;gap:14px;">
+        <div>
+          <label style="display:block;font-size:11px;font-weight:800;color:#94a3b8;text-transform:uppercase;margin-bottom:6px;">Data do Agendamento</label>
+          <input type="date" id="hist-edit-data" value="${dataISO}" style="width:100%;box-sizing:border-box;padding:10px 12px;background:#090a14;border:1px solid rgba(201,168,76,0.3);border-radius:10px;color:#fff;font-size:14px;outline:none;">
+        </div>
+        <div>
+          <label style="display:block;font-size:11px;font-weight:800;color:#94a3b8;text-transform:uppercase;margin-bottom:6px;">Horário</label>
+          <input type="time" id="hist-edit-hora" value="${horaAtual}" style="width:100%;box-sizing:border-box;padding:10px 12px;background:#090a14;border:1px solid rgba(201,168,76,0.3);border-radius:10px;color:#fff;font-size:14px;outline:none;">
+        </div>
+        <div>
+          <label style="display:block;font-size:11px;font-weight:800;color:#94a3b8;text-transform:uppercase;margin-bottom:6px;">Tipo de Atendimento</label>
+          <select id="hist-edit-tipo" style="width:100%;box-sizing:border-box;padding:10px 12px;background:#090a14;border:1px solid rgba(201,168,76,0.3);border-radius:10px;color:#fff;font-size:14px;outline:none;">
+            <option value="Medição Técnica" ${tipoAtual.includes('Medição') ? 'selected' : ''}>📐 Medição Técnica</option>
+            <option value="Visita Comercial" ${tipoAtual.includes('Comercial') ? 'selected' : ''}>🤝 Visita Comercial</option>
+            <option value="Instalação" ${tipoAtual.includes('Instalação') ? 'selected' : ''}>🔧 Instalação</option>
+            <option value="Entrega de Materiais" ${tipoAtual.includes('Entrega') ? 'selected' : ''}>📦 Entrega de Materiais</option>
+            <option value="Vistoria Final" ${tipoAtual.includes('Vistoria') ? 'selected' : ''}>✅ Vistoria Final</option>
+            <option value="Ajuste / Garantia" ${tipoAtual.includes('Ajuste') ? 'selected' : ''}>🛠️ Ajuste / Garantia</option>
+          </select>
+        </div>
+        <div>
+          <label style="display:block;font-size:11px;font-weight:800;color:#94a3b8;text-transform:uppercase;margin-bottom:6px;">Endereço / Local da Obra</label>
+          <input type="text" id="hist-edit-endereco" placeholder="Ex: Rua das Flores, 123 - Bairro" value="${endAtual.includes('cadastrado') ? '' : endAtual}" style="width:100%;box-sizing:border-box;padding:10px 12px;background:#090a14;border:1px solid rgba(201,168,76,0.3);border-radius:10px;color:#fff;font-size:14px;outline:none;">
+        </div>
+        <div>
+          <label style="display:block;font-size:11px;font-weight:800;color:#94a3b8;text-transform:uppercase;margin-bottom:6px;">Observações</label>
+          <textarea id="hist-edit-obs" rows="3" placeholder="Descreva observações relevantes sobre a visita..." style="width:100%;box-sizing:border-box;padding:10px 12px;background:#090a14;border:1px solid rgba(201,168,76,0.3);border-radius:10px;color:#fff;font-size:13px;outline:none;resize:none;font-family:inherit;">${obsAtual.includes('Nenhuma') ? '' : obsAtual}</textarea>
+        </div>
+        <div style="display:flex;gap:10px;margin-top:4px;">
+          <button type="button" onclick="document.getElementById('modal-editar-historico-visita').remove()" style="flex:1;padding:12px;border-radius:10px;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.1);color:#fff;font-weight:700;font-size:13px;cursor:pointer;">Cancelar</button>
+          <button type="button" onclick="salvarHistoricoVisita()" style="flex:2;padding:12px;border-radius:10px;background:linear-gradient(135deg,#C9A84C,#a07828);border:none;color:#000;font-weight:900;font-size:13px;cursor:pointer;box-shadow:0 4px 16px rgba(201,168,76,0.35);">💾 Salvar Histórico</button>
+        </div>
+      </div>
+    </div>
+  `;
+  document.body.appendChild(m);
+}
+
+function salvarHistoricoVisita() {
+  const dataRaw = (document.getElementById('hist-edit-data') || {}).value || '';
+  const hora = (document.getElementById('hist-edit-hora') || {}).value || '';
+  const tipo = (document.getElementById('hist-edit-tipo') || {}).value || 'Medição Técnica';
+  const end = (document.getElementById('hist-edit-endereco') || {}).value || '';
+  const obs = (document.getElementById('hist-edit-obs') || {}).value || '';
+  let dataBR = dataRaw;
+  if (dataRaw && dataRaw.includes('-')) { const p = dataRaw.split('-'); dataBR = p[2]+'/'+p[1]+'/'+p[0]; }
+  const elData = document.getElementById('hist-os-data');
+  const elHora = document.getElementById('hist-os-hora');
+  const elTipo = document.getElementById('hist-os-tipo');
+  const elEnd = document.getElementById('hist-os-endereco');
+  const elObs = document.getElementById('hist-os-obs');
+  if (elData) elData.textContent = dataBR || '--/--/----';
+  if (elHora) elHora.textContent = hora ? 'às ' + hora : '--:--';
+  if (elTipo) elTipo.textContent = tipo;
+  if (elEnd) elEnd.textContent = end || 'Endereço cadastrado na agenda';
+  if (elObs) elObs.textContent = obs || 'Nenhuma observação informada.';
+  try {
+    const osKey = 'sdv_hist_visita_' + String((clienteSessao && clienteSessao.os) ? clienteSessao.os : 'local').replace(/\D/g,'');
+    localStorage.setItem(osKey, JSON.stringify({ data: dataBR, hora, tipo, endereco: end, obs }));
+  } catch(_) {}
+  const m = document.getElementById('modal-editar-historico-visita');
+  if (m) m.remove();
+  if (typeof mostrarToastNotificacao === 'function') mostrarToastNotificacao('✅ Histórico Salvo', 'Dados de visita e medição atualizados com sucesso.', '📋');
+}
+
+// ══════════════════════════════════════════════
+//  MODAL: CONFIGURAR STATUS DO PEDIDO
+// ══════════════════════════════════════════════
+const STATUS_MOVEIS_OPCOES = [
+  { etapa: 1, nome: 'Orçamento Aprovado & Confirmado', desc: 'Projeto aceito e registrado no sistema da SD Móveis Projetados.', cor: '#22c55e' },
+  { etapa: 2, nome: 'Medição Técnica no Local', desc: 'Conferência milimétrica dos vãos e detalhes de fixação no ambiente.', cor: '#3b82f6' },
+  { etapa: 3, nome: 'Em Fabricação & Marcenaria', desc: 'Móveis sob medida em fabricação: corte, fitamento e montagem dos módulos.', cor: '#f59e0b' },
+  { etapa: 4, nome: 'Acabamento & Pronto para Entrega', desc: 'Revisão final, embalagem e separação para transporte até o local.', cor: '#8b5cf6' },
+  { etapa: 5, nome: 'Instalação no Local', desc: 'Equipe de marceneiros realizando a instalação e ajustes finos dos móveis.', cor: '#06b6d4' },
+  { etapa: 6, nome: 'Entregue com Sucesso', desc: 'Projeto entregue, ambientes organizados e garantia ativada.', cor: '#10b981' }
+];
+let _statusEtapaSelecionada = null;
+
+function abrirModalConfigurarStatusPedido() {
+  const m2 = document.getElementById('modal-configurar-status-pedido');
+  if (m2) m2.remove();
+  const statusAtual = (document.getElementById('hero-status-nome') || {}).textContent || '';
+  const descAtual = (document.getElementById('hero-status-desc') || {}).textContent || '';
+  const previsaoAtual = (document.getElementById('hero-previsao-data') || {}).textContent || '';
+  const m = document.createElement('div');
+  m.id = 'modal-configurar-status-pedido';
+  m.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.88);backdrop-filter:blur(8px);z-index:9999999;display:flex;align-items:center;justify-content:center;padding:16px;';
+  m.onclick = function(e) { if(e.target===m) fecharModalConfigurarStatusPedido(); };
+  const opcoesHTML = STATUS_MOVEIS_OPCOES.map(s => `
+    <label onclick="selecionarStatusModal(${s.etapa})" id="opt-status-${s.etapa}" style="display:flex;align-items:flex-start;gap:10px;padding:10px 12px;border:1.5px solid rgba(255,255,255,0.08);border-radius:10px;cursor:pointer;background:rgba(255,255,255,0.03);transition:all 0.2s;">
+      <span id="radio-status-${s.etapa}" style="width:16px;height:16px;border-radius:50%;border:2px solid ${s.cor};background:transparent;display:inline-block;flex-shrink:0;margin-top:2px;"></span>
+      <div><div style="font-size:13px;font-weight:800;color:#fff;">${s.nome}</div><div style="font-size:11px;color:#94a3b8;margin-top:2px;">${s.desc}</div></div>
+    </label>
+  `).join('');
+  m.innerHTML = `
+    <div onclick="event.stopPropagation()" style="background:linear-gradient(145deg,#0e111d,#161b2c);border:1.5px solid rgba(201,168,76,0.45);border-radius:20px;max-width:480px;width:100%;max-height:90vh;overflow-y:auto;box-shadow:0 25px 60px rgba(0,0,0,0.9);">
+      <div style="padding:18px 20px 14px;border-bottom:1px solid rgba(255,255,255,0.08);display:flex;justify-content:space-between;align-items:center;">
+        <div style="display:flex;align-items:center;gap:10px;">
+          <span style="font-size:22px;">⚙️</span>
+          <div>
+            <div style="font-size:15px;font-weight:900;color:#facc15;">Editar Status do Pedido</div>
+            <div style="font-size:11px;color:#94a3b8;">Selecione a etapa atual do projeto</div>
+          </div>
+        </div>
+        <button type="button" onclick="fecharModalConfigurarStatusPedido()" style="background:rgba(255,255,255,0.08);border:none;color:#94a3b8;width:32px;height:32px;border-radius:50%;font-size:16px;cursor:pointer;">✕</button>
+      </div>
+      <div style="padding:16px 20px;display:flex;flex-direction:column;gap:8px;">
+        <div style="font-size:11px;font-weight:800;color:#94a3b8;text-transform:uppercase;margin-bottom:4px;">Etapa Atual do Projeto</div>
+        ${opcoesHTML}
+        <div style="margin-top:10px;">
+          <label style="display:block;font-size:11px;font-weight:800;color:#94a3b8;text-transform:uppercase;margin-bottom:6px;">Previsão de Instalação</label>
+          <input type="text" id="status-edit-previsao" placeholder="Ex: 25/10/2026 ou A combinar" value="${previsaoAtual === 'A Combinar' ? '' : previsaoAtual}" style="width:100%;box-sizing:border-box;padding:10px 12px;background:#090a14;border:1px solid rgba(201,168,76,0.3);border-radius:10px;color:#fff;font-size:13px;outline:none;">
+        </div>
+        <div style="margin-top:6px;">
+          <label style="display:block;font-size:11px;font-weight:800;color:#94a3b8;text-transform:uppercase;margin-bottom:6px;">Observação / Detalhe (opcional)</label>
+          <textarea id="status-edit-obs" rows="2" placeholder="Detalhe adicional sobre o status..." style="width:100%;box-sizing:border-box;padding:10px 12px;background:#090a14;border:1px solid rgba(201,168,76,0.3);border-radius:10px;color:#fff;font-size:13px;outline:none;resize:none;font-family:inherit;">${descAtual}</textarea>
+        </div>
+        <div style="display:flex;gap:10px;margin-top:8px;">
+          <button type="button" onclick="fecharModalConfigurarStatusPedido()" style="flex:1;padding:12px;border-radius:10px;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.1);color:#fff;font-weight:700;font-size:13px;cursor:pointer;">Cancelar</button>
+          <button type="button" onclick="salvarConfiguracaoStatus()" style="flex:2;padding:12px;border-radius:10px;background:linear-gradient(135deg,#C9A84C,#a07828);border:none;color:#000;font-weight:900;font-size:13px;cursor:pointer;box-shadow:0 4px 16px rgba(201,168,76,0.35);">✅ Aplicar Status</button>
+        </div>
+      </div>
+    </div>
+  `;
+  document.body.appendChild(m);
+  STATUS_MOVEIS_OPCOES.forEach(s => {
+    const sNomeLower = s.nome.toLowerCase().split('&')[0].trim();
+    if (statusAtual && statusAtual.toLowerCase().includes(sNomeLower)) selecionarStatusModal(s.etapa);
+  });
+}
+
+function selecionarStatusModal(etapa) {
+  _statusEtapaSelecionada = etapa;
+  STATUS_MOVEIS_OPCOES.forEach(s => {
+    const radio = document.getElementById('radio-status-' + s.etapa);
+    const opt = document.getElementById('opt-status-' + s.etapa);
+    if (radio) radio.style.background = (s.etapa === etapa ? s.cor : 'transparent');
+    if (opt) { opt.style.borderColor = (s.etapa === etapa ? s.cor : 'rgba(255,255,255,0.08)'); opt.style.background = (s.etapa === etapa ? 'rgba(201,168,76,0.08)' : 'rgba(255,255,255,0.03)'); }
+  });
+}
+
+function fecharModalConfigurarStatusPedido() {
+  const m = document.getElementById('modal-configurar-status-pedido');
+  if (m) m.remove();
+  _statusEtapaSelecionada = null;
+}
+
+function salvarConfiguracaoStatus() {
+  const etapa = _statusEtapaSelecionada;
+  const statusOpt = STATUS_MOVEIS_OPCOES.find(s => s.etapa === etapa);
+  if (!statusOpt) { alert('Por favor, selecione uma etapa antes de salvar.'); return; }
+  const previsao = (document.getElementById('status-edit-previsao') || {}).value || '';
+  const obs = (document.getElementById('status-edit-obs') || {}).value || '';
+  const elNome = document.getElementById('hero-status-nome');
+  const elDesc = document.getElementById('hero-status-desc');
+  const elPrevisao = document.getElementById('hero-previsao-data');
+  if (elNome) elNome.textContent = statusOpt.nome;
+  if (elDesc) elDesc.textContent = obs || statusOpt.desc;
+  if (elPrevisao) elPrevisao.textContent = previsao || 'A Combinar';
+  if (typeof atualizarStepperVisual === 'function') atualizarStepperVisual(etapa);
+  try {
+    const osKey = 'sdv_status_pedido_' + String((clienteSessao && clienteSessao.os) ? clienteSessao.os : 'local').replace(/\D/g,'');
+    localStorage.setItem(osKey, JSON.stringify({ etapa, nome: statusOpt.nome, desc: obs || statusOpt.desc, previsao }));
+  } catch(_) {}
+  fecharModalConfigurarStatusPedido();
+  if (typeof mostrarToastNotificacao === 'function') mostrarToastNotificacao('✅ Status Atualizado', statusOpt.nome, '📊');
+}
+
+// ══════════════════════════════════════════════
+//  AÇÕES DO HISTÓRICO DE AGENDAMENTO
+// ══════════════════════════════════════════════
+function clienteConfirmarAgendamento() {
+  const data = (document.getElementById('hist-os-data') || {}).textContent || '--';
+  const hora = (document.getElementById('hist-os-hora') || {}).textContent || '--';
+  if (!confirm('Confirmar presença no agendamento?\n📅 ' + data + ' ' + hora + '\n\nClique OK para confirmar.')) return;
+  const btn = document.getElementById('btn-cli-confirmar');
+  if (btn) { btn.style.background = 'linear-gradient(135deg,#10b981,#059669)'; btn.innerHTML = '<span>✅</span> <span>Confirmado!</span>'; btn.disabled = true; }
+  if (typeof mostrarToastNotificacao === 'function') mostrarToastNotificacao('✅ Presença Confirmada', 'Agendamento confirmado com sucesso!', '✅');
+}
+
+function clienteReagendarAgendamento() {
+  const mr = document.getElementById('modal-reagendar');
+  if (mr) mr.remove();
+  const m = document.createElement('div');
+  m.id = 'modal-reagendar';
+  m.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.88);backdrop-filter:blur(8px);z-index:9999999;display:flex;align-items:center;justify-content:center;padding:16px;';
+  m.onclick = function(e) { if(e.target===m) m.remove(); };
+  m.innerHTML = `
+    <div onclick="event.stopPropagation()" style="background:linear-gradient(145deg,#0e111d,#161b2c);border:1.5px solid rgba(59,130,246,0.45);border-radius:20px;max-width:400px;width:100%;box-shadow:0 25px 60px rgba(0,0,0,0.9);padding:24px;">
+      <div style="font-size:18px;font-weight:900;color:#93c5fd;margin-bottom:6px;">🔄 Solicitar Reagendamento</div>
+      <div style="font-size:12px;color:#94a3b8;margin-bottom:18px;">Informe uma data e horário de preferência para o novo atendimento.</div>
+      <div style="margin-bottom:12px;"><label style="display:block;font-size:11px;font-weight:800;color:#94a3b8;text-transform:uppercase;margin-bottom:6px;">Data Preferida</label><input type="date" id="reagend-data" style="width:100%;box-sizing:border-box;padding:10px 12px;background:#090a14;border:1px solid rgba(59,130,246,0.3);border-radius:10px;color:#fff;font-size:14px;outline:none;"></div>
+      <div style="margin-bottom:12px;"><label style="display:block;font-size:11px;font-weight:800;color:#94a3b8;text-transform:uppercase;margin-bottom:6px;">Horário Preferido</label><input type="time" id="reagend-hora" style="width:100%;box-sizing:border-box;padding:10px 12px;background:#090a14;border:1px solid rgba(59,130,246,0.3);border-radius:10px;color:#fff;font-size:14px;outline:none;"></div>
+      <div style="margin-bottom:18px;"><label style="display:block;font-size:11px;font-weight:800;color:#94a3b8;text-transform:uppercase;margin-bottom:6px;">Motivo (opcional)</label><textarea id="reagend-motivo" rows="2" placeholder="Informe o motivo do reagendamento..." style="width:100%;box-sizing:border-box;padding:10px 12px;background:#090a14;border:1px solid rgba(59,130,246,0.3);border-radius:10px;color:#fff;font-size:13px;outline:none;resize:none;font-family:inherit;"></textarea></div>
+      <div style="display:flex;gap:10px;"><button type="button" onclick="document.getElementById('modal-reagendar').remove()" style="flex:1;padding:12px;border-radius:10px;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.1);color:#fff;font-weight:700;font-size:13px;cursor:pointer;">Cancelar</button><button type="button" onclick="enviarSolicitacaoReagendamento()" style="flex:2;padding:12px;border-radius:10px;background:linear-gradient(135deg,#3b82f6,#2563eb);border:none;color:#fff;font-weight:900;font-size:13px;cursor:pointer;">📤 Enviar Solicitação</button></div>
+    </div>
+  `;
+  document.body.appendChild(m);
+}
+
+function enviarSolicitacaoReagendamento() {
+  const data = (document.getElementById('reagend-data') || {}).value || '';
+  if (!data) { alert('Por favor, informe uma data preferida.'); return; }
+  const hora = (document.getElementById('reagend-hora') || {}).value || '';
+  const mr = document.getElementById('modal-reagendar');
+  if (mr) mr.remove();
+  if (typeof mostrarToastNotificacao === 'function') mostrarToastNotificacao('🔄 Solicitação Enviada', 'Reagendamento solicitado para ' + data.split('-').reverse().join('/') + (hora ? ' às '+hora : '') + '.', '🔄');
+}
+
+function clienteAvaliarAtendimento() {
+  const ma = document.getElementById('modal-avaliar');
+  if (ma) ma.remove();
+  const m = document.createElement('div');
+  m.id = 'modal-avaliar';
+  m.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.88);backdrop-filter:blur(8px);z-index:9999999;display:flex;align-items:center;justify-content:center;padding:16px;';
+  m.onclick = function(e) { if(e.target===m) m.remove(); };
+  m.innerHTML = `
+    <div onclick="event.stopPropagation()" style="background:linear-gradient(145deg,#0e111d,#161b2c);border:1.5px solid rgba(201,168,76,0.45);border-radius:20px;max-width:400px;width:100%;box-shadow:0 25px 60px rgba(0,0,0,0.9);padding:24px;text-align:center;">
+      <div style="font-size:36px;margin-bottom:8px;">⭐</div>
+      <div style="font-size:18px;font-weight:900;color:#facc15;margin-bottom:6px;">Avalie o Atendimento</div>
+      <div style="font-size:12px;color:#94a3b8;margin-bottom:20px;">Como foi sua experiência com a equipe da SD Móveis Projetados?</div>
+      <div style="display:flex;justify-content:center;gap:10px;margin-bottom:20px;" id="avaliacao-estrelas">
+        ${[1,2,3,4,5].map(i => '<span onclick="selecionarEstrela('+i+')" id="est-'+i+'" style="font-size:34px;cursor:pointer;transition:transform 0.15s;">☆</span>').join('')}
+      </div>
+      <div style="margin-bottom:16px;"><textarea id="avaliacao-comentario" rows="3" placeholder="Deixe um comentário (opcional)..." style="width:100%;box-sizing:border-box;padding:10px 12px;background:#090a14;border:1px solid rgba(201,168,76,0.3);border-radius:10px;color:#fff;font-size:13px;outline:none;resize:none;font-family:inherit;"></textarea></div>
+      <div style="display:flex;gap:10px;"><button type="button" onclick="document.getElementById('modal-avaliar').remove()" style="flex:1;padding:12px;border-radius:10px;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.1);color:#fff;font-weight:700;font-size:13px;cursor:pointer;">Cancelar</button><button type="button" onclick="enviarAvaliacao()" style="flex:2;padding:12px;border-radius:10px;background:linear-gradient(135deg,#C9A84C,#a07828);border:none;color:#000;font-weight:900;font-size:13px;cursor:pointer;">⭐ Enviar Avaliação</button></div>
+    </div>
+  `;
+  document.body.appendChild(m);
+  _avaliacao = 0;
+}
+
+let _avaliacao = 0;
+function selecionarEstrela(n) {
+  _avaliacao = n;
+  for (let i = 1; i <= 5; i++) { const e = document.getElementById('est-' + i); if (e) e.textContent = i <= n ? '⭐' : '☆'; }
+}
+
+function enviarAvaliacao() {
+  if (!_avaliacao) { alert('Por favor, selecione uma avaliação de 1 a 5 estrelas.'); return; }
+  const ma = document.getElementById('modal-avaliar');
+  if (ma) ma.remove();
+  _avaliacao = 0;
+  if (typeof mostrarToastNotificacao === 'function') mostrarToastNotificacao('⭐ Avaliação Enviada', 'Obrigado pelo seu feedback! Ele é muito importante para nós.', '⭐');
 }
 
 </script>
