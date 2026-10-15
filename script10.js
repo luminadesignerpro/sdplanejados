@@ -3000,115 +3000,61 @@ window._planoCorteAtual = null;
 
 
 // ══════════════════════════════════════════════════════════════════════════════
-//  ENGINE DE PLANO DE CORTE PARA MÚLTIPLAS PEÇAS
+//  ENGINE DE PLANO DE CORTE PARA MÚLTIPLAS PEÇAS (ALGORITMO GUILHOTINA 2D OTIMIZADO)
 // ══════════════════════════════════════════════════════════════════════════════
-function calcularPlanoDeCorteMultiplasPecas(pecasArray, chapW, chapH, kerf = 4, refilo = 10) {
+function calcularPlanoDeCorteMultiplasPecas(pecasArray, chapW, chapH, kerf = 3, refilo = 15) {
   const usableW = Math.max(0, chapW - 2 * refilo);
   const usableH = Math.max(0, chapH - 2 * refilo);
 
-  const pecasPendentes = [];
+  const todasPecas = [];
   let globalId = 1;
   (pecasArray || []).forEach(p => {
     const qtd = parseInt(p.qtd) || 1;
     const w = parseFloat(p.largMm) || 0;
     const h = parseFloat(p.altMm) || 0;
     for (let i = 0; i < qtd; i++) {
-      pecasPendentes.push({
+      todasPecas.push({
         id: globalId++,
         nome: p.nome || ('#' + globalId),
         w,
         h,
-        rotacionada: false
+        area: w * h,
+        maxDim: Math.max(w, h),
+        minDim: Math.min(w, h)
       });
     }
   });
 
-  // Verifica se alguma peça é maior que a chapa
-  const pecaInvalida = pecasPendentes.find(p => (p.w > usableW && p.w > usableH) || (p.h > usableW && p.h > usableH));
+  const pecaInvalida = todasPecas.find(p => 
+    (p.w > usableW && p.w > usableH) || 
+    (p.h > usableW && p.h > usableH) ||
+    ((p.w > usableW || p.h > usableH) && (p.h > usableW || p.w > usableH))
+  );
   if (pecaInvalida) {
     return { erro: `A peça "${pecaInvalida.nome}" (${pecaInvalida.w}×${pecaInvalida.h}mm) é maior que o espaço útil da chapa (${usableW}×${usableH}mm).` };
   }
 
-  // Ordena por maior dimensão decrescente
-  pecasPendentes.sort((a, b) => Math.max(b.w, b.h) - Math.max(a.w, a.h));
+  const ordenacoes = [
+    (a, b) => b.area - a.area || b.maxDim - a.maxDim,
+    (a, b) => b.maxDim - a.maxDim || b.area - a.area,
+    (a, b) => b.h - a.h || b.w - a.w,
+    (a, b) => b.w - a.w || b.h - a.h,
+    (a, b) => (b.w + b.h) - (a.w + a.h)
+  ];
+  const regrasDivisao = ['SLAS', 'LLAS'];
 
-  const chapas = [];
-  let restantes = [...pecasPendentes];
+  let melhorResultado = null;
 
-  while (restantes.length > 0) {
-    const chapaIndex = chapas.length + 1;
-    const pecasNestaChapa = [];
-    const naoCouberam = [];
-
-    let curX = 0;
-    let curY = 0;
-    let shelfH = 0;
-
-    for (let i = 0; i < restantes.length; i++) {
-      const p = restantes[i];
-      let fitW = p.w;
-      let fitH = p.h;
-      let rot = false;
-
-      // Testa orientação padrão
-      let cabeAqui = (curX + fitW <= usableW) && (curY + fitH <= usableH);
-
-      // Testa se cabe rotacionada
-      if (!cabeAqui && (curX + p.h <= usableW) && (curY + p.w <= usableH)) {
-        fitW = p.h;
-        fitH = p.w;
-        rot = true;
-        cabeAqui = true;
-      }
-
-      // Se não coube na prateleira atual, tenta nova prateleira
-      if (!cabeAqui) {
-        const novoY = curY + shelfH + kerf;
-        const cabeNovaPrateleiraPadrao = (fitW <= usableW) && (novoY + fitH <= usableH);
-        const cabeNovaPrateleiraRot = (p.h <= usableW) && (novoY + p.w <= usableH);
-
-        if (cabeNovaPrateleiraPadrao || cabeNovaPrateleiraRot) {
-          curX = 0;
-          curY = novoY;
-          shelfH = 0;
-          if (!cabeNovaPrateleiraPadrao && cabeNovaPrateleiraRot) {
-            fitW = p.h;
-            fitH = p.w;
-            rot = true;
-          }
-          cabeAqui = true;
-        }
-      }
-
-      if (cabeAqui) {
-        pecasNestaChapa.push({
-          id: p.id,
-          nome: p.nome,
-          x: curX,
-          y: curY,
-          w: fitW,
-          h: fitH,
-          rotacionada: rot
-        });
-        curX += fitW + kerf;
-        shelfH = Math.max(shelfH, fitH);
-      } else {
-        naoCouberam.push(p);
+  for (const cmp of ordenacoes) {
+    for (const splitRule of regrasDivisao) {
+      const pecasOrdenadas = [...todasPecas].sort(cmp);
+      const res = executarPackGuillotine(pecasOrdenadas, usableW, usableH, kerf, splitRule);
+      if (!melhorResultado || 
+          res.chapas.length < melhorResultado.chapas.length ||
+          (res.chapas.length === melhorResultado.chapas.length && res.aproveitamentoMedio > melhorResultado.aproveitamentoMedio)) {
+        melhorResultado = res;
       }
     }
-
-    if (pecasNestaChapa.length === 0) {
-      // Segurança contra loop infinito
-      break;
-    }
-
-    chapas.push({
-      index: chapaIndex,
-      pecas: pecasNestaChapa,
-      totalSlots: pecasNestaChapa.length
-    });
-
-    restantes = naoCouberam;
   }
 
   return {
@@ -3116,9 +3062,121 @@ function calcularPlanoDeCorteMultiplasPecas(pecasArray, chapW, chapH, kerf = 4, 
     chapH,
     refilo,
     kerf,
-    totalChapas: chapas.length,
+    totalChapas: melhorResultado ? melhorResultado.chapas.length : 0,
+    chapas: melhorResultado ? melhorResultado.chapas : [],
+    pecasOriginais: pecasArray,
+    aproveitamentoGlobal: melhorResultado ? melhorResultado.aproveitamentoGlobal : 0
+  };
+}
+
+function executarPackGuillotine(pecasOriginais, usableW, usableH, kerf, splitRule) {
+  const chapas = [];
+  let restantes = [...pecasOriginais];
+  const areaTotalChapa = usableW * usableH;
+
+  while (restantes.length > 0) {
+    const chapaIndex = chapas.length + 1;
+    const pecasNestaChapa = [];
+    let freeRects = [{ x: 0, y: 0, w: usableW, h: usableH }];
+    const naoCouberam = [];
+
+    for (let i = 0; i < restantes.length; i++) {
+      const p = restantes[i];
+      let bestRectIdx = -1;
+      let bestRotated = false;
+      let bestScore = Infinity;
+      let bestW = p.w;
+      let bestH = p.h;
+
+      for (let r = 0; r < freeRects.length; r++) {
+        const fr = freeRects[r];
+        if (p.w <= fr.w && p.h <= fr.h) {
+          const leftoverShort = Math.min(fr.w - p.w, fr.h - p.h);
+          const leftoverLong = Math.max(fr.w - p.w, fr.h - p.h);
+          const score = leftoverShort * 100000 + leftoverLong;
+          if (score < bestScore) {
+            bestScore = score;
+            bestRectIdx = r;
+            bestRotated = false;
+            bestW = p.w;
+            bestH = p.h;
+          }
+        }
+        if (p.h <= fr.w && p.w <= fr.h) {
+          const leftoverShort = Math.min(fr.w - p.h, fr.h - p.w);
+          const leftoverLong = Math.max(fr.w - p.h, fr.h - p.w);
+          const score = leftoverShort * 100000 + leftoverLong;
+          if (score < bestScore) {
+            bestScore = score;
+            bestRectIdx = r;
+            bestRotated = true;
+            bestW = p.h;
+            bestH = p.w;
+          }
+        }
+      }
+
+      if (bestRectIdx >= 0) {
+        const fr = freeRects[bestRectIdx];
+        pecasNestaChapa.push({
+          id: p.id,
+          nome: p.nome,
+          x: fr.x,
+          y: fr.y,
+          w: bestW,
+          h: bestH,
+          rotacionada: bestRotated
+        });
+
+        freeRects.splice(bestRectIdx, 1);
+
+        const wRem = fr.w - bestW - kerf;
+        const hRem = fr.h - bestH - kerf;
+
+        let splitHoriz = (splitRule === 'SLAS') 
+          ? (fr.w - bestW <= fr.h - bestH)
+          : (fr.w - bestW > fr.h - bestH);
+
+        if (splitHoriz) {
+          if (wRem > 0) freeRects.push({ x: fr.x + bestW + kerf, y: fr.y, w: wRem, h: bestH });
+          if (hRem > 0) freeRects.push({ x: fr.x, y: fr.y + bestH + kerf, w: fr.w, h: hRem });
+        } else {
+          if (wRem > 0) freeRects.push({ x: fr.x + bestW + kerf, y: fr.y, w: wRem, h: fr.h });
+          if (hRem > 0) freeRects.push({ x: fr.x, y: fr.y + bestH + kerf, w: bestW, h: hRem });
+        }
+
+        freeRects = freeRects.filter(r => r.w >= 10 && r.h >= 10);
+      } else {
+        naoCouberam.push(p);
+      }
+    }
+
+    if (pecasNestaChapa.length === 0) break;
+
+    const areaPecas = pecasNestaChapa.reduce((acc, p) => acc + (p.w * p.h), 0);
+    const aproveitamento = areaTotalChapa > 0 ? (areaPecas / areaTotalChapa) * 100 : 0;
+
+    chapas.push({
+      index: chapaIndex,
+      pecas: pecasNestaChapa,
+      totalSlots: pecasNestaChapa.length,
+      freeRects: freeRects,
+      aproveitamento: aproveitamento
+    });
+
+    restantes = naoCouberam;
+  }
+
+  const somaAprov = chapas.reduce((acc, c) => acc + c.aproveitamento, 0);
+  const aproveitamentoMedio = chapas.length > 0 ? somaAprov / chapas.length : 0;
+  const areaTotalUsavelTodasChapas = chapas.length * areaTotalChapa;
+  const areaTotalPecasTodasChapas = chapas.reduce((acc, c) => acc + c.pecas.reduce((a, p) => a + (p.w * p.h), 0), 0);
+  const aproveitamentoGlobal = areaTotalUsavelTodasChapas > 0 ? (areaTotalPecasTodasChapas / areaTotalUsavelTodasChapas) * 100 : 0;
+
+  return {
     chapas,
-    pecasOriginais: pecasArray
+    aproveitamentoMedio,
+    aproveitamentoGlobal
   };
 }
 

@@ -41,6 +41,9 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <script src="pdf-lib.min.js"></script>
+  <script src="pdf.min.js"></script>
+  <script src="gerador-pdf.js"></script>
   <style>
     .ponto-badge-tempo {
       background: rgba(14,165,233,0.12); border: 1px solid rgba(14,165,233,0.3);
@@ -2359,6 +2362,9 @@
                 <button type="button" onclick="clienteReagendarAgendamento()" id="btn-cli-reagendar" style="flex:1;min-width:100px;padding:9px 10px;background:rgba(59,130,246,0.18);border:1.5px solid #3b82f6;border-radius:10px;color:#93c5fd;font-weight:800;font-size:11.5px;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;gap:5px;" title="Reagendar visita">
                   <span>🔄</span> <span>Reagendar</span>
                 </button>
+                <button type="button" onclick="visualizarPdfOsCliente()" id="btn-cli-pdf-status" style="flex:1;min-width:100px;padding:9px 10px;background:linear-gradient(135deg,rgba(201,168,76,0.22),rgba(201,168,76,0.1));border:1.5px solid var(--gold);border-radius:10px;color:var(--gold-light);font-weight:800;font-size:11.5px;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;gap:5px;" title="Visualizar Proposta / PDF">
+                  <span>👁️</span> <span>Ver PDF</span>
+                </button>
                 <button type="button" onclick="clienteAvaliarAtendimento()" id="btn-cli-avaliar" style="flex:1;min-width:100px;padding:9px 10px;background:linear-gradient(135deg,rgba(201,168,76,0.18),rgba(201,168,76,0.3));border:1.5px solid var(--gold);border-radius:10px;color:var(--gold-light);font-weight:800;font-size:11.5px;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;gap:5px;" title="Avaliar atendimento">
                   <span>⭐</span> <span>Avaliar</span>
                 </button>
@@ -2516,8 +2522,13 @@
                 Ordem de Serviço
               </div>
             </div>
-            <div id="fin-status-badge" style="background:rgba(201,168,76,0.18);border:1px solid var(--gold);color:var(--gold-light);padding:6px 14px;border-radius:999px;font-size:12.5px;font-weight:800;">
-              Aguardando
+            <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+              <button type="button" onclick="visualizarPdfOsCliente()" style="background:linear-gradient(135deg,rgba(201,168,76,0.25),rgba(201,168,76,0.1));border:1.2px solid var(--gold);color:var(--gold-light);padding:6px 14px;border-radius:999px;font-size:12.5px;font-weight:800;display:inline-flex;align-items:center;gap:6px;cursor:pointer;font-family:var(--font);box-shadow:0 2px 10px rgba(0,0,0,0.3);transition:all 0.2s;" title="Visualizar e ler PDF na tela">
+                <span>👁️</span> <span>Visualizar PDF</span>
+              </button>
+              <div id="fin-status-badge" style="background:rgba(201,168,76,0.18);border:1px solid var(--gold);color:var(--gold-light);padding:6px 14px;border-radius:999px;font-size:12.5px;font-weight:800;">
+                Aguardando
+              </div>
             </div>
           </div>
 
@@ -2587,7 +2598,18 @@
             </button>
           </div>
 
-          <div style="display:flex;gap:10px;margin-top:14px;flex-wrap:wrap;">
+          <!-- Botão Visualizar PDF da Proposta -->
+          <div style="margin-top:16px;">
+            <button type="button" id="btn-visualizar-pdf-cliente"
+              onclick="visualizarPdfOsCliente()"
+              style="width:100%;background:linear-gradient(135deg,rgba(201,168,76,0.22),rgba(201,168,76,0.08));border:1.5px solid var(--gold);color:var(--gold-light);padding:14px 16px;border-radius:14px;font-size:14px;font-weight:900;display:flex;align-items:center;justify-content:center;gap:8px;cursor:pointer;font-family:var(--font);transition:all 0.22s;box-shadow:0 4px 18px rgba(201,168,76,0.12);"
+              title="Visualizar e ler PDF da Proposta">
+              <span style="font-size:18px;">👁️</span>
+              <span id="btn-pdf-cliente-lbl">Visualizar PDF</span>
+            </button>
+          </div>
+
+          <div style="display:flex;gap:10px;margin-top:10px;flex-wrap:wrap;">
             <a id="btn-zap-comprovante" href="https://wa.me/5585996119824?text=Ol%C3%A1%2C%20estou%20enviando%20o%20comprovante%20de%20pagamento%20da%20minha%20O.S." target="_blank" style="flex:1;min-width:180px;background:rgba(37,211,102,0.15);border:1px solid #25D366;color:#25D366;text-decoration:none;padding:12px 16px;border-radius:12px;font-size:13px;font-weight:800;display:flex;align-items:center;justify-content:center;gap:6px;transition:all 0.2s;">
               📱 Enviar Comprovante no WhatsApp
             </a>
@@ -9039,6 +9061,31 @@ function enviarAvaliacao() {
 }
 
 </script>
+
+  <!-- ══ MODAL VISUALIZADOR DE PDF NA TELA (ÁREA DO CLIENTE) ══ -->
+  <div id="modal-preview-pdf" class="modal-overlay" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.88); backdrop-filter:blur(8px); z-index:9999999; align-items:center; justify-content:center; padding:12px; box-sizing:border-box;" onclick="fecharModalPreviewPdf(event)">
+    <div class="modal-box" onclick="event.stopPropagation()" style="max-width:920px; width:95vw; height:92vh; max-height:94vh; display:flex; flex-direction:column; padding:16px; background:#13131a; border:1px solid rgba(201,168,76,0.3); border-radius:18px; box-shadow:0 20px 60px rgba(0,0,0,0.95), 0 0 30px rgba(201,168,76,0.2); box-sizing:border-box;">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px; flex-shrink:0;">
+        <span id="preview-pdf-titulo" style="font-size:15px; font-weight:800; color:var(--gold-light);">👁️ Visualizar PDF</span>
+        <div style="display:flex; gap:6px; align-items:center;">
+          <button type="button" class="btn btn-sm btn-gold" id="btn-preview-abrir-nova-aba" onclick="abrirPdfNovaAba()" title="Abrir Arquivo em Tela Cheia" style="background:rgba(201,168,76,0.2); border:1px solid var(--gold); color:var(--gold-light); padding:6px 12px; border-radius:8px; font-size:12px; font-weight:700; cursor:pointer;">↗️ Tela Cheia</button>
+          <button type="button" class="btn btn-sm btn-sec" id="btn-preview-baixar" onclick="baixarPdfAtualDoPreview()" title="Baixar Arquivo PDF" style="background:rgba(255,255,255,0.08); border:1px solid rgba(255,255,255,0.15); color:#fff; padding:6px 12px; border-radius:8px; font-size:12px; font-weight:700; cursor:pointer;">📥 Baixar</button>
+          <button type="button" onclick="fecharModalPreviewPdf()" style="background:transparent; border:none; color:#94a3b8; font-size:22px; cursor:pointer; padding:0 8px;">✕</button>
+        </div>
+      </div>
+      
+      <div id="preview-pdf-mobile-tip" style="background:rgba(201,168,76,0.12); border:1px solid rgba(201,168,76,0.3); border-radius:10px; padding:8px 12px; margin-bottom:10px; font-size:12px; color:var(--gold-light); display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:6px; flex-shrink:0;">
+        <span>📱 Toque em <strong>Tela Cheia</strong> para navegar ou dar zoom no PDF</span>
+        <button type="button" onclick="abrirPdfNovaAba()" style="background:var(--gold); border:none; color:#000; font-size:11px; font-weight:800; padding:4px 10px; border-radius:6px; cursor:pointer;">↗️ Abrir PDF</button>
+      </div>
+
+      <!-- Scrollable container for Canvas Pages (PDF.js) or Iframe fallback -->
+      <div id="preview-pdf-corpo" style="flex:1; width:100%; border-radius:12px; overflow-y:auto; -webkit-overflow-scrolling:touch; background:#1a1a24; border:1px solid rgba(255,255,255,0.08); position:relative; padding:10px; box-sizing:border-box;">
+        <!-- Páginas renderizadas via JS -->
+      </div>
+    </div>
+  </div>
+
 </body>
 </html>
 
