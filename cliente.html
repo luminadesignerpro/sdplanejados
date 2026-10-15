@@ -7063,13 +7063,49 @@ function mudarAba(tab) {
       const badge = document.getElementById('badge-total-os-geradas');
       if (!container) return;
 
-      const ordens = carregarOrdensDoStorage();
+      const todasOrdens = (typeof carregarOrdensDoStorage === 'function') ? carregarOrdensDoStorage() : [];
+      
+      const nomeRef = (typeof obterNomeClienteAtivo === 'function') ? obterNomeClienteAtivo() : ((clienteSessao && clienteSessao.nome) || '');
+      const urlP = new URLSearchParams(window.location.search);
+      const telRef = String((clienteSessao && (clienteSessao.telefone || clienteSessao.iden)) || urlP.get('tel') || urlP.get('whatsapp') || '').replace(/\D/g, '');
+      const osRef = String((clienteSessao && clienteSessao.os) || urlP.get('os') || '').replace(/\D/g, '');
+
+      function getTelOS(o) {
+        return String((o.dados && (o.dados.tel || o.dados.telefone || o.dados.whatsapp)) || o.tel || o.whatsapp || o.telefone || o.iden || '').replace(/\D/g, '');
+      }
+      function getNomeOS(o) {
+        return String(o.nome || (o.dados && o.dados.nome) || o.nomeCliente || o.cliente || '').trim();
+      }
+
+      // ── FILTRA ESTRITAMENTE AS ORDENS DO CLIENTE LOGADO (EX: TICIANE PEREIRA) ──
+      let ordens = todasOrdens.filter(function(o) {
+        const nomeOS = getNomeOS(o);
+        const telOS = getTelOS(o);
+        const numOS = String(o.numero || (o.dados && o.dados.numero) || o.id || '').replace(/\D/g, '');
+
+        if (nomeRef && nomeRef.length >= 2 && typeof nomesSaoDoMesmoCliente === 'function') {
+          if (nomesSaoDoMesmoCliente(nomeRef, nomeOS)) return true;
+        }
+        if (telRef && telRef.length >= 8 && telOS && telOS.length >= 8) {
+          if (telOS.slice(-8) === telRef.slice(-8)) return true;
+        }
+        if (osRef && numOS && (osRef === numOS || String(parseInt(osRef, 10)) === String(parseInt(numOS, 10)))) {
+          return true;
+        }
+        return false;
+      });
+
+      // Se a filtragem resultou vazia mas temos uma ordem na sessão do cliente, garante a exibição
+      if (!ordens.length && clienteSessao && clienteSessao.ordem) {
+        ordens = [clienteSessao.ordem];
+      }
+
       if (badge) badge.textContent = ordens.length + (ordens.length === 1 ? ' O.S.' : ' O.S.');
 
       if (!ordens.length) {
         container.innerHTML = `
           <div style="text-align:center;padding:16px;color:var(--muted);font-size:12px;background:rgba(255,255,255,0.02);border-radius:8px;border:1px dashed rgba(255,255,255,0.1);">
-            Nenhuma Ordem de Serviço gerada ainda no sistema.
+            Nenhuma Ordem de Serviço encontrada para ${esc(nomeRef || 'este cliente')}.
           </div>
         `;
         return;

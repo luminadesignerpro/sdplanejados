@@ -2629,11 +2629,32 @@
           </div>
           <div id="emp-prev-slogan" style="font-size:11.5px;color:#94a3b8;margin-top:3px;">Ambientes Sob Medida & Marcenaria de Luxo</div>
           <div style="display:flex;gap:14px;flex-wrap:wrap;margin-top:6px;font-size:11px;color:#cbd5e1;">
-            <span id="emp-prev-tel">📞 (85) 99611-9824</span>
+            <span id="emp-prev-tel">📞 (85) 98574-9686</span>
             <span id="emp-prev-cidade">📍 Itaitinga - CE</span>
-            <span id="emp-prev-pix">💰 PIX: 85996119824</span>
+            <span id="emp-prev-pix">💰 PIX: 85997602237</span>
+          </div>
+          <div style="margin-top:10px;display:flex;gap:8px;flex-wrap:wrap;">
+            <button type="button" class="btn btn-gold btn-sm" onclick="document.getElementById('secao-dados-proposta').scrollIntoView({behavior:'smooth'})" style="font-weight:900;font-size:11.5px;padding:6px 14px;border-radius:8px;display:inline-flex;align-items:center;gap:6px;box-shadow:0 3px 10px rgba(201,168,76,0.35);">
+              ✏️ Editar Todos os Dados da Proposta (2ª Imagem)
+            </button>
           </div>
         </div>
+      </div>
+    </div>
+
+    <!-- BANNER DE ORIENTAÇÃO PARA EDIÇÃO DA PROPOSTA / PDF -->
+    <div id="secao-dados-proposta" class="card" style="margin-bottom:16px;background:linear-gradient(135deg,rgba(201,168,76,0.18),rgba(20,20,32,0.95));border:1.5px solid var(--gold);padding:14px 18px;border-radius:14px;">
+      <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;">
+        <div style="display:flex;align-items:center;gap:10px;">
+          <span style="font-size:24px;">📄</span>
+          <div>
+            <h3 style="margin:0;font-size:15px;font-weight:900;color:var(--gold-light);">Edição Completa dos Dados da Proposta Comercial & Orçamento (PDF)</h3>
+            <p style="margin:2px 0 0 0;font-size:12px;color:#e2e8f0;">Edite nos blocos abaixo todos os dados impressos na Proposta Comercial (cabeçalho, valores, PIX, prazos, garantia e rodapé).</p>
+          </div>
+        </div>
+        <button type="button" class="btn btn-gold btn-sm" onclick="salvarDadosEmpresaConfig()" style="font-weight:900;padding:8px 18px;box-shadow:0 3px 12px rgba(201,168,76,0.35);border-radius:8px;">
+          💾 Salvar Alterações
+        </button>
       </div>
     </div>
 
@@ -2818,37 +2839,57 @@
         </div>
 
         <div class="field">
-          <label>Titular / Favorecido da Conta</label>
-          <input id="cfg-emp-titular-pix" placeholder="Ex: Samuel - SD Móveis Projetados" />
+          <label>Titular / Favorecido da Conta PIX (Aparece no PDF)</label>
+          <input id="cfg-emp-titular-pix" placeholder="Ex: SD Móveis Projetados" />
+        </div>
+
+        <div class="field" style="margin-bottom:0;">
+          <label>WhatsApp / Contato do Box PIX (Aparece no PDF)</label>
+          <input id="cfg-emp-whatsapp-pix" placeholder="Ex: (85) 98574-9686" />
         </div>
       </div>
 
-      <!-- 5. PADRÕES DE ORÇAMENTO & CONTRATO -->
-      <div class="card" style="margin-bottom:0;grid-column:1 / -1;">
+      <!-- 5. PADRÕES DA PROPOSTA COMERCIAL, ORÇAMENTO & CONTRATO -->
+      <div class="card" style="margin-bottom:0;grid-column:1 / -1;border:1px solid rgba(201,168,76,0.35);">
         <div class="card-title" style="display:flex;align-items:center;gap:8px;">
-          <span>📋</span> Padrões para Orçamentos & Contratos
+          <span>📋</span> Condições Comerciais & Rodapé da Proposta (PDF)
         </div>
 
         <div style="display:grid;grid-template-columns:repeat(auto-fit, minmax(280px, 1fr));gap:14px;">
           <div class="field">
-            <label>Validade Padrão dos Orçamentos (Dias)</label>
+            <label style="color:var(--gold-light);font-weight:700;">Nome do Responsável Técnico/Comercial (Rodapé do PDF)</label>
+            <input id="cfg-emp-responsavel" placeholder="Ex: SAMUEL DAVID" />
+          </div>
+
+          <div class="field">
+            <label style="color:var(--gold-light);font-weight:700;">WhatsApp de Confirmação Rápida (Rodapé do PDF)</label>
+            <input id="cfg-emp-whatsapp-confirmacao" placeholder="Ex: (85) 98574-9686" />
+          </div>
+
+          <div class="field">
+            <label style="color:var(--gold-light);font-weight:700;">Forma de Pagamento Padrão</label>
+            <input id="cfg-emp-forma-padrao" placeholder="Ex: À VISTA" />
+          </div>
+
+          <div class="field">
+            <label style="color:var(--gold-light);font-weight:700;">Prazo de Execução (Quadro Condições do PDF)</label>
+            <input id="cfg-emp-prazo" placeholder="Ex: 15 dias úteis após confirmação" />
+          </div>
+
+          <div class="field">
+            <label style="color:var(--gold-light);font-weight:700;">Garantia dos Serviços (Quadro Condições do PDF)</label>
+            <input id="cfg-emp-garantia" placeholder="Ex: 1 Ano de garantia legal e de instalação" />
+          </div>
+
+          <div class="field">
+            <label style="color:var(--gold-light);font-weight:700;">Validade Padrão dos Orçamentos (Dias)</label>
             <input id="cfg-emp-validade" type="number" placeholder="15" />
-          </div>
-
-          <div class="field">
-            <label>Prazo Padrão de Fabricação & Montagem</label>
-            <input id="cfg-emp-prazo" placeholder="Ex: 30 a 45 dias úteis" />
-          </div>
-
-          <div class="field">
-            <label>Garantia Padrão</label>
-            <input id="cfg-emp-garantia" placeholder="Ex: 5 anos contra defeitos de fabricação em MDF e ferragens" />
           </div>
         </div>
 
-        <div class="field">
-          <label>Condições de Pagamento Padrão no Contrato</label>
-          <input id="cfg-emp-condicoes" placeholder="Ex: 50% de entrada no fechamento + saldo na entrega/montagem ou até 12x no cartão" />
+        <div class="field" style="margin-top:10px;">
+          <label style="color:var(--gold-light);font-weight:700;">Opções de Pagamento / Parcelamento (Quadro Condições Comerciais do PDF)</label>
+          <input id="cfg-emp-condicoes" placeholder="Ex: 50% na entrada + 50% na entrega | Até 10x s/ juros no cartão" />
         </div>
 
         <div class="field" style="margin-bottom:0;">
@@ -6518,12 +6559,14 @@ function carregarDadosConfiguracaoEmpresa() {
     nome: 'SD Móveis Projetados',
     segmento: 'Móveis Planejados & Marcenaria de Luxo',
     slogan: 'Cozinhas Planejadas, Closets & Ambientes Sob Medida',
-    telefone: '(85) 99611-9824',
-    whatsapp: '(85) 99611-9824',
+    telefone: '(85) 98574-9686',
+    whatsapp: '(85) 98574-9686',
     cidade: 'Itaitinga',
     uf: 'CE',
-    cnpj: '',
-    pix: '85996119824',
+    cnpj: '85997602237',
+    pix: '85997602237',
+    titularPix: 'SD Móveis Projetados',
+    responsavel: 'SAMUEL DAVID',
     logo: 'logo_moveis.jpg',
     banner: 'banner_moveis.jpg'
   };
@@ -6540,8 +6583,8 @@ function carregarDadosConfiguracaoEmpresa() {
   setVal('cfg-emp-logo', lic.logo || 'logo_moveis.jpg');
   setVal('cfg-emp-banner', lic.banner || 'banner_moveis.jpg');
   
-  setVal('cfg-emp-whatsapp', lic.whatsapp || lic.telefone || '(85) 99611-9824');
-  setVal('cfg-emp-telefone', lic.telefone || '(85) 99611-9824');
+  setVal('cfg-emp-whatsapp', lic.whatsapp || lic.telefone || '(85) 98574-9686');
+  setVal('cfg-emp-telefone', lic.telefone || '(85) 98574-9686');
   setVal('cfg-emp-email', lic.email || 'contato@sdmoveisprojetados.com.br');
   setVal('cfg-emp-instagram', lic.instagram || '@sdmoveisprojetados');
   setVal('cfg-emp-site', lic.site || 'https://sdmoveisprojetados.vercel.app');
@@ -6554,17 +6597,21 @@ function carregarDadosConfiguracaoEmpresa() {
   setVal('cfg-emp-cep', lic.cep || '61880-000');
   setVal('cfg-emp-complemento', lic.complemento || '');
 
-  setVal('cfg-emp-cnpj', lic.cnpj || '');
+  setVal('cfg-emp-cnpj', lic.cnpj || '85997602237');
   setVal('cfg-emp-ie', lic.inscricaoEstadual || '');
-  setVal('cfg-emp-pix', lic.pix || '85996119824');
+  setVal('cfg-emp-pix', lic.pix || '85997602237');
   setVal('cfg-emp-tipo-pix', lic.tipoChavePix || 'telefone');
   setVal('cfg-emp-banco', lic.bancoPix || 'Nubank / Inter');
-  setVal('cfg-emp-titular-pix', lic.titularPix || 'Samuel - SD Móveis');
+  setVal('cfg-emp-titular-pix', lic.titularPix || 'SD Móveis Projetados');
+  setVal('cfg-emp-whatsapp-pix', lic.whatsappPix || lic.whatsapp || lic.telefone || '(85) 98574-9686');
 
+  setVal('cfg-emp-responsavel', lic.responsavel || 'SAMUEL DAVID');
+  setVal('cfg-emp-whatsapp-confirmacao', lic.whatsappConfirmacao || lic.whatsapp || lic.telefone || '(85) 98574-9686');
+  setVal('cfg-emp-forma-padrao', lic.formaPadrao || 'À VISTA');
   setVal('cfg-emp-validade', lic.validadeOrcamento || '15');
-  setVal('cfg-emp-prazo', lic.prazoEntrega || '30 a 45 dias úteis');
-  setVal('cfg-emp-garantia', lic.garantia || '5 anos contra defeitos de fabricação em MDF e ferragens');
-  setVal('cfg-emp-condicoes', lic.condicoesPagamento || 'Entrada de 50% no fechamento + saldo na entrega/montagem ou até 12x no cartão');
+  setVal('cfg-emp-prazo', lic.prazoEntrega || '15 dias úteis após confirmação');
+  setVal('cfg-emp-garantia', lic.garantia || '1 Ano de garantia legal e de instalação');
+  setVal('cfg-emp-condicoes', lic.condicoesPagamento || '50% na entrada + 50% na entrega | Até 10x s/ juros no cartão');
   setVal('cfg-emp-obs', lic.obsPadrao || 'Orçamento sujeito a confirmação de medidas no local. Instalação e frete inclusos no valor total.');
 
   atualizarPreviewEmpresaAoDigitar();
@@ -6577,12 +6624,12 @@ function atualizarPreviewEmpresaAoDigitar() {
   };
 
   const nome = getVal('cfg-emp-nome', 'SD Móveis Projetados');
-  const segmento = getVal('cfg-emp-segmento', 'Móveis Planejados');
-  const slogan = getVal('cfg-emp-slogan', 'Ambientes Sob Medida & Marcenaria de Luxo');
-  const tel = getVal('cfg-emp-whatsapp', getVal('cfg-emp-telefone', '(85) 99611-9824'));
+  const segmento = getVal('cfg-emp-segmento', 'Móveis Planejados & Marcenaria de Luxo');
+  const slogan = getVal('cfg-emp-slogan', 'Cozinhas Planejadas, Closets & Ambientes Sob Medida');
+  const tel = getVal('cfg-emp-whatsapp', getVal('cfg-emp-telefone', '(85) 98574-9686'));
   const cidade = getVal('cfg-emp-cidade', 'Itaitinga');
   const uf = getVal('cfg-emp-uf', 'CE');
-  const pix = getVal('cfg-emp-pix', '85996119824');
+  const pix = getVal('cfg-emp-pix', '85997602237');
   const logoUrl = getVal('cfg-emp-logo', 'logo_moveis.jpg');
 
   const prevLogo = document.getElementById('emp-prev-logo');
@@ -6668,8 +6715,8 @@ function restaurarPadraoSDMoveisConfig() {
     razaoSocial: 'SD Móveis Projetados LTDA',
     segmento: 'Móveis Planejados & Marcenaria de Luxo',
     slogan: 'Cozinhas Planejadas, Closets & Ambientes Sob Medida',
-    telefone: '(85) 99611-9824',
-    whatsapp: '(85) 99611-9824',
+    telefone: '(85) 98574-9686',
+    whatsapp: '(85) 98574-9686',
     email: 'contato@sdmoveisprojetados.com.br',
     instagram: '@sdmoveisprojetados',
     site: 'https://sdmoveisprojetados.vercel.app',
@@ -6678,18 +6725,22 @@ function restaurarPadraoSDMoveisConfig() {
     uf: 'CE',
     bairro: 'Centro',
     cep: '61880-000',
-    cnpj: '',
-    pix: '85996119824',
+    cnpj: '85997602237',
+    pix: '85997602237',
     tipoChavePix: 'telefone',
-    titularPix: 'Samuel - SD Móveis',
+    titularPix: 'SD Móveis Projetados',
+    whatsappPix: '(85) 98574-9686',
     bancoPix: 'Nubank / Inter',
+    responsavel: 'SAMUEL DAVID',
+    whatsappConfirmacao: '(85) 98574-9686',
+    formaPadrao: 'À VISTA',
     logo: 'logo_moveis.jpg',
     banner: 'banner_moveis.jpg',
     tipoContrato: 'moveis',
     validadeOrcamento: '15',
-    prazoEntrega: '30 a 45 dias úteis',
-    garantia: '5 anos contra defeitos de fabricação em MDF e ferragens',
-    condicoesPagamento: 'Entrada de 50% no fechamento + saldo na entrega/montagem ou até 12x no cartão',
+    prazoEntrega: '15 dias úteis após confirmação',
+    garantia: '1 Ano de garantia legal e de instalação',
+    condicoesPagamento: '50% na entrada + 50% na entrega | Até 10x s/ juros no cartão',
     obsPadrao: 'Orçamento sujeito a confirmação de medidas no local. Instalação e frete inclusos no valor total.'
   });
   if (typeof salvarLicencas === 'function') salvarLicencas(licencas);
@@ -6717,9 +6768,9 @@ function salvarDadosEmpresaConfig() {
   const logo = getVal('cfg-emp-logo') || 'logo_moveis.jpg';
   const banner = getVal('cfg-emp-banner') || 'banner_moveis.jpg';
   
-  const whatsapp = getVal('cfg-emp-whatsapp') || '(85) 99611-9824';
+  const whatsapp = getVal('cfg-emp-whatsapp') || '(85) 98574-9686';
   const telefone = getVal('cfg-emp-telefone') || whatsapp;
-  const email = getVal('cfg-emp-email');
+  const email = getVal('cfg-emp-email') || 'contato@sdmoveisprojetados.com.br';
   const instagram = getVal('cfg-emp-instagram');
   const site = getVal('cfg-emp-site');
 
@@ -6731,17 +6782,21 @@ function salvarDadosEmpresaConfig() {
   const cep = getVal('cfg-emp-cep');
   const complemento = getVal('cfg-emp-complemento');
 
-  const cnpj = getVal('cfg-emp-cnpj');
+  const cnpj = getVal('cfg-emp-cnpj') || '85997602237';
   const inscricaoEstadual = getVal('cfg-emp-ie');
-  const pix = getVal('cfg-emp-pix') || '85996119824';
+  const pix = getVal('cfg-emp-pix') || '85997602237';
   const tipoChavePix = getVal('cfg-emp-tipo-pix') || 'telefone';
   const bancoPix = getVal('cfg-emp-banco');
-  const titularPix = getVal('cfg-emp-titular-pix') || 'Samuel - SD Móveis';
+  const titularPix = getVal('cfg-emp-titular-pix') || 'SD Móveis Projetados';
+  const whatsappPix = getVal('cfg-emp-whatsapp-pix') || whatsapp;
 
+  const responsavel = getVal('cfg-emp-responsavel') || 'SAMUEL DAVID';
+  const whatsappConfirmacao = getVal('cfg-emp-whatsapp-confirmacao') || whatsapp;
+  const formaPadrao = getVal('cfg-emp-forma-padrao') || 'À VISTA';
   const validadeOrcamento = getVal('cfg-emp-validade') || '15';
-  const prazoEntrega = getVal('cfg-emp-prazo') || '30 a 45 dias úteis';
-  const garantia = getVal('cfg-emp-garantia') || '5 anos contra defeitos de fabricação em MDF e ferragens';
-  const condicoesPagamento = getVal('cfg-emp-condicoes') || 'Entrada de 50% no fechamento + saldo na entrega/montagem ou até 12x no cartão';
+  const prazoEntrega = getVal('cfg-emp-prazo') || '15 dias úteis após confirmação';
+  const garantia = getVal('cfg-emp-garantia') || '1 Ano de garantia legal e de instalação';
+  const condicoesPagamento = getVal('cfg-emp-condicoes') || '50% na entrada + 50% na entrega | Até 10x s/ juros no cartão';
   const obsPadrao = getVal('cfg-emp-obs');
 
   let licencas = (typeof obterLicencas === 'function') ? obterLicencas() : [];
@@ -6782,6 +6837,10 @@ function salvarDadosEmpresaConfig() {
     tipoChavePix,
     bancoPix,
     titularPix,
+    whatsappPix,
+    responsavel,
+    whatsappConfirmacao,
+    formaPadrao,
     validadeOrcamento,
     prazoEntrega,
     garantia,
@@ -7593,7 +7652,7 @@ function addItem(desc='', qtd='1', cor='', alt='', larg='', v_m2='', v_unit='', 
     </td>
     <td style="min-width:240px">
       <div style="display:flex;gap:5px;align-items:center;">
-        <input list="lista-produtos-sugeridos" placeholder="Digite ou selecione..." value="${esc(desc)}" oninput="aoMudarDescricaoItem(${id})" change="aoMudarDescricaoItem(${id})" style="flex:1;min-width:130px;">
+        <input placeholder="Descrição do produto ou serviço..." value="${esc(desc)}" oninput="aoMudarDescricaoItem(${id})" onchange="aoMudarDescricaoItem(${id})" autocomplete="off" style="flex:1;min-width:130px;">
         <button type="button" class="btn btn-gold btn-xs" onclick="irParaAbaProdutosParaItem(${id})" title="Ir para a aba Produtos & Serviços e escolher o produto cadastrado" style="padding:5px 8px;font-size:11px;white-space:nowrap;display:inline-flex;align-items:center;gap:4px;flex-shrink:0;">
           📦 Catálogo
         </button>
@@ -14170,7 +14229,7 @@ async function gerarPdfOrcamentoDoc(dados) {
 
       page.drawText(`${it.qtd || 1} UND`, { x: MARGIN_X + 395, y: curY + rowH - 13, size: 7.5, font: fontRegular, color: DARK });
 
-      const vUnitTxt = it.v_unit ? String(it.v_unit).replace('R$', '').trim() : '-';
+      const vUnitTxt = (it.v_unit && String(it.v_unit).trim() !== '-' && parseNum(it.v_unit) > 0) ? String(it.v_unit).replace('R$', '').trim() : '';
       page.drawText(vUnitTxt, { x: MARGIN_X + 438, y: curY + rowH - 13, size: 7.5, font: fontRegular, color: DARK });
 
       const vTotTxt = String(it.total || '0,00').replace('R$', '').trim();
@@ -14213,11 +14272,15 @@ async function gerarPdfOrcamentoDoc(dados) {
   const formaTxt = forma ? String(forma).toUpperCase() : 'À VISTA';
   page.drawText(`• Forma Escolhida: ${formaTxt}`, { x: MARGIN_X + 8, y: condY, size: 7.2, font: fontBold, color: DARK });
   condY -= 11;
-  page.drawText('• Opções: 50% na entrada + 50% na entrega | Até 10x s/ juros no cartão', { x: MARGIN_X + 8, y: condY, size: 6.8, font: fontRegular, color: GRAY });
   condY -= 11;
-  page.drawText(`• Prazo de Execução: ${prazo || '15 dias úteis após confirmação'}`, { x: MARGIN_X + 8, y: condY, size: 6.8, font: fontRegular, color: DARK });
+  const opcoesPag = lic.opcoesPagamento || '50% na entrada + 50% na entrega | Até 10x s/ juros no cartão';
+  page.drawText(sanitizePdf(`• Opções: ${opcoesPag}`), { x: MARGIN_X + 8, y: condY, size: 6.8, font: fontRegular, color: GRAY });
   condY -= 11;
-  page.drawText(`• Garantia: ${garantia || '1 Ano de garantia legal e de instalação'}`, { x: MARGIN_X + 8, y: condY, size: 6.8, font: fontRegular, color: DARK });
+  const prazoFinal = prazo || lic.prazoEntrega || '15 dias úteis após confirmação';
+  page.drawText(sanitizePdf(`• Prazo de Execução: ${prazoFinal}`), { x: MARGIN_X + 8, y: condY, size: 6.8, font: fontRegular, color: DARK });
+  condY -= 11;
+  const garantiaFinal = garantia || lic.garantia || '1 Ano de garantia legal e de instalação';
+  page.drawText(sanitizePdf(`• Garantia: ${garantiaFinal}`), { x: MARGIN_X + 8, y: condY, size: 6.8, font: fontRegular, color: DARK });
 
   if (obs) {
     condY -= 11;
@@ -14237,15 +14300,11 @@ async function gerarPdfOrcamentoDoc(dados) {
     borderWidth: 0.8
   });
   page.drawText('DADOS PARA PAGAMENTO VIA PIX:', { x: MARGIN_X + 16, y: pixBoxY + 32, size: 6.8, font: fontBold, color: GREEN_TXT });
-  if (lic.id === 'sdvidros') {
-    page.drawText('Chave CNPJ: 49.226.611/0001-33 (InfinityPay - SD Vidros)', { x: MARGIN_X + 16, y: pixBoxY + 20, size: 6.8, font: fontRegular, color: DARK });
-    page.drawText('Chave Celular: (85) 99760-2237 (Itaú - Samuel David)', { x: MARGIN_X + 16, y: pixBoxY + 9, size: 6.8, font: fontRegular, color: DARK });
-  } else {
-    const pixChave = lic.pix || lic.cnpj || lic.telefone || '85996119824';
-    const titularPix = lic.nome || 'SD Vidros';
-    page.drawText(sanitizePdf(`Chave PIX: ${pixChave} (${titularPix})`), { x: MARGIN_X + 16, y: pixBoxY + 20, size: 6.8, font: fontBold, color: DARK });
-    page.drawText(sanitizePdf(`WhatsApp / Contato: ${lic.telefone || '(85) 99611-9824'}`), { x: MARGIN_X + 16, y: pixBoxY + 9, size: 6.8, font: fontRegular, color: DARK });
-  }
+  const pixChave = lic.pix || (lic.id === 'sdvidros' ? '49.226.611/0001-33' : '85997602237');
+  const titularPix = lic.titularPix || (lic.id === 'sdvidros' ? 'SD Vidros' : 'Samuel David - SD Móveis Projetados');
+  const wppPix = lic.whatsappPix || lic.telefone || (lic.id === 'sdvidros' ? '(85) 99611-9824' : '(85) 98574-9686');
+  page.drawText(sanitizePdf(`Chave PIX: ${pixChave} (${titularPix})`), { x: MARGIN_X + 16, y: pixBoxY + 20, size: 6.8, font: fontBold, color: DARK });
+  page.drawText(sanitizePdf(`WhatsApp / Contato: ${wppPix}`), { x: MARGIN_X + 16, y: pixBoxY + 9, size: 6.8, font: fontRegular, color: DARK });
 
   // CARD DIREITO: RESUMO FINANCEIRO E TOTAL
   const rightCardW = CONTENT_W - leftCardW - 12;
@@ -14288,12 +14347,12 @@ async function gerarPdfOrcamentoDoc(dados) {
   page.drawText(txtValProdutos, { x: rightCardX + rightCardW - 10 - fontBold.widthOfTextAtSize(txtValProdutos, 7.2), y: totY, size: 7.2, font: fontBold, color: DARK });
 
   totY -= 13;
-  const txtValServico = valServicoFinal > 0 ? ('R$ ' + formatarValorPtBr(valServicoFinal)) : 'Inclusa';
+  const txtValServico = valServicoFinal > 0 ? ('R$ ' + formatarValorPtBr(valServicoFinal)) : '';
   page.drawText('Mão de Obra e Instalação:', { x: rightCardX + 10, y: totY, size: 6.8, font: fontRegular, color: GRAY });
   page.drawText(txtValServico, { x: rightCardX + rightCardW - 10 - (valServicoFinal > 0 ? fontBold : fontRegular).widthOfTextAtSize(txtValServico, 7.2), y: totY, size: 7.2, font: valServicoFinal > 0 ? fontBold : fontRegular, color: DARK });
 
   totY -= 13;
-  const txtValFrete = valFreteNum > 0 ? ('R$ ' + formatarValorPtBr(valFreteNum)) : 'Incluso';
+  const txtValFrete = valFreteNum > 0 ? ('R$ ' + formatarValorPtBr(valFreteNum)) : '';
   page.drawText('Frete e Deslocamento:', { x: rightCardX + 10, y: totY, size: 6.8, font: fontRegular, color: GRAY });
   page.drawText(txtValFrete, { x: rightCardX + rightCardW - 10 - (valFreteNum > 0 ? fontBold : fontRegular).widthOfTextAtSize(txtValFrete, 7.2), y: totY, size: 7.2, font: valFreteNum > 0 ? fontBold : fontRegular, color: DARK });
 
@@ -14375,7 +14434,7 @@ async function gerarPdfOrcamentoDoc(dados) {
     color: DARK
   });
 
-  const respNome = String(resp || 'SAMUEL DAVID').toUpperCase();
+  const respNome = String(resp || lic.responsavel || 'SAMUEL DAVID').toUpperCase();
   page.drawText(`Responsável: ${respNome} • Situação: Aguardando Aprovação`, {
     x: MARGIN_X + 10,
     y: rodapeCardY + 12,
@@ -23009,8 +23068,12 @@ function copiarLinkAssinaturaOs(osId) {
 //  CALCULADORA DE VIDRO — PLANO DE CORTE VISUAL 2D (IDÊNTICO AO MDF)
 // ══════════════════════════════════════════════════════════════════════════════
 window._planoCorteVidroAtual = null;
+window._planoCorteVidroBackup = null;
+window._chapaVidroAtiva = 1;
+window._modoOrganizarVidro = false;
 
 window.mudarChapaPlanoCorteVidro = function(idx) {
+  window._chapaVidroAtiva = idx;
   if (!window._planoCorteVidroAtual) return;
   const container = document.getElementById('ferr-v-desenho-svg');
   if (container) container.innerHTML = gerarSvgPlanoDeCorteVidro(window._planoCorteVidroAtual, idx);
@@ -23020,6 +23083,193 @@ window.mudarChapaPlanoCorteVidro = function(idx) {
     btn.style.color        = active ? '#fff' : '#cbd5e1';
     btn.style.borderColor  = active ? '#22d3ee' : 'rgba(255,255,255,0.12)';
   });
+};
+
+window.atualizarVisualizacaoChapaVidro = function(idx) {
+  const container = document.getElementById('ferr-v-desenho-svg');
+  if (container && window._planoCorteVidroAtual) {
+    container.innerHTML = gerarSvgPlanoDeCorteVidro(window._planoCorteVidroAtual, idx || window._chapaVidroAtiva || 1);
+  }
+};
+
+window.alternarModoOrganizarPecasVidro = function() {
+  window._modoOrganizarVidro = !window._modoOrganizarVidro;
+
+  if (window._modoOrganizarVidro && window._planoCorteVidroAtual && !window._planoCorteVidroBackup) {
+    window._planoCorteVidroBackup = JSON.parse(JSON.stringify(window._planoCorteVidroAtual));
+  }
+
+  const btn = document.getElementById('btn-organizar-pecas-vidro');
+  const dics = document.getElementById('barra-dicas-organizar-vidro');
+  const lbl = document.getElementById('lbl-btn-organizar-vidro');
+
+  if (btn) {
+    if (window._modoOrganizarVidro) {
+      btn.style.background = 'linear-gradient(135deg, #10b981, #059669)';
+      btn.style.color = '#fff';
+      btn.style.borderColor = '#34d399';
+      btn.style.boxShadow = '0 0 16px rgba(16,185,129,0.5)';
+      if (lbl) lbl.textContent = '✓ Concluir Organização';
+    } else {
+      btn.style.background = 'rgba(6,182,212,0.2)';
+      btn.style.color = '#22d3ee';
+      btn.style.borderColor = '#06b6d4';
+      btn.style.boxShadow = '0 2px 8px rgba(0,0,0,0.3)';
+      if (lbl) lbl.textContent = 'Organizar Peças';
+    }
+  }
+
+  if (dics) {
+    dics.style.display = window._modoOrganizarVidro ? 'flex' : 'none';
+  }
+
+  window.atualizarVisualizacaoChapaVidro(window._chapaVidroAtiva || 1);
+};
+
+window.restaurarPlanoVidroOriginal = function() {
+  if (window._planoCorteVidroBackup) {
+    window._planoCorteVidroAtual = JSON.parse(JSON.stringify(window._planoCorteVidroBackup));
+    window.atualizarVisualizacaoChapaVidro(window._chapaVidroAtiva || 1);
+  }
+};
+
+window.girarPecaVidro = function(pecaId, evt, chapaIndex) {
+  if (evt) {
+    if (evt.preventDefault) evt.preventDefault();
+    if (evt.stopPropagation) evt.stopPropagation();
+  }
+  if (!window._planoCorteVidroAtual) return;
+  const idx = chapaIndex || window._chapaVidroAtiva || 1;
+  const chapa = window._planoCorteVidroAtual.chapas[idx - 1];
+  if (!chapa) return;
+
+  const peca = chapa.pecas.find(p => String(p.id) === String(pecaId));
+  if (!peca) return;
+
+  const ref = window._planoCorteVidroAtual.refilo || 15;
+  const maxW = window._planoCorteVidroAtual.chapW - 2 * ref;
+  const maxH = window._planoCorteVidroAtual.chapH - 2 * ref;
+
+  const tmp = peca.w;
+  peca.w = peca.h;
+  peca.h = tmp;
+
+  if (peca.x + peca.w > maxW) peca.x = Math.max(0, maxW - peca.w);
+  if (peca.y + peca.h > maxH) peca.y = Math.max(0, maxH - peca.h);
+
+  window.atualizarVisualizacaoChapaVidro(idx);
+};
+
+window.iniciarArrastoPecaVidro = function(evt, pecaId, chapaIndex) {
+  if (!window._modoOrganizarVidro) return;
+  if (evt.target && evt.target.closest && evt.target.closest('.btn-girar-peca')) return;
+
+  if (evt.preventDefault) evt.preventDefault();
+  if (evt.stopPropagation) evt.stopPropagation();
+
+  const svg = evt.currentTarget.closest('svg');
+  if (!svg || !window._planoCorteVidroAtual) return;
+
+  const idx = chapaIndex || window._chapaVidroAtiva || 1;
+  const chapa = window._planoCorteVidroAtual.chapas[idx - 1];
+  if (!chapa) return;
+
+  const peca = chapa.pecas.find(p => String(p.id) === String(pecaId));
+  if (!peca) return;
+
+  const ref = window._planoCorteVidroAtual.refilo || 15;
+  const maxW = window._planoCorteVidroAtual.chapW - 2 * ref;
+  const maxH = window._planoCorteVidroAtual.chapH - 2 * ref;
+
+  function getSvgPoint(e) {
+    const pt = svg.createSVGPoint();
+    pt.x = e.clientX || (e.touches && e.touches[0] ? e.touches[0].clientX : 0);
+    pt.y = e.clientY || (e.touches && e.touches[0] ? e.touches[0].clientY : 0);
+    const ctm = svg.getScreenCTM();
+    if (ctm) {
+      return pt.matrixTransform(ctm.inverse());
+    }
+    return { x: pt.x, y: pt.y };
+  }
+
+  const startPt = getSvgPoint(evt);
+  const startX = peca.x;
+  const startY = peca.y;
+
+  const elemG = evt.currentTarget;
+  elemG.style.cursor = 'grabbing';
+  elemG.style.opacity = '0.85';
+
+  let hasMoved = false;
+
+  function onPointerMove(e) {
+    if (e.preventDefault) e.preventDefault();
+    hasMoved = true;
+    const curPt = getSvgPoint(e);
+    const dx = curPt.x - startPt.x;
+    const dy = curPt.y - startPt.y;
+
+    let novoX = Math.round(startX + dx);
+    let novoY = Math.round(startY + dy);
+
+    novoX = Math.max(0, Math.min(maxW - peca.w, novoX));
+    novoY = Math.max(0, Math.min(maxH - peca.h, novoY));
+
+    peca.x = novoX;
+    peca.y = novoY;
+
+    const px = ref + novoX;
+    const py = ref + novoY;
+    const rectMain = elemG.querySelector('rect');
+    if (rectMain) {
+      rectMain.setAttribute('x', px);
+      rectMain.setAttribute('y', py);
+    }
+    const rectInner = elemG.querySelectorAll('rect')[1];
+    if (rectInner) {
+      rectInner.setAttribute('x', px + 4);
+      rectInner.setAttribute('y', py + 4);
+    }
+    const texts = elemG.querySelectorAll('text');
+    if (texts[0]) {
+      texts[0].setAttribute('x', px + peca.w / 2);
+      texts[0].setAttribute('y', py + peca.h / 2 - (parseFloat(texts[0].getAttribute('font-size')) || 28) * 0.4);
+    }
+    if (texts[1]) {
+      texts[1].setAttribute('x', px + peca.w / 2);
+      texts[1].setAttribute('y', py + peca.h / 2 + (parseFloat(texts[0] ? texts[0].getAttribute('font-size') : 28) || 28) * 0.6);
+    }
+    const btnG = elemG.querySelector('.btn-girar-peca');
+    if (btnG) {
+      const c = btnG.querySelector('circle');
+      const t = btnG.querySelector('text');
+      if (c) {
+        c.setAttribute('cx', px + peca.w - 30);
+        c.setAttribute('cy', py + 30);
+      }
+      if (t) {
+        t.setAttribute('x', px + peca.w - 30);
+        t.setAttribute('y', py + 32);
+      }
+    }
+  }
+
+  function onPointerUp(e) {
+    window.removeEventListener('pointermove', onPointerMove);
+    window.removeEventListener('pointerup', onPointerUp);
+    window.removeEventListener('touchmove', onPointerMove);
+    window.removeEventListener('touchend', onPointerUp);
+    elemG.style.cursor = window._modoOrganizarVidro ? 'grab' : 'default';
+    elemG.style.opacity = '1';
+    if (hasMoved) {
+      window.atualizarVisualizacaoChapaVidro(idx);
+    }
+  }
+
+  window.addEventListener('pointermove', onPointerMove, { passive: false });
+  window.addEventListener('pointerup', onPointerUp);
+  window.addEventListener('touchmove', onPointerMove, { passive: false });
+  window.addEventListener('touchend', onPointerUp);
 };
 
 function gerarSvgPlanoDeCorteVidro(plano, chapaIndex = 1) {
@@ -23040,44 +23290,75 @@ function gerarSvgPlanoDeCorteVidro(plano, chapaIndex = 1) {
     if (p.y + p.h > maxUsadoY) maxUsadoY = p.y + p.h;
   });
 
+  const isEdit = !!window._modoOrganizarVidro;
+
   const rects = chapa.pecas.map(p => {
     const px       = ref + p.x;
     const py       = ref + p.y;
     const fontSize = Math.max(28, Math.min(p.w, p.h) * 0.12);
     const fontSub  = Math.max(18, fontSize * 0.65);
+
+    const btnGirar = isEdit ? `
+      <g class="btn-girar-peca" onclick="girarPecaVidro('${p.id}', event, ${chapaIndex})" style="cursor:pointer;" title="Girar peça 90º">
+        <circle cx="${px + p.w - 30}" cy="${py + 30}" r="22" fill="#032030" stroke="#38bdf8" stroke-width="2.5" />
+        <text x="${px + p.w - 30}" y="${py + 32}" fill="#38bdf8" font-size="20px" font-weight="900" text-anchor="middle" dominant-baseline="middle">🔄</text>
+      </g>` : '';
+
     return `
-      <g class="peca-corte-item">
+      <g class="peca-corte-item" data-peca-id="${p.id}"
+         ${isEdit ? `onpointerdown="iniciarArrastoPecaVidro(event, '${p.id}', ${chapaIndex})" ondblclick="girarPecaVidro('${p.id}', event, ${chapaIndex})"` : ''}
+         style="${isEdit ? 'cursor:grab;touch-action:none;' : ''}">
         <rect x="${px}" y="${py}" width="${p.w}" height="${p.h}"
-              fill="url(#gradVidPeca)" stroke="#22d3ee" stroke-width="4" rx="6" />
+              fill="url(#gradVidPeca)" stroke="${isEdit ? '#38bdf8' : '#22d3ee'}" stroke-width="${isEdit ? 5 : 4}"
+              stroke-dasharray="${isEdit ? '8,5' : 'none'}" rx="6" />
         <rect x="${px+4}" y="${py+4}" width="${Math.max(0,p.w-8)}" height="${Math.max(0,p.h-8)}"
               fill="none" stroke="rgba(255,255,255,0.22)" stroke-width="1.5" rx="4" />
         <text x="${px+p.w/2}" y="${py+p.h/2 - fontSize*0.4}" fill="#ffffff" font-size="${fontSize}px"
-              font-weight="900" font-family="system-ui,sans-serif" text-anchor="middle" dominant-baseline="middle">
+              font-weight="900" font-family="system-ui,sans-serif" text-anchor="middle" dominant-baseline="middle" pointer-events="none">
           #${p.id}
         </text>
         <text x="${px+p.w/2}" y="${py+p.h/2 + fontSize*0.6}" fill="#e0f7fa" font-size="${fontSub}px"
-              font-weight="700" font-family="system-ui,sans-serif" text-anchor="middle" dominant-baseline="middle">
+              font-weight="700" font-family="system-ui,sans-serif" text-anchor="middle" dominant-baseline="middle" pointer-events="none">
           ${p.w} × ${p.h} mm
         </text>
+        ${btnGirar}
       </g>`;
   }).join('');
 
   let sobraSvg = '';
-  const sobraLivreX = W - (ref + maxUsadoX);
-  if (sobraLivreX > 80) {
-    const sx = ref + maxUsadoX + plano.kerf;
-    const sw = W - sx - ref;
-    const sh = H - 2 * ref;
-    if (sw > 50 && sh > 50) sobraSvg = `
-      <g opacity="0.9">
-        <rect x="${sx}" y="${ref}" width="${sw}" height="${sh}"
-              fill="url(#padraoHachuraV)" stroke="#fbbf24" stroke-width="3" stroke-dasharray="12,8" rx="8" />
-        <text x="${sx+sw/2}" y="${ref+sh/2}" fill="#fde047"
-              font-size="${Math.max(28,Math.min(sw,sh)*0.08)}px" font-weight="900"
-              font-family="system-ui,sans-serif" text-anchor="middle" dominant-baseline="middle">
-          ♻️ SOBRA: ${Math.round(sw)}×${Math.round(sh)}mm
-        </text>
-      </g>`;
+  if (chapa.freeRects && chapa.freeRects.length > 0) {
+    sobraSvg = chapa.freeRects.filter(r => r.w >= 60 && r.h >= 60).map(r => {
+      const rx = ref + r.x;
+      const ry = ref + r.y;
+      const fSize = Math.max(18, Math.min(r.w, r.h) * 0.08);
+      return `
+        <g opacity="0.9">
+          <rect x="${rx}" y="${ry}" width="${r.w}" height="${r.h}"
+                fill="url(#padraoHachuraV)" stroke="#fbbf24" stroke-width="2.5" stroke-dasharray="10,6" rx="6" />
+          <text x="${rx+r.w/2}" y="${ry+r.h/2}" fill="#fde047"
+                font-size="${fSize}px" font-weight="900"
+                font-family="system-ui,sans-serif" text-anchor="middle" dominant-baseline="middle">
+            ♻️ ${Math.round(r.w)}×${Math.round(r.h)}mm
+          </text>
+        </g>`;
+    }).join('');
+  } else {
+    const sobraLivreX = W - (ref + maxUsadoX);
+    if (sobraLivreX > 80) {
+      const sx = ref + maxUsadoX + plano.kerf;
+      const sw = W - sx - ref;
+      const sh = H - 2 * ref;
+      if (sw > 50 && sh > 50) sobraSvg = `
+        <g opacity="0.9">
+          <rect x="${sx}" y="${ref}" width="${sw}" height="${sh}"
+                fill="url(#padraoHachuraV)" stroke="#fbbf24" stroke-width="3" stroke-dasharray="12,8" rx="8" />
+          <text x="${sx+sw/2}" y="${ref+sh/2}" fill="#fde047"
+                font-size="${Math.max(28,Math.min(sw,sh)*0.08)}px" font-weight="900"
+                font-family="system-ui,sans-serif" text-anchor="middle" dominant-baseline="middle">
+            ♻️ SOBRA: ${Math.round(sw)}×${Math.round(sh)}mm
+          </text>
+        </g>`;
+    }
   }
 
   return `
@@ -23171,7 +23452,7 @@ function calcVidro() {
         qtdTotalPecas += p.qtd;
       });
     } else {
-      plano = calcularPlanoDeCorteMdf(lMm, aMm, qtd, chapL, chapA, 3, 15);
+      plano = calcularPlanoDeCorteMultiplasPecas([{ nome: 'Peça', largMm: lMm, altMm: aMm, qtd: qtd }], chapL, chapA, 3, 15);
       areaTotalPecas = (lMm / 1000) * (aMm / 1000) * qtd;
       qtdTotalPecas = qtd;
     }
@@ -23203,7 +23484,7 @@ function calcVidro() {
                          border:1px solid ${c.index===1?'#22d3ee':'rgba(255,255,255,0.12)'};
                          background:${c.index===1?'linear-gradient(135deg,#06b6d4,#0e7490)':'rgba(255,255,255,0.06)'};
                          color:${c.index===1?'#fff':'#cbd5e1'};">
-            🪟 Chapa ${c.index} (${c.pecas.length} peças)
+            🪟 Chapa ${c.index} (${c.pecas.length} peças • ${(c.aproveitamento || 0).toFixed(0)}%)
           </button>`).join('')}
       </div>`;
     }
@@ -23247,9 +23528,24 @@ function calcVidro() {
               <span style="font-size:18px;">📐</span>
               <span style="font-size:13.5px;font-weight:900;color:#fff;">Desenho do Plano de Corte 2D — Vidro</span>
             </div>
-            <div style="font-size:11px;color:#22d3ee;font-weight:800;background:rgba(6,182,212,0.15);padding:3px 8px;border-radius:6px;border:1px solid rgba(6,182,212,0.3);">
-              Chapa: ${chapL}×${chapA}mm · Disco: 3mm · Refilo: 15mm
+            <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+              <button type="button" id="btn-organizar-pecas-vidro" onclick="alternarModoOrganizarPecasVidro()"
+                style="background:rgba(6,182,212,0.2);border:1.5px solid #06b6d4;color:#22d3ee;padding:6px 14px;border-radius:8px;font-size:12px;font-weight:900;cursor:pointer;display:inline-flex;align-items:center;gap:6px;transition:all 0.2s;box-shadow:0 2px 8px rgba(0,0,0,0.3);">
+                <span>🖐️</span> <span id="lbl-btn-organizar-vidro">Organizar Peças</span>
+              </button>
+              <div style="font-size:11px;color:#22d3ee;font-weight:800;background:rgba(6,182,212,0.15);padding:5px 10px;border-radius:8px;border:1px solid rgba(6,182,212,0.3);">
+                Chapa: ${chapL}×${chapA}mm · Disco: 3mm · Refilo: 15mm
+              </div>
             </div>
+          </div>
+          <div id="barra-dicas-organizar-vidro" style="display:none;background:linear-gradient(135deg,rgba(6,182,212,0.18),rgba(14,116,144,0.25));border:1.5px dashed #22d3ee;border-radius:10px;padding:9px 12px;margin:8px 0 10px;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;">
+            <div style="font-size:12px;color:#e0f7fa;display:flex;align-items:center;gap:7px;">
+              <span style="font-size:16px;">✨</span>
+              <span><strong>Modo Organizar Ativo:</strong> Toque e arraste para mover • Clique em 🔄 para girar a peça (90º)</span>
+            </div>
+            <button type="button" onclick="restaurarPlanoVidroOriginal()" style="background:rgba(239,68,68,0.2);border:1px solid rgba(239,68,68,0.5);color:#fca5a5;padding:4px 10px;border-radius:6px;font-size:11px;font-weight:800;cursor:pointer;">
+              ↺ Restaurar Padrão
+            </button>
           </div>
           ${abasHtml}
           <div id="ferr-v-desenho-svg" style="width:100%;margin-top:6px;">
@@ -23293,113 +23589,59 @@ window._planoCorteAtual = null;
 // ══════════════════════════════════════════════════════════════════════════════
 //  ENGINE DE PLANO DE CORTE PARA MÚLTIPLAS PEÇAS
 // ══════════════════════════════════════════════════════════════════════════════
-function calcularPlanoDeCorteMultiplasPecas(pecasArray, chapW, chapH, kerf = 4, refilo = 10) {
+function calcularPlanoDeCorteMultiplasPecas(pecasArray, chapW, chapH, kerf = 3, refilo = 15) {
   const usableW = Math.max(0, chapW - 2 * refilo);
   const usableH = Math.max(0, chapH - 2 * refilo);
 
-  const pecasPendentes = [];
+  const todasPecas = [];
   let globalId = 1;
   (pecasArray || []).forEach(p => {
     const qtd = parseInt(p.qtd) || 1;
     const w = parseFloat(p.largMm) || 0;
     const h = parseFloat(p.altMm) || 0;
     for (let i = 0; i < qtd; i++) {
-      pecasPendentes.push({
+      todasPecas.push({
         id: globalId++,
         nome: p.nome || ('#' + globalId),
         w,
         h,
-        rotacionada: false
+        area: w * h,
+        maxDim: Math.max(w, h),
+        minDim: Math.min(w, h)
       });
     }
   });
 
-  // Verifica se alguma peça é maior que a chapa
-  const pecaInvalida = pecasPendentes.find(p => (p.w > usableW && p.w > usableH) || (p.h > usableW && p.h > usableH));
+  const pecaInvalida = todasPecas.find(p => 
+    (p.w > usableW && p.w > usableH) || 
+    (p.h > usableW && p.h > usableH) ||
+    ((p.w > usableW || p.h > usableH) && (p.h > usableW || p.w > usableH))
+  );
   if (pecaInvalida) {
     return { erro: `A peça "${pecaInvalida.nome}" (${pecaInvalida.w}×${pecaInvalida.h}mm) é maior que o espaço útil da chapa (${usableW}×${usableH}mm).` };
   }
 
-  // Ordena por maior dimensão decrescente
-  pecasPendentes.sort((a, b) => Math.max(b.w, b.h) - Math.max(a.w, a.h));
+  const ordenacoes = [
+    (a, b) => b.area - a.area || b.maxDim - a.maxDim,
+    (a, b) => b.maxDim - a.maxDim || b.area - a.area,
+    (a, b) => b.h - a.h || b.w - a.w,
+    (a, b) => b.w - a.w || b.h - a.h,
+    (a, b) => (b.w + b.h) - (a.w + a.h)
+  ];
+  const regrasDivisao = ['SLAS', 'LLAS'];
 
-  const chapas = [];
-  let restantes = [...pecasPendentes];
+  let melhorResultado = null;
 
-  while (restantes.length > 0) {
-    const chapaIndex = chapas.length + 1;
-    const pecasNestaChapa = [];
-    const naoCouberam = [];
-
-    let curX = 0;
-    let curY = 0;
-    let shelfH = 0;
-
-    for (let i = 0; i < restantes.length; i++) {
-      const p = restantes[i];
-      let fitW = p.w;
-      let fitH = p.h;
-      let rot = false;
-
-      // Testa orientação padrão
-      let cabeAqui = (curX + fitW <= usableW) && (curY + fitH <= usableH);
-
-      // Testa se cabe rotacionada
-      if (!cabeAqui && (curX + p.h <= usableW) && (curY + p.w <= usableH)) {
-        fitW = p.h;
-        fitH = p.w;
-        rot = true;
-        cabeAqui = true;
-      }
-
-      // Se não coube na prateleira atual, tenta nova prateleira
-      if (!cabeAqui) {
-        const novoY = curY + shelfH + kerf;
-        const cabeNovaPrateleiraPadrao = (fitW <= usableW) && (novoY + fitH <= usableH);
-        const cabeNovaPrateleiraRot = (p.h <= usableW) && (novoY + p.w <= usableH);
-
-        if (cabeNovaPrateleiraPadrao || cabeNovaPrateleiraRot) {
-          curX = 0;
-          curY = novoY;
-          shelfH = 0;
-          if (!cabeNovaPrateleiraPadrao && cabeNovaPrateleiraRot) {
-            fitW = p.h;
-            fitH = p.w;
-            rot = true;
-          }
-          cabeAqui = true;
-        }
-      }
-
-      if (cabeAqui) {
-        pecasNestaChapa.push({
-          id: p.id,
-          nome: p.nome,
-          x: curX,
-          y: curY,
-          w: fitW,
-          h: fitH,
-          rotacionada: rot
-        });
-        curX += fitW + kerf;
-        shelfH = Math.max(shelfH, fitH);
-      } else {
-        naoCouberam.push(p);
+  for (const cmp of ordenacoes) {
+    for (const splitRule of regrasDivisao) {
+      const pecasOrdenadas = [...todasPecas].sort(cmp);
+      const res = executarPackGuillotine(pecasOrdenadas, usableW, usableH, kerf, splitRule);
+      if (!melhorResultado || 
+          res.chapas.length < melhorResultado.chapas.length ||
+          (res.chapas.length === melhorResultado.chapas.length && res.aproveitamentoMedio > melhorResultado.aproveitamentoMedio)) {
+        melhorResultado = res;
       }
     }
-
-    if (pecasNestaChapa.length === 0) {
-      // Segurança contra loop infinito
-      break;
-    }
-
-    chapas.push({
-      index: chapaIndex,
-      pecas: pecasNestaChapa,
-      totalSlots: pecasNestaChapa.length
-    });
-
-    restantes = naoCouberam;
   }
 
   return {
@@ -23407,9 +23649,121 @@ function calcularPlanoDeCorteMultiplasPecas(pecasArray, chapW, chapH, kerf = 4, 
     chapH,
     refilo,
     kerf,
-    totalChapas: chapas.length,
+    totalChapas: melhorResultado ? melhorResultado.chapas.length : 0,
+    chapas: melhorResultado ? melhorResultado.chapas : [],
+    pecasOriginais: pecasArray,
+    aproveitamentoGlobal: melhorResultado ? melhorResultado.aproveitamentoGlobal : 0
+  };
+}
+
+function executarPackGuillotine(pecasOriginais, usableW, usableH, kerf, splitRule) {
+  const chapas = [];
+  let restantes = [...pecasOriginais];
+  const areaTotalChapa = usableW * usableH;
+
+  while (restantes.length > 0) {
+    const chapaIndex = chapas.length + 1;
+    const pecasNestaChapa = [];
+    let freeRects = [{ x: 0, y: 0, w: usableW, h: usableH }];
+    const naoCouberam = [];
+
+    for (let i = 0; i < restantes.length; i++) {
+      const p = restantes[i];
+      let bestRectIdx = -1;
+      let bestRotated = false;
+      let bestScore = Infinity;
+      let bestW = p.w;
+      let bestH = p.h;
+
+      for (let r = 0; r < freeRects.length; r++) {
+        const fr = freeRects[r];
+        if (p.w <= fr.w && p.h <= fr.h) {
+          const leftoverShort = Math.min(fr.w - p.w, fr.h - p.h);
+          const leftoverLong = Math.max(fr.w - p.w, fr.h - p.h);
+          const score = leftoverShort * 100000 + leftoverLong;
+          if (score < bestScore) {
+            bestScore = score;
+            bestRectIdx = r;
+            bestRotated = false;
+            bestW = p.w;
+            bestH = p.h;
+          }
+        }
+        if (p.h <= fr.w && p.w <= fr.h) {
+          const leftoverShort = Math.min(fr.w - p.h, fr.h - p.w);
+          const leftoverLong = Math.max(fr.w - p.h, fr.h - p.w);
+          const score = leftoverShort * 100000 + leftoverLong;
+          if (score < bestScore) {
+            bestScore = score;
+            bestRectIdx = r;
+            bestRotated = true;
+            bestW = p.h;
+            bestH = p.w;
+          }
+        }
+      }
+
+      if (bestRectIdx >= 0) {
+        const fr = freeRects[bestRectIdx];
+        pecasNestaChapa.push({
+          id: p.id,
+          nome: p.nome,
+          x: fr.x,
+          y: fr.y,
+          w: bestW,
+          h: bestH,
+          rotacionada: bestRotated
+        });
+
+        freeRects.splice(bestRectIdx, 1);
+
+        const wRem = fr.w - bestW - kerf;
+        const hRem = fr.h - bestH - kerf;
+
+        let splitHoriz = (splitRule === 'SLAS') 
+          ? (fr.w - bestW <= fr.h - bestH)
+          : (fr.w - bestW > fr.h - bestH);
+
+        if (splitHoriz) {
+          if (wRem > 0) freeRects.push({ x: fr.x + bestW + kerf, y: fr.y, w: wRem, h: bestH });
+          if (hRem > 0) freeRects.push({ x: fr.x, y: fr.y + bestH + kerf, w: fr.w, h: hRem });
+        } else {
+          if (wRem > 0) freeRects.push({ x: fr.x + bestW + kerf, y: fr.y, w: wRem, h: fr.h });
+          if (hRem > 0) freeRects.push({ x: fr.x, y: fr.y + bestH + kerf, w: bestW, h: hRem });
+        }
+
+        freeRects = freeRects.filter(r => r.w >= 10 && r.h >= 10);
+      } else {
+        naoCouberam.push(p);
+      }
+    }
+
+    if (pecasNestaChapa.length === 0) break;
+
+    const areaPecas = pecasNestaChapa.reduce((acc, p) => acc + (p.w * p.h), 0);
+    const aproveitamento = areaTotalChapa > 0 ? (areaPecas / areaTotalChapa) * 100 : 0;
+
+    chapas.push({
+      index: chapaIndex,
+      pecas: pecasNestaChapa,
+      totalSlots: pecasNestaChapa.length,
+      freeRects: freeRects,
+      aproveitamento: aproveitamento
+    });
+
+    restantes = naoCouberam;
+  }
+
+  const somaAprov = chapas.reduce((acc, c) => acc + c.aproveitamento, 0);
+  const aproveitamentoMedio = chapas.length > 0 ? somaAprov / chapas.length : 0;
+  const areaTotalUsavelTodasChapas = chapas.length * areaTotalChapa;
+  const areaTotalPecasTodasChapas = chapas.reduce((acc, c) => acc + c.pecas.reduce((a, p) => a + (p.w * p.h), 0), 0);
+  const aproveitamentoGlobal = areaTotalUsavelTodasChapas > 0 ? (areaTotalPecasTodasChapas / areaTotalUsavelTodasChapas) * 100 : 0;
+
+  return {
     chapas,
-    pecasOriginais: pecasArray
+    aproveitamentoMedio,
+    aproveitamentoGlobal
   };
 }
 
@@ -23562,42 +23916,72 @@ function gerarSvgPlanoDeCorte(plano, chapaIndex = 1) {
     if (p.y + p.h > maxUsadoY) maxUsadoY = p.y + p.h;
   });
 
+  const isEdit = !!window._modoOrganizarMdf;
+
   const rects = chapa.pecas.map(p => {
     const px = ref + p.x;
     const py = ref + p.y;
     const fontSize = Math.max(30, Math.min(p.w, p.h) * 0.12);
     const fontSub = Math.max(20, fontSize * 0.65);
+
+    const btnGirar = isEdit ? `
+      <g class="btn-girar-peca" onclick="girarPecaMdf('${p.id}', event, ${chapaIndex})" style="cursor:pointer;" title="Girar peça 90º">
+        <circle cx="${px + p.w - 30}" cy="${py + 30}" r="22" fill="#2e1065" stroke="#c084fc" stroke-width="2.5" />
+        <text x="${px + p.w - 30}" y="${py + 32}" fill="#e9d5ff" font-size="20px" font-weight="900" text-anchor="middle" dominant-baseline="middle">🔄</text>
+      </g>` : '';
+
     return `
-      <g class="peca-corte-item">
+      <g class="peca-corte-item" data-peca-id="${p.id}"
+         ${isEdit ? `onpointerdown="iniciarArrastoPecaMdf(event, '${p.id}', ${chapaIndex})" ondblclick="girarPecaMdf('${p.id}', event, ${chapaIndex})"` : ''}
+         style="${isEdit ? 'cursor:grab;touch-action:none;' : ''}">
         <rect x="${px}" y="${py}" width="${p.w}" height="${p.h}" 
-              fill="url(#gradMdfPeca)" stroke="#c084fc" stroke-width="4" rx="6" />
+              fill="url(#gradMdfPeca)" stroke="${isEdit ? '#e9d5ff' : '#c084fc'}" stroke-width="${isEdit ? 5 : 4}"
+              stroke-dasharray="${isEdit ? '8,5' : 'none'}" rx="6" />
         <rect x="${px + 4}" y="${py + 4}" width="${Math.max(0, p.w - 8)}" height="${Math.max(0, p.h - 8)}" 
               fill="none" stroke="rgba(255,255,255,0.22)" stroke-width="1.5" rx="4" />
-        <text x="${px + p.w/2}" y="${py + p.h/2 - fontSize*0.4}" fill="#ffffff" font-size="${fontSize}px" font-weight="900" font-family="system-ui, sans-serif" text-anchor="middle" dominant-baseline="middle">
+        <text x="${px + p.w/2}" y="${py + p.h/2 - fontSize*0.4}" fill="#ffffff" font-size="${fontSize}px" font-weight="900" font-family="system-ui, sans-serif" text-anchor="middle" dominant-baseline="middle" pointer-events="none">
           #${p.id}
         </text>
-        <text x="${px + p.w/2}" y="${py + p.h/2 + fontSize*0.6}" fill="#f3e8ff" font-size="${fontSub}px" font-weight="700" font-family="system-ui, sans-serif" text-anchor="middle" dominant-baseline="middle">
+        <text x="${px + p.w/2}" y="${py + p.h/2 + fontSize*0.6}" fill="#f3e8ff" font-size="${fontSub}px" font-weight="700" font-family="system-ui, sans-serif" text-anchor="middle" dominant-baseline="middle" pointer-events="none">
           ${p.w} × ${p.h} mm
         </text>
+        ${btnGirar}
       </g>
     `;
   }).join('');
 
   let sobraSvg = '';
-  const sobraLivreX = W - (ref + maxUsadoX);
-  if (sobraLivreX > 80) {
-    const sx = ref + maxUsadoX + plano.kerf;
-    const sw = W - sx - ref;
-    const sh = H - 2 * ref;
-    if (sw > 50 && sh > 50) {
-      sobraSvg += `
+  if (chapa.freeRects && chapa.freeRects.length > 0) {
+    sobraSvg = chapa.freeRects.filter(r => r.w >= 60 && r.h >= 60).map(r => {
+      const rx = ref + r.x;
+      const ry = ref + r.y;
+      const fSize = Math.max(18, Math.min(r.w, r.h) * 0.08);
+      return `
         <g opacity="0.9">
-          <rect x="${sx}" y="${ref}" width="${sw}" height="${sh}" fill="url(#padraoHachura)" stroke="#fbbf24" stroke-width="3" stroke-dasharray="12,8" rx="8" />
-          <text x="${sx + sw/2}" y="${ref + sh/2}" fill="#fde047" font-size="${Math.max(28, Math.min(sw, sh)*0.08)}px" font-weight="900" font-family="system-ui, sans-serif" text-anchor="middle" dominant-baseline="middle">
-            ♻️ SOBRA: ${Math.round(sw)}×${Math.round(sh)}mm
+          <rect x="${rx}" y="${ry}" width="${r.w}" height="${r.h}"
+                fill="url(#padraoHachura)" stroke="#fbbf24" stroke-width="2.5" stroke-dasharray="10,6" rx="6" />
+          <text x="${rx + r.w/2}" y="${ry + r.h/2}" fill="#fde047"
+                font-size="${fSize}px" font-weight="900"
+                font-family="system-ui, sans-serif" text-anchor="middle" dominant-baseline="middle">
+            ♻️ ${Math.round(r.w)}×${Math.round(r.h)}mm
           </text>
-        </g>
-      `;
+        </g>`;
+    }).join('');
+  } else {
+    const sobraLivreX = W - (ref + maxUsadoX);
+    if (sobraLivreX > 80) {
+      const sx = ref + maxUsadoX + plano.kerf;
+      const sw = W - sx - ref;
+      const sh = H - 2 * ref;
+      if (sw > 50 && sh > 50) {
+        sobraSvg += `
+          <g opacity="0.9">
+            <rect x="${sx}" y="${ref}" width="${sw}" height="${sh}" fill="url(#padraoHachura)" stroke="#fbbf24" stroke-width="3" stroke-dasharray="12,8" rx="8" />
+            <text x="${sx + sw/2}" y="${ref + sh/2}" fill="#fde047" font-size="${Math.max(28, Math.min(sw, sh)*0.08)}px" font-weight="900" font-family="system-ui, sans-serif" text-anchor="middle" dominant-baseline="middle">
+              ♻️ SOBRA: ${Math.round(sw)}×${Math.round(sh)}mm
+            </text>
+          </g>`;
+      }
     }
   }
 
@@ -23655,7 +24039,12 @@ function gerarSvgPlanoDeCorte(plano, chapaIndex = 1) {
   `;
 }
 
+window._chapaMdfAtiva = 1;
+window._modoOrganizarMdf = false;
+window._planoCorteMdfBackup = null;
+
 window.mudarChapaPlanoCorte = function(idx) {
+  window._chapaMdfAtiva = idx;
   if (!window._planoCorteAtual) return;
   const container = document.getElementById('ferr-m-desenho-svg');
   if (container) {
@@ -23673,6 +24062,193 @@ window.mudarChapaPlanoCorte = function(idx) {
       btn.style.borderColor = 'rgba(255,255,255,0.12)';
     }
   });
+};
+
+window.atualizarVisualizacaoChapaMdf = function(idx) {
+  const container = document.getElementById('ferr-m-desenho-svg');
+  if (container && window._planoCorteAtual) {
+    container.innerHTML = gerarSvgPlanoDeCorte(window._planoCorteAtual, idx || window._chapaMdfAtiva || 1);
+  }
+};
+
+window.alternarModoOrganizarPecasMdf = function() {
+  window._modoOrganizarMdf = !window._modoOrganizarMdf;
+
+  if (window._modoOrganizarMdf && window._planoCorteAtual && !window._planoCorteMdfBackup) {
+    window._planoCorteMdfBackup = JSON.parse(JSON.stringify(window._planoCorteAtual));
+  }
+
+  const btn = document.getElementById('btn-organizar-pecas-mdf');
+  const dics = document.getElementById('barra-dicas-organizar-mdf');
+  const lbl = document.getElementById('lbl-btn-organizar-mdf');
+
+  if (btn) {
+    if (window._modoOrganizarMdf) {
+      btn.style.background = 'linear-gradient(135deg, #10b981, #059669)';
+      btn.style.color = '#fff';
+      btn.style.borderColor = '#34d399';
+      btn.style.boxShadow = '0 0 16px rgba(16,185,129,0.5)';
+      if (lbl) lbl.textContent = '✓ Concluir Organização';
+    } else {
+      btn.style.background = 'rgba(168,85,247,0.2)';
+      btn.style.color = '#c084fc';
+      btn.style.borderColor = '#a855f7';
+      btn.style.boxShadow = '0 2px 8px rgba(0,0,0,0.3)';
+      if (lbl) lbl.textContent = 'Organizar Peças';
+    }
+  }
+
+  if (dics) {
+    dics.style.display = window._modoOrganizarMdf ? 'flex' : 'none';
+  }
+
+  window.atualizarVisualizacaoChapaMdf(window._chapaMdfAtiva || 1);
+};
+
+window.restaurarPlanoMdfOriginal = function() {
+  if (window._planoCorteMdfBackup) {
+    window._planoCorteAtual = JSON.parse(JSON.stringify(window._planoCorteMdfBackup));
+    window.atualizarVisualizacaoChapaMdf(window._chapaMdfAtiva || 1);
+  }
+};
+
+window.girarPecaMdf = function(pecaId, evt, chapaIndex) {
+  if (evt) {
+    if (evt.preventDefault) evt.preventDefault();
+    if (evt.stopPropagation) evt.stopPropagation();
+  }
+  if (!window._planoCorteAtual) return;
+  const idx = chapaIndex || window._chapaMdfAtiva || 1;
+  const chapa = window._planoCorteAtual.chapas[idx - 1];
+  if (!chapa) return;
+
+  const peca = chapa.pecas.find(p => String(p.id) === String(pecaId));
+  if (!peca) return;
+
+  const ref = window._planoCorteAtual.refilo || 10;
+  const maxW = window._planoCorteAtual.chapW - 2 * ref;
+  const maxH = window._planoCorteAtual.chapH - 2 * ref;
+
+  const tmp = peca.w;
+  peca.w = peca.h;
+  peca.h = tmp;
+
+  if (peca.x + peca.w > maxW) peca.x = Math.max(0, maxW - peca.w);
+  if (peca.y + peca.h > maxH) peca.y = Math.max(0, maxH - peca.h);
+
+  window.atualizarVisualizacaoChapaMdf(idx);
+};
+
+window.iniciarArrastoPecaMdf = function(evt, pecaId, chapaIndex) {
+  if (!window._modoOrganizarMdf) return;
+  if (evt.target && evt.target.closest && evt.target.closest('.btn-girar-peca')) return;
+
+  if (evt.preventDefault) evt.preventDefault();
+  if (evt.stopPropagation) evt.stopPropagation();
+
+  const svg = evt.currentTarget.closest('svg');
+  if (!svg || !window._planoCorteAtual) return;
+
+  const idx = chapaIndex || window._chapaMdfAtiva || 1;
+  const chapa = window._planoCorteAtual.chapas[idx - 1];
+  if (!chapa) return;
+
+  const peca = chapa.pecas.find(p => String(p.id) === String(pecaId));
+  if (!peca) return;
+
+  const ref = window._planoCorteAtual.refilo || 10;
+  const maxW = window._planoCorteAtual.chapW - 2 * ref;
+  const maxH = window._planoCorteAtual.chapH - 2 * ref;
+
+  function getSvgPoint(e) {
+    const pt = svg.createSVGPoint();
+    pt.x = e.clientX || (e.touches && e.touches[0] ? e.touches[0].clientX : 0);
+    pt.y = e.clientY || (e.touches && e.touches[0] ? e.touches[0].clientY : 0);
+    const ctm = svg.getScreenCTM();
+    if (ctm) {
+      return pt.matrixTransform(ctm.inverse());
+    }
+    return { x: pt.x, y: pt.y };
+  }
+
+  const startPt = getSvgPoint(evt);
+  const startX = peca.x;
+  const startY = peca.y;
+
+  const elemG = evt.currentTarget;
+  elemG.style.cursor = 'grabbing';
+  elemG.style.opacity = '0.85';
+
+  let hasMoved = false;
+
+  function onPointerMove(e) {
+    if (e.preventDefault) e.preventDefault();
+    hasMoved = true;
+    const curPt = getSvgPoint(e);
+    const dx = curPt.x - startPt.x;
+    const dy = curPt.y - startPt.y;
+
+    let novoX = Math.round(startX + dx);
+    let novoY = Math.round(startY + dy);
+
+    novoX = Math.max(0, Math.min(maxW - peca.w, novoX));
+    novoY = Math.max(0, Math.min(maxH - peca.h, novoY));
+
+    peca.x = novoX;
+    peca.y = novoY;
+
+    const px = ref + novoX;
+    const py = ref + novoY;
+    const rectMain = elemG.querySelector('rect');
+    if (rectMain) {
+      rectMain.setAttribute('x', px);
+      rectMain.setAttribute('y', py);
+    }
+    const rectInner = elemG.querySelectorAll('rect')[1];
+    if (rectInner) {
+      rectInner.setAttribute('x', px + 4);
+      rectInner.setAttribute('y', py + 4);
+    }
+    const texts = elemG.querySelectorAll('text');
+    if (texts[0]) {
+      texts[0].setAttribute('x', px + peca.w / 2);
+      texts[0].setAttribute('y', py + peca.h / 2 - (parseFloat(texts[0].getAttribute('font-size')) || 30) * 0.4);
+    }
+    if (texts[1]) {
+      texts[1].setAttribute('x', px + peca.w / 2);
+      texts[1].setAttribute('y', py + peca.h / 2 + (parseFloat(texts[0] ? texts[0].getAttribute('font-size') : 30) || 30) * 0.6);
+    }
+    const btnG = elemG.querySelector('.btn-girar-peca');
+    if (btnG) {
+      const c = btnG.querySelector('circle');
+      const t = btnG.querySelector('text');
+      if (c) {
+        c.setAttribute('cx', px + peca.w - 30);
+        c.setAttribute('cy', py + 30);
+      }
+      if (t) {
+        t.setAttribute('x', px + peca.w - 30);
+        t.setAttribute('y', py + 32);
+      }
+    }
+  }
+
+  function onPointerUp(e) {
+    window.removeEventListener('pointermove', onPointerMove);
+    window.removeEventListener('pointerup', onPointerUp);
+    window.removeEventListener('touchmove', onPointerMove);
+    window.removeEventListener('touchend', onPointerUp);
+    elemG.style.cursor = window._modoOrganizarMdf ? 'grab' : 'default';
+    elemG.style.opacity = '1';
+    if (hasMoved) {
+      window.atualizarVisualizacaoChapaMdf(idx);
+    }
+  }
+
+  window.addEventListener('pointermove', onPointerMove, { passive: false });
+  window.addEventListener('pointerup', onPointerUp);
+  window.addEventListener('touchmove', onPointerMove, { passive: false });
+  window.addEventListener('touchend', onPointerUp);
 };
 
 function calcMovel() {
@@ -23719,7 +24295,7 @@ function calcMovel() {
         qtdTotalPecas += p.qtd;
       });
     } else {
-      plano = calcularPlanoDeCorteMdf(lMm, aMm, qtd, chapL, chapA, 4, 10);
+      plano = calcularPlanoDeCorteMultiplasPecas([{ nome: 'Peça', largMm: lMm, altMm: aMm, qtd: qtd }], chapL, chapA, 4, 10);
       areaTotalPecas = (lMm / 1000) * (aMm / 1000) * qtd;
       qtdTotalPecas = qtd;
     }
@@ -23746,7 +24322,7 @@ function calcMovel() {
           ${plano.chapas.map(c => `
             <button type="button" class="btn-tab-chapa" data-idx="${c.index}" onclick="mudarChapaPlanoCorte(${c.index})" 
                     style="padding:6px 14px;border-radius:8px;font-size:12px;font-weight:800;cursor:pointer;transition:all 0.2s;border:1px solid ${c.index===1?'#c084fc':'rgba(255,255,255,0.12)'};background:${c.index===1?'linear-gradient(135deg,#a855f7,#7e22ce)':'rgba(255,255,255,0.06)'};color:${c.index===1?'#fff':'#cbd5e1'};">
-              📄 Chapa ${c.index} (${c.pecas.length} peças)
+              📄 Chapa ${c.index} (${c.pecas.length} peças • ${(c.aproveitamento || 0).toFixed(0)}%)
             </button>
           `).join('')}
         </div>
@@ -23787,9 +24363,24 @@ function calcMovel() {
               <span style="font-size:18px;">📐</span>
               <span style="font-size:13.5px;font-weight:900;color:#fff;">Desenho do Plano de Corte MDF 2D</span>
             </div>
-            <div style="font-size:11px;color:#c084fc;font-weight:800;background:rgba(168,85,247,0.15);padding:3px 8px;border-radius:6px;border:1px solid rgba(168,85,247,0.3);">
-              Chapa: ${chapL}×${chapA}mm · Serra: 4mm · Refilo: 10mm
+            <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+              <button type="button" id="btn-organizar-pecas-mdf" onclick="alternarModoOrganizarPecasMdf()"
+                style="background:rgba(168,85,247,0.2);border:1.5px solid #a855f7;color:#c084fc;padding:6px 14px;border-radius:8px;font-size:12px;font-weight:900;cursor:pointer;display:inline-flex;align-items:center;gap:6px;transition:all 0.2s;box-shadow:0 2px 8px rgba(0,0,0,0.3);">
+                <span>🖐️</span> <span id="lbl-btn-organizar-mdf">Organizar Peças</span>
+              </button>
+              <div style="font-size:11px;color:#c084fc;font-weight:800;background:rgba(168,85,247,0.15);padding:5px 10px;border-radius:8px;border:1px solid rgba(168,85,247,0.3);">
+                Chapa: ${chapL}×${chapA}mm · Serra: 4mm · Refilo: 10mm
+              </div>
             </div>
+          </div>
+          <div id="barra-dicas-organizar-mdf" style="display:none;background:linear-gradient(135deg,rgba(168,85,247,0.18),rgba(126,34,206,0.25));border:1.5px dashed #c084fc;border-radius:10px;padding:9px 12px;margin:8px 0 10px;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;">
+            <div style="font-size:12px;color:#f3e8ff;display:flex;align-items:center;gap:7px;">
+              <span style="font-size:16px;">✨</span>
+              <span><strong>Modo Organizar Ativo:</strong> Toque e arraste para mover • Clique em 🔄 para girar a peça (90º)</span>
+            </div>
+            <button type="button" onclick="restaurarPlanoMdfOriginal()" style="background:rgba(239,68,68,0.2);border:1px solid rgba(239,68,68,0.5);color:#fca5a5;padding:4px 10px;border-radius:6px;font-size:11px;font-weight:800;cursor:pointer;">
+              ↺ Restaurar Padrão
+            </button>
           </div>
 
           ${abasChapasHtml}
