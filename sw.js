@@ -1,5 +1,5 @@
-// Service Worker PWA para sdmoveisprojetados - v21.0 (visualizar-pdf-cliente)
-const CACHE_NAME = 'sdmoveisprojetados-v21.0';
+// Service Worker PWA para sdmoveisprojetados - v22.0 (barreira-solida-plano-corte)
+const CACHE_NAME = 'sdmoveisprojetados-v22.0';
 
 self.addEventListener('install', (event) => {
   self.skipWaiting();

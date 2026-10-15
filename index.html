@@ -23133,6 +23133,121 @@ window.restaurarPlanoVidroOriginal = function() {
   }
 };
 
+window.calcularPosicaoBarreira = function(peca, targetX, targetY, outras, maxW, maxH, gap) {
+  const w = peca.w;
+  const h = peca.h;
+  const curX = peca.x;
+  const curY = peca.y;
+
+  function colide(x, y) {
+    if (x < -0.01 || y < -0.01 || x + w > maxW + 0.01 || y + h > maxH + 0.01) return true;
+    for (let i = 0; i < outras.length; i++) {
+      const o = outras[i];
+      const overlapX = (x < o.x + o.w + gap - 0.05) && (x + w + gap > o.x + 0.05);
+      const overlapY = (y < o.y + o.h + gap - 0.05) && (y + h + gap > o.y + 0.05);
+      if (overlapX && overlapY) return true;
+    }
+    return false;
+  }
+
+  const clampTargetX = Math.max(0, Math.min(maxW - w, targetX));
+  const clampTargetY = Math.max(0, Math.min(maxH - h, targetY));
+
+  // Se a posição destino não colide com nada, vai livremente
+  if (!colide(clampTargetX, clampTargetY)) {
+    return { x: clampTargetX, y: clampTargetY, blocked: false };
+  }
+
+  function moverEixoX(fromX, atY, toX) {
+    let bestX = fromX;
+    if (toX > fromX) {
+      let limitRight = Math.min(maxW - w, toX);
+      for (let i = 0; i < outras.length; i++) {
+        const o = outras[i];
+        const overlapY = (atY < o.y + o.h + gap - 0.05) && (atY + h + gap > o.y + 0.05);
+        if (overlapY && o.x >= fromX + w - 0.1) {
+          const barreira = o.x - w - gap;
+          if (barreira >= fromX - 0.1 && barreira < limitRight) {
+            limitRight = barreira;
+          }
+        }
+      }
+      bestX = Math.max(fromX, limitRight);
+    } else if (toX < fromX) {
+      let limitLeft = Math.max(0, toX);
+      for (let i = 0; i < outras.length; i++) {
+        const o = outras[i];
+        const overlapY = (atY < o.y + o.h + gap - 0.05) && (atY + h + gap > o.y + 0.05);
+        if (overlapY && o.x + o.w <= fromX + 0.1) {
+          const barreira = o.x + o.w + gap;
+          if (barreira <= fromX + 0.1 && barreira > limitLeft) {
+            limitLeft = barreira;
+          }
+        }
+      }
+      bestX = Math.min(fromX, limitLeft);
+    }
+    return Math.max(0, Math.min(maxW - w, bestX));
+  }
+
+  function moverEixoY(atX, fromY, toY) {
+    let bestY = fromY;
+    if (toY > fromY) {
+      let limitDown = Math.min(maxH - h, toY);
+      for (let i = 0; i < outras.length; i++) {
+        const o = outras[i];
+        const overlapX = (atX < o.x + o.w + gap - 0.05) && (atX + w + gap > o.x + 0.05);
+        if (overlapX && o.y >= fromY + h - 0.1) {
+          const barreira = o.y - h - gap;
+          if (barreira >= fromY - 0.1 && barreira < limitDown) {
+            limitDown = barreira;
+          }
+        }
+      }
+      bestY = Math.max(fromY, limitDown);
+    } else if (toY < fromY) {
+      let limitUp = Math.max(0, toY);
+      for (let i = 0; i < outras.length; i++) {
+        const o = outras[i];
+        const overlapX = (atX < o.x + o.w + gap - 0.05) && (atX + w + gap > o.x + 0.05);
+        if (overlapX && o.y + o.h <= fromY + 0.1) {
+          const barreira = o.y + o.h + gap;
+          if (barreira <= fromY + 0.1 && barreira > limitUp) {
+            limitUp = barreira;
+          }
+        }
+      }
+      bestY = Math.min(fromY, limitUp);
+    }
+    return Math.max(0, Math.min(maxH - h, bestY));
+  }
+
+  // Opção 1: X depois Y
+  const candX1 = moverEixoX(curX, curY, clampTargetX);
+  const candY1 = moverEixoY(candX1, curY, clampTargetY);
+  const val1 = !colide(candX1, candY1);
+
+  // Opção 2: Y depois X
+  const candY2 = moverEixoY(curX, curY, clampTargetY);
+  const candX2 = moverEixoX(curX, candY2, clampTargetX);
+  const val2 = !colide(candX2, candY2);
+
+  if (val1 && val2) {
+    const d1 = Math.hypot(candX1 - clampTargetX, candY1 - clampTargetY);
+    const d2 = Math.hypot(candX2 - clampTargetX, candY2 - clampTargetY);
+    return d1 <= d2 ? { x: Math.round(candX1), y: Math.round(candY1), blocked: true } : { x: Math.round(candX2), y: Math.round(candY2), blocked: true };
+  } else if (val1) {
+    return { x: Math.round(candX1), y: Math.round(candY1), blocked: true };
+  } else if (val2) {
+    return { x: Math.round(candX2), y: Math.round(candY2), blocked: true };
+  }
+
+  if (!colide(candX1, curY)) return { x: Math.round(candX1), y: curY, blocked: true };
+  if (!colide(curX, candY2)) return { x: curX, y: Math.round(candY2), blocked: true };
+
+  return { x: curX, y: curY, blocked: true };
+};
+
 window.girarPecaVidro = function(pecaId, evt, chapaIndex) {
   if (evt) {
     if (evt.preventDefault) evt.preventDefault();
@@ -23149,15 +23264,62 @@ window.girarPecaVidro = function(pecaId, evt, chapaIndex) {
   const ref = window._planoCorteVidroAtual.refilo || 15;
   const maxW = window._planoCorteVidroAtual.chapW - 2 * ref;
   const maxH = window._planoCorteVidroAtual.chapH - 2 * ref;
+  const kerf = (typeof window._planoCorteVidroAtual.kerf === 'number') ? window._planoCorteVidroAtual.kerf : 3;
+  const gap = Math.max(0, kerf);
+  const outras = chapa.pecas.filter(p => p !== peca && String(p.id) !== String(peca.id));
 
-  const tmp = peca.w;
-  peca.w = peca.h;
-  peca.h = tmp;
+  function colide(x, y, w, h) {
+    if (x < -0.01 || y < -0.01 || x + w > maxW + 0.01 || y + h > maxH + 0.01) return true;
+    for (let i = 0; i < outras.length; i++) {
+      const o = outras[i];
+      const overlapX = (x < o.x + o.w + gap - 0.05) && (x + w + gap > o.x + 0.05);
+      const overlapY = (y < o.y + o.h + gap - 0.05) && (y + h + gap > o.y + 0.05);
+      if (overlapX && overlapY) return true;
+    }
+    return false;
+  }
 
-  if (peca.x + peca.w > maxW) peca.x = Math.max(0, maxW - peca.w);
-  if (peca.y + peca.h > maxH) peca.y = Math.max(0, maxH - peca.h);
+  const novoW = peca.h;
+  const novoH = peca.w;
 
-  window.atualizarVisualizacaoChapaVidro(idx);
+  let testX = Math.max(0, Math.min(maxW - novoW, peca.x));
+  let testY = Math.max(0, Math.min(maxH - novoH, peca.y));
+
+  if (!colide(testX, testY, novoW, novoH)) {
+    peca.w = novoW;
+    peca.h = novoH;
+    peca.x = testX;
+    peca.y = testY;
+    window.atualizarVisualizacaoChapaVidro(idx);
+    return;
+  }
+
+  const tentativas = [
+    { dx: 0, dy: -(novoH - peca.h) },
+    { dx: -(novoW - peca.w), dy: 0 },
+    { dx: -(novoW - peca.w), dy: -(novoH - peca.h) },
+    { dx: gap, dy: 0 }, { dx: -gap, dy: 0 },
+    { dx: 0, dy: gap }, { dx: 0, dy: -gap }
+  ];
+
+  for (const t of tentativas) {
+    const tx = Math.max(0, Math.min(maxW - novoW, testX + t.dx));
+    const ty = Math.max(0, Math.min(maxH - novoH, testY + t.dy));
+    if (!colide(tx, ty, novoW, novoH)) {
+      peca.w = novoW;
+      peca.h = novoH;
+      peca.x = tx;
+      peca.y = ty;
+      window.atualizarVisualizacaoChapaVidro(idx);
+      return;
+    }
+  }
+
+  if (typeof mostrarToastNotificacao === 'function') {
+    mostrarToastNotificacao('⚠️ Barreira Ativa', 'Não é possível girar esta peça nesta posição pois ela encostaria em outra peça.', '⚠️');
+  } else {
+    alert('Não é possível girar a peça aqui: ela ultrapassaria os limites ou sobreporia outra peça.');
+  }
 };
 
 window.iniciarArrastoPecaVidro = function(evt, pecaId, chapaIndex) {
@@ -23180,6 +23342,9 @@ window.iniciarArrastoPecaVidro = function(evt, pecaId, chapaIndex) {
   const ref = window._planoCorteVidroAtual.refilo || 15;
   const maxW = window._planoCorteVidroAtual.chapW - 2 * ref;
   const maxH = window._planoCorteVidroAtual.chapH - 2 * ref;
+  const kerf = (typeof window._planoCorteVidroAtual.kerf === 'number') ? window._planoCorteVidroAtual.kerf : 3;
+  const gap = Math.max(0, kerf);
+  const outras = chapa.pecas.filter(p => p !== peca && String(p.id) !== String(peca.id));
 
   function getSvgPoint(e) {
     const pt = svg.createSVGPoint();
@@ -23192,13 +23357,10 @@ window.iniciarArrastoPecaVidro = function(evt, pecaId, chapaIndex) {
     return { x: pt.x, y: pt.y };
   }
 
-  const startPt = getSvgPoint(evt);
-  const startX = peca.x;
-  const startY = peca.y;
-
+  let lastPt = getSvgPoint(evt);
   const elemG = evt.currentTarget;
   elemG.style.cursor = 'grabbing';
-  elemG.style.opacity = '0.85';
+  elemG.style.opacity = '0.9';
 
   let hasMoved = false;
 
@@ -23206,17 +23368,20 @@ window.iniciarArrastoPecaVidro = function(evt, pecaId, chapaIndex) {
     if (e.preventDefault) e.preventDefault();
     hasMoved = true;
     const curPt = getSvgPoint(e);
-    const dx = curPt.x - startPt.x;
-    const dy = curPt.y - startPt.y;
+    const dx = curPt.x - lastPt.x;
+    const dy = curPt.y - lastPt.y;
+    lastPt = curPt;
 
-    let novoX = Math.round(startX + dx);
-    let novoY = Math.round(startY + dy);
+    if (dx === 0 && dy === 0) return;
 
-    novoX = Math.max(0, Math.min(maxW - peca.w, novoX));
-    novoY = Math.max(0, Math.min(maxH - peca.h, novoY));
+    const targetX = peca.x + dx;
+    const targetY = peca.y + dy;
 
-    peca.x = novoX;
-    peca.y = novoY;
+    const pos = window.calcularPosicaoBarreira(peca, targetX, targetY, outras, maxW, maxH, gap);
+    peca.x = pos.x;
+    peca.y = pos.y;
+    const novoX = pos.x;
+    const novoY = pos.y;
 
     const px = ref + novoX;
     const py = ref + novoY;
@@ -23224,6 +23389,13 @@ window.iniciarArrastoPecaVidro = function(evt, pecaId, chapaIndex) {
     if (rectMain) {
       rectMain.setAttribute('x', px);
       rectMain.setAttribute('y', py);
+      if (pos.blocked) {
+        rectMain.setAttribute('stroke', '#fbbf24');
+        rectMain.setAttribute('stroke-width', '3');
+      } else {
+        rectMain.setAttribute('stroke', '#06b6d4');
+        rectMain.setAttribute('stroke-width', '1.5');
+      }
     }
     const rectInner = elemG.querySelectorAll('rect')[1];
     if (rectInner) {
@@ -24128,15 +24300,62 @@ window.girarPecaMdf = function(pecaId, evt, chapaIndex) {
   const ref = window._planoCorteAtual.refilo || 10;
   const maxW = window._planoCorteAtual.chapW - 2 * ref;
   const maxH = window._planoCorteAtual.chapH - 2 * ref;
+  const kerf = (typeof window._planoCorteAtual.kerf === 'number') ? window._planoCorteAtual.kerf : 4;
+  const gap = Math.max(0, kerf);
+  const outras = chapa.pecas.filter(p => p !== peca && String(p.id) !== String(peca.id));
 
-  const tmp = peca.w;
-  peca.w = peca.h;
-  peca.h = tmp;
+  function colide(x, y, w, h) {
+    if (x < -0.01 || y < -0.01 || x + w > maxW + 0.01 || y + h > maxH + 0.01) return true;
+    for (let i = 0; i < outras.length; i++) {
+      const o = outras[i];
+      const overlapX = (x < o.x + o.w + gap - 0.05) && (x + w + gap > o.x + 0.05);
+      const overlapY = (y < o.y + o.h + gap - 0.05) && (y + h + gap > o.y + 0.05);
+      if (overlapX && overlapY) return true;
+    }
+    return false;
+  }
 
-  if (peca.x + peca.w > maxW) peca.x = Math.max(0, maxW - peca.w);
-  if (peca.y + peca.h > maxH) peca.y = Math.max(0, maxH - peca.h);
+  const novoW = peca.h;
+  const novoH = peca.w;
 
-  window.atualizarVisualizacaoChapaMdf(idx);
+  let testX = Math.max(0, Math.min(maxW - novoW, peca.x));
+  let testY = Math.max(0, Math.min(maxH - novoH, peca.y));
+
+  if (!colide(testX, testY, novoW, novoH)) {
+    peca.w = novoW;
+    peca.h = novoH;
+    peca.x = testX;
+    peca.y = testY;
+    window.atualizarVisualizacaoChapaMdf(idx);
+    return;
+  }
+
+  const tentativas = [
+    { dx: 0, dy: -(novoH - peca.h) },
+    { dx: -(novoW - peca.w), dy: 0 },
+    { dx: -(novoW - peca.w), dy: -(novoH - peca.h) },
+    { dx: gap, dy: 0 }, { dx: -gap, dy: 0 },
+    { dx: 0, dy: gap }, { dx: 0, dy: -gap }
+  ];
+
+  for (const t of tentativas) {
+    const tx = Math.max(0, Math.min(maxW - novoW, testX + t.dx));
+    const ty = Math.max(0, Math.min(maxH - novoH, testY + t.dy));
+    if (!colide(tx, ty, novoW, novoH)) {
+      peca.w = novoW;
+      peca.h = novoH;
+      peca.x = tx;
+      peca.y = ty;
+      window.atualizarVisualizacaoChapaMdf(idx);
+      return;
+    }
+  }
+
+  if (typeof mostrarToastNotificacao === 'function') {
+    mostrarToastNotificacao('⚠️ Barreira Ativa', 'Não é possível girar esta peça nesta posição pois ela encostaria em outra peça.', '⚠️');
+  } else {
+    alert('Não é possível girar a peça aqui: ela ultrapassaria os limites ou sobreporia outra peça.');
+  }
 };
 
 window.iniciarArrastoPecaMdf = function(evt, pecaId, chapaIndex) {
@@ -24159,6 +24378,9 @@ window.iniciarArrastoPecaMdf = function(evt, pecaId, chapaIndex) {
   const ref = window._planoCorteAtual.refilo || 10;
   const maxW = window._planoCorteAtual.chapW - 2 * ref;
   const maxH = window._planoCorteAtual.chapH - 2 * ref;
+  const kerf = (typeof window._planoCorteAtual.kerf === 'number') ? window._planoCorteAtual.kerf : 4;
+  const gap = Math.max(0, kerf);
+  const outras = chapa.pecas.filter(p => p !== peca && String(p.id) !== String(peca.id));
 
   function getSvgPoint(e) {
     const pt = svg.createSVGPoint();
@@ -24171,13 +24393,10 @@ window.iniciarArrastoPecaMdf = function(evt, pecaId, chapaIndex) {
     return { x: pt.x, y: pt.y };
   }
 
-  const startPt = getSvgPoint(evt);
-  const startX = peca.x;
-  const startY = peca.y;
-
+  let lastPt = getSvgPoint(evt);
   const elemG = evt.currentTarget;
   elemG.style.cursor = 'grabbing';
-  elemG.style.opacity = '0.85';
+  elemG.style.opacity = '0.9';
 
   let hasMoved = false;
 
@@ -24185,17 +24404,20 @@ window.iniciarArrastoPecaMdf = function(evt, pecaId, chapaIndex) {
     if (e.preventDefault) e.preventDefault();
     hasMoved = true;
     const curPt = getSvgPoint(e);
-    const dx = curPt.x - startPt.x;
-    const dy = curPt.y - startPt.y;
+    const dx = curPt.x - lastPt.x;
+    const dy = curPt.y - lastPt.y;
+    lastPt = curPt;
 
-    let novoX = Math.round(startX + dx);
-    let novoY = Math.round(startY + dy);
+    if (dx === 0 && dy === 0) return;
 
-    novoX = Math.max(0, Math.min(maxW - peca.w, novoX));
-    novoY = Math.max(0, Math.min(maxH - peca.h, novoY));
+    const targetX = peca.x + dx;
+    const targetY = peca.y + dy;
 
-    peca.x = novoX;
-    peca.y = novoY;
+    const pos = window.calcularPosicaoBarreira(peca, targetX, targetY, outras, maxW, maxH, gap);
+    peca.x = pos.x;
+    peca.y = pos.y;
+    const novoX = pos.x;
+    const novoY = pos.y;
 
     const px = ref + novoX;
     const py = ref + novoY;
@@ -24203,6 +24425,13 @@ window.iniciarArrastoPecaMdf = function(evt, pecaId, chapaIndex) {
     if (rectMain) {
       rectMain.setAttribute('x', px);
       rectMain.setAttribute('y', py);
+      if (pos.blocked) {
+        rectMain.setAttribute('stroke', '#fbbf24');
+        rectMain.setAttribute('stroke-width', '3');
+      } else {
+        rectMain.setAttribute('stroke', '#06b6d4');
+        rectMain.setAttribute('stroke-width', '1.5');
+      }
     }
     const rectInner = elemG.querySelectorAll('rect')[1];
     if (rectInner) {
