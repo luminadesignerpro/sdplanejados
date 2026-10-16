@@ -8568,7 +8568,7 @@ function renderizarModalLinksFuncionarios(filtro = '') {
           <button type="button" class="btn btn-sec btn-xs" onclick="editarFuncionarioPeloModalLinks(${f.id})" style="padding:5px 8px;font-size:11px;display:flex;align-items:center;justify-content:center;gap:4px;border-color:rgba(201,168,76,0.35);color:var(--gold-light);" title="Editar informações do colaborador">
             ✏️ Editar Dados
           </button>
-          <button type="button" class="btn btn-danger btn-xs" onclick="excluirFuncionarioPeloModalLinks(${f.id})" style="padding:5px 8px;font-size:11px;display:flex;align-items:center;justify-content:center;gap:4px;" title="Remover este colaborador">
+          <button type="button" onclick="excluirFuncionarioPeloModalLinks(${f.id})" style="padding:5px 8px;font-size:11.5px;font-weight:900;display:flex;align-items:center;justify-content:center;gap:5px;background:linear-gradient(135deg,#dc2626,#ef4444);border:1.5px solid #f87171;color:#fff;border-radius:7px;cursor:pointer;box-shadow:0 2px 8px rgba(239,68,68,0.4);" title="Excluir / Remover colaborador">
             🗑️ Excluir
           </button>
         </div>
@@ -11423,6 +11423,13 @@ function renderFuncionarios() {
     const salFormatado = 'R$ ' + (Number(f.salario)||0).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
     const vhFormatado = 'R$ ' + (Number(f.valorHora)||0).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + '/h';
 
+    const telLimpo = ((f.whatsapp || f.tel || '')).replace(/\D/g, '');
+    const nomeFuncEnc = encodeURIComponent(f.nome || '');
+    const msgWpp = encodeURIComponent(`Olá ${f.nome}! Temos uma mensagem da equipe SD Móveis para você. 👷`);
+    const urlWppFunc = telLimpo
+      ? `https://wa.me/55${telLimpo}?text=${msgWpp}`
+      : `https://wa.me/?text=${msgWpp}`;
+
     return `
       <tr>
         <td>
@@ -11451,9 +11458,10 @@ function renderFuncionarios() {
           </select>
         </td>
         <td style="text-align:center;white-space:nowrap;">
-          <div style="display:flex;gap:4px;justify-content:center;">
+          <div style="display:flex;gap:4px;justify-content:center;flex-wrap:wrap;">
             <button type="button" class="btn btn-sec btn-sm" onclick="abrirModalFuncionario(${f.id})" title="Editar Funcionário" style="padding:4px 8px;font-size:12px;">✏️</button>
             <button type="button" class="btn btn-sec btn-sm" onclick="resetarStatusFuncionario(${f.id})" title="Resetar Status" style="padding:4px 8px;font-size:12px;">🔄</button>
+            <button type="button" class="btn btn-sm" onclick="window.open('${urlWppFunc}','_blank')" title="Enviar WhatsApp" style="padding:4px 8px;font-size:12px;background:linear-gradient(135deg,#16a34a,#15803d);border:1px solid #22c55e;color:#fff;border-radius:6px;cursor:pointer;" ${!telLimpo ? 'disabled title="WhatsApp não cadastrado"' : ''}>💬</button>
             <button type="button" class="btn btn-danger btn-sm" onclick="excluirFuncionario(${f.id})" title="Excluir Funcionário" style="padding:4px 8px;font-size:12px;">🗑️</button>
           </div>
         </td>
