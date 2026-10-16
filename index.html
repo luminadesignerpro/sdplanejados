@@ -11457,12 +11457,12 @@ function renderFuncionarios() {
             <option value="Ausente" ${st==='Ausente'?'selected':''}>• Ausente</option>
           </select>
         </td>
-        <td style="text-align:center;white-space:nowrap;">
-          <div style="display:flex;gap:4px;justify-content:center;flex-wrap:wrap;">
-            <button type="button" class="btn btn-sec btn-sm" onclick="abrirModalFuncionario(${f.id})" title="Editar Funcionário" style="padding:4px 8px;font-size:12px;">✏️</button>
-            <button type="button" class="btn btn-sec btn-sm" onclick="resetarStatusFuncionario(${f.id})" title="Resetar Status" style="padding:4px 8px;font-size:12px;">🔄</button>
-            <button type="button" class="btn btn-sm" onclick="window.open('${urlWppFunc}','_blank')" title="Enviar WhatsApp" style="padding:4px 8px;font-size:12px;background:linear-gradient(135deg,#16a34a,#15803d);border:1px solid #22c55e;color:#fff;border-radius:6px;cursor:pointer;" ${!telLimpo ? 'disabled title="WhatsApp não cadastrado"' : ''}>💬</button>
-            <button type="button" class="btn btn-danger btn-sm" onclick="excluirFuncionario(${f.id})" title="Excluir Funcionário" style="padding:4px 8px;font-size:12px;">🗑️</button>
+        <td style="text-align:center;">
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:3px;width:68px;margin:0 auto;">
+            <button type="button" class="btn btn-sec btn-sm" onclick="abrirModalFuncionario(${f.id})" title="Editar Funcionário" style="padding:5px;font-size:14px;display:flex;align-items:center;justify-content:center;border-radius:8px;">✏️</button>
+            <button type="button" class="btn btn-sec btn-sm" onclick="resetarStatusFuncionario(${f.id})" title="Resetar Status" style="padding:5px;font-size:14px;display:flex;align-items:center;justify-content:center;border-radius:8px;">🔄</button>
+            <button type="button" class="btn btn-sm" onclick="window.open('${urlWppFunc}','_blank')" title="Enviar WhatsApp" style="padding:5px;font-size:14px;display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,#16a34a,#15803d);border:1px solid #22c55e;color:#fff;border-radius:8px;cursor:pointer;" ${!telLimpo ? 'disabled' : ''}>💬</button>
+            <button type="button" class="btn btn-danger btn-sm" onclick="excluirFuncionario(${f.id})" title="Excluir Funcionário" style="padding:5px;font-size:14px;display:flex;align-items:center;justify-content:center;border-radius:8px;">🗑️</button>
           </div>
         </td>
       </tr>
