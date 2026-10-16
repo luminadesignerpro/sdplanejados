@@ -20106,11 +20106,11 @@ if (typeof setInterval !== 'undefined') {
 <!-- ══════════════════════════════════════════════════════════════════ -->
 <!--  MODAL: NOVO EVENTO DO CRONOGRAMA                                 -->
 <!-- ══════════════════════════════════════════════════════════════════ -->
-<div id="modal-novo-evento-cronograma" class="modal-overlay" style="display:none" onclick="if(event.target===this)fecharModalNovoEventoCronograma()">
+<div id="modal-novo-evento-cronograma" class="modal-overlay" style="display:none;z-index:9999999;position:fixed;inset:0;" onclick="if(event.target===this)fecharModalNovoEventoCronograma()">
   <div class="modal-box" onclick="event.stopPropagation()" style="max-width:460px;padding:24px 20px;">
     <div class="modal-title" style="display:flex;justify-content:space-between;align-items:center;margin-bottom:18px;">
       <div style="font-size:15px;font-weight:900;color:#fff;display:flex;align-items:center;gap:8px;"><span>📅</span> <span id="evento-cronograma-titulo">Novo Evento / Prazo</span></div>
-      <button class="modal-close" onclick="fecharModalNovoEventoCronograma()">✕</button>
+      <button type="button" class="modal-close" onclick="fecharModalNovoEventoCronograma()">✕</button>
     </div>
 
     <input type="hidden" id="evento-cronograma-edit-id" value="">
@@ -20279,6 +20279,7 @@ function tipoEventoInfo(tipo) {
     reuniao: { emoji: '🤝', color: '#34d399' },
     pagamento: { emoji: '💰', color: '#4ade80' },
     prazo: { emoji: '⏰', color: '#f87171' },
+    editar_os: { emoji: '📋', color: '#38bdf8' },
     outro: { emoji: '📌', color: '#94a3b8' }
   };
   return m[tipo] || { emoji: '📌', color: '#94a3b8' };
@@ -20474,39 +20475,87 @@ function renderEventoCard(ev) {
 
 // ── MODAL: NOVO EVENTO ──────────────────────────────────────────
 function abrirModalNovoEventoCronograma(id) {
-  const m = document.getElementById('modal-novo-evento-cronograma');
-  if (!m) return;
-  document.getElementById('evento-cronograma-edit-id').value = '';
-  document.getElementById('evento-cronograma-titulo').textContent = 'Novo Evento / Prazo';
-  document.getElementById('evento-form-titulo').value = '';
-  document.getElementById('evento-form-data').value = _cronoDiaSelecionado || isoHoje();
-  document.getElementById('evento-form-hora').value = '';
-  document.getElementById('evento-form-tipo').value = 'entrega';
-  document.getElementById('evento-form-responsavel').value = '';
-  document.getElementById('evento-form-cliente-nome').value = '';
-  document.getElementById('evento-form-cliente-endereco').value = '';
-  document.getElementById('evento-form-desc').value = '';
-
-  if (id) {
-    const ev = carregarEventosCrono().find(e => e.id === id);
-    if (ev) {
-      document.getElementById('evento-cronograma-edit-id').value = ev.id;
-      document.getElementById('evento-cronograma-titulo').textContent = 'Editar Evento';
-      document.getElementById('evento-form-titulo').value = ev.titulo || '';
-      document.getElementById('evento-form-data').value = ev.data || '';
-      document.getElementById('evento-form-hora').value = ev.hora || '';
-      document.getElementById('evento-form-tipo').value = ev.tipo || 'outro';
-      document.getElementById('evento-form-responsavel').value = ev.responsavel || '';
-      document.getElementById('evento-form-desc').value = ev.desc || '';
+  try {
+    const m = document.getElementById('modal-novo-evento-cronograma');
+    if (!m) {
+      console.warn('Modal modal-novo-evento-cronograma não encontrado no DOM');
+      return;
     }
+    const setVal = (elId, val) => {
+      const el = document.getElementById(elId);
+      if (el) el.value = val;
+    };
+    const setText = (elId, txt) => {
+      const el = document.getElementById(elId);
+      if (el) el.textContent = txt;
+    };
+
+    setVal('evento-cronograma-edit-id', '');
+    setText('evento-cronograma-titulo', 'Novo Evento / Prazo');
+    setVal('evento-form-titulo', '');
+
+    let dataPadrao = '';
+    if (typeof _cronoDiaSelecionado !== 'undefined' && _cronoDiaSelecionado) {
+      dataPadrao = _cronoDiaSelecionado;
+    } else if (typeof isoHoje === 'function') {
+      dataPadrao = isoHoje();
+    } else {
+      const n = new Date();
+      dataPadrao = `${n.getFullYear()}-${String(n.getMonth()+1).padStart(2,'0')}-${String(n.getDate()).padStart(2,'0')}`;
+    }
+
+    setVal('evento-form-data', dataPadrao);
+    setVal('evento-form-hora', '');
+    setVal('evento-form-tipo', 'entrega');
+    setVal('evento-form-tipo-custom', '');
+    setVal('evento-form-responsavel', '');
+    setVal('evento-form-cliente-nome', '');
+    setVal('evento-form-cliente-endereco', '');
+    setVal('evento-form-desc', '');
+
+    if (typeof alternarCampoCustomTipoEvento === 'function') {
+      alternarCampoCustomTipoEvento('entrega');
+    }
+
+    // Se estiver editando
+    if (id && typeof id !== 'object' && typeof carregarEventosCrono === 'function') {
+      const lista = carregarEventosCrono() || [];
+      const ev = lista.find(e => String(e.id) === String(id));
+      if (ev) {
+        setVal('evento-cronograma-edit-id', ev.id);
+        setText('evento-cronograma-titulo', 'Editar Evento');
+        setVal('evento-form-titulo', ev.titulo || '');
+        setVal('evento-form-data', ev.data || dataPadrao);
+        setVal('evento-form-hora', ev.hora || '');
+        setVal('evento-form-tipo', ev.tipo || 'entrega');
+        setVal('evento-form-tipo-custom', ev.tipoCustom || '');
+        setVal('evento-form-responsavel', ev.responsavel || '');
+        setVal('evento-form-cliente-nome', ev.clienteNome || ev.cliente || '');
+        setVal('evento-form-cliente-endereco', ev.clienteEndereco || ev.endereco || '');
+        setVal('evento-form-desc', ev.desc || '');
+        if (typeof alternarCampoCustomTipoEvento === 'function') {
+          alternarCampoCustomTipoEvento(ev.tipo || 'entrega');
+        }
+      }
+    }
+
+    m.style.zIndex = '9999999';
+    m.style.display = 'flex';
+    m.classList.add('active');
+  } catch (err) {
+    console.error('Erro em abrirModalNovoEventoCronograma:', err);
   }
-  m.style.display = 'flex';
 }
+window.abrirModalNovoEventoCronograma = abrirModalNovoEventoCronograma;
 
 function fecharModalNovoEventoCronograma() {
   const m = document.getElementById('modal-novo-evento-cronograma');
-  if (m) m.style.display = 'none';
+  if (m) {
+    m.style.display = 'none';
+    m.classList.remove('active');
+  }
 }
+window.fecharModalNovoEventoCronograma = fecharModalNovoEventoCronograma;
 
 
 // ── HELPER: ALTERNAR CAMPO CUSTOM DE CATEGORIA DO EVENTO ──
@@ -20594,52 +20643,82 @@ function mostrarModalAlertaConflito(dados) {
 
 
 function salvarEventoCronograma(forcarConflito = false) {
-  const titulo = (document.getElementById('evento-form-titulo').value || '').trim();
-  const data = document.getElementById('evento-form-data').value;
-  if (!titulo || !data) { alert('Preencha o título e a data do evento.'); return; }
+  try {
+    const getVal = (id) => {
+      const el = document.getElementById(id);
+      return el ? (el.value || '').trim() : '';
+    };
 
-  const lista = carregarEventosCrono();
-  const editId = document.getElementById('evento-cronograma-edit-id').value;
+    const titulo = getVal('evento-form-titulo');
+    const data = getVal('evento-form-data');
+    if (!titulo || !data) {
+      alert('Preencha o título e a data do evento.');
+      return;
+    }
 
-  const obj = {
-    id: editId || `ev_${Date.now()}`,
-    titulo,
-    data,
-    hora: document.getElementById('evento-form-hora').value,
-    tipo: document.getElementById('evento-form-tipo').value,
-    responsavel: document.getElementById('evento-form-responsavel').value.trim(),
-    clienteNome: (document.getElementById('evento-form-cliente-nome').value || '').trim(),
-    clienteEndereco: (document.getElementById('evento-form-cliente-endereco').value || '').trim(),
-    desc: document.getElementById('evento-form-desc').value.trim(),
-    criadoEm: editId ? undefined : new Date().toISOString()
-  };
+    const editId = getVal('evento-cronograma-edit-id');
+    const lista = (typeof carregarEventosCrono === 'function') ? carregarEventosCrono() : [];
 
-  if (editId) {
-    const idx = lista.findIndex(e => e.id === editId);
-    if (idx >= 0) lista[idx] = {...lista[idx], ...obj};
-    else lista.push(obj);
-  } else {
-    lista.push(obj);
+    const tipoSel = getVal('evento-form-tipo') || 'entrega';
+    const tipoCustom = getVal('evento-form-tipo-custom');
+
+    const obj = {
+      id: editId || `ev_${Date.now()}`,
+      titulo,
+      data,
+      hora: getVal('evento-form-hora'),
+      tipo: tipoSel,
+      tipoCustom: (tipoSel === 'outro' || tipoSel === 'editar_os') ? tipoCustom : '',
+      responsavel: getVal('evento-form-responsavel'),
+      clienteNome: getVal('evento-form-cliente-nome'),
+      clienteEndereco: getVal('evento-form-cliente-endereco'),
+      desc: getVal('evento-form-desc'),
+      criadoEm: editId ? undefined : new Date().toISOString()
+    };
+
+    if (editId) {
+      const idx = lista.findIndex(e => String(e.id) === String(editId));
+      if (idx >= 0) lista[idx] = {...lista[idx], ...obj};
+      else lista.push(obj);
+    } else {
+      lista.push(obj);
+    }
+
+    if (typeof salvarEventosCrono === 'function') {
+      salvarEventosCrono(lista);
+    }
+    fecharModalNovoEventoCronograma();
+
+    if (_cronoAbaAtual === 'semana' && typeof renderCronoSemana === 'function') renderCronoSemana();
+    else if (_cronoAbaAtual === 'mes' && typeof renderCronoMes === 'function') renderCronoMes();
+    else if (_cronoAbaAtual === 'ano' && typeof renderCronoAno === 'function') renderCronoAno();
+  } catch (err) {
+    console.error('Erro em salvarEventoCronograma:', err);
+    alert('Erro ao salvar evento: ' + (err.message || err));
   }
-
-  salvarEventosCrono(lista);
-  fecharModalNovoEventoCronograma();
-  if (_cronoAbaAtual === 'semana') renderCronoSemana();
-  else if (_cronoAbaAtual === 'mes') renderCronoMes();
-  else if (_cronoAbaAtual === 'ano') renderCronoAno();
 }
+window.salvarEventoCronograma = salvarEventoCronograma;
 
 function editarEventoCronograma(id) {
   abrirModalNovoEventoCronograma(id);
 }
+window.editarEventoCronograma = editarEventoCronograma;
 
 function excluirEventoCronograma(id) {
   if (!confirm('Excluir este evento?')) return;
-  let lista = carregarEventosCrono().filter(e => e.id !== id);
-  salvarEventosCrono(lista);
-  if (_cronoAbaAtual === 'semana') renderCronoSemana();
-  else if (_cronoAbaAtual === 'mes') renderCronoMes();
+  try {
+    let lista = (typeof carregarEventosCrono === 'function' ? carregarEventosCrono() : []).filter(e => String(e.id) !== String(id));
+    if (typeof salvarEventosCrono === 'function') {
+      salvarEventosCrono(lista);
+    }
+    if (_cronoAbaAtual === 'semana' && typeof renderCronoSemana === 'function') renderCronoSemana();
+    else if (_cronoAbaAtual === 'mes' && typeof renderCronoMes === 'function') renderCronoMes();
+    else if (_cronoAbaAtual === 'ano' && typeof renderCronoAno === 'function') renderCronoAno();
+  } catch (err) {
+    console.error('Erro ao excluir evento:', err);
+  }
 }
+window.excluirEventoCronograma = excluirEventoCronograma;
 
 // ══════════════════════════════════════════════════════════════════
 //  MÓDULO: PEDIDO DE MATERIAL

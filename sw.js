@@ -1,5 +1,5 @@
-// Service Worker PWA para sdmoveisprojetados - v22.0 (barreira-solida-plano-corte)
-const CACHE_NAME = 'sdmoveisprojetados-v22.0';
+// Service Worker PWA para sdmoveisprojetados - v23.0 (fix-modal-novo-evento-cronograma)
+const CACHE_NAME = 'sdmoveisprojetados-v23.0';
 
 self.addEventListener('install', (event) => {
   self.skipWaiting();
