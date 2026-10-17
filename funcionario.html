@@ -2609,7 +2609,23 @@
           </div>
 
           <div class="chat-messages-area" id="chat-mensagens-area">
-            <!-- Balões de mensagens inseridos dinamicamente -->
+            <!-- Balões de mensagens inseridos dinamicamente (mensagens do cliente são bloqueadas para o colaborador) -->
+          </div>
+
+          <!-- CAMPO PARA O FUNCIONÁRIO ESCREVER MENSAGEM PARA A EMPRESA -->
+          <div id="box-chat-input-funcionario" style="padding:12px;background:rgba(8,8,16,0.95);border:1px solid rgba(201,168,76,0.25);border-radius:12px;margin-top:10px;">
+            <div style="font-size:11.5px;font-weight:800;color:var(--gold-light);margin-bottom:8px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:6px;">
+              <span style="display:flex;align-items:center;gap:6px;">
+                <span>👷</span> <span>Escrever Mensagem da Equipe para a Empresa:</span>
+              </span>
+              <span style="font-size:10px;color:#94a3b8;font-weight:600;background:rgba(255,255,255,0.05);padding:2px 8px;border-radius:6px;border:1px solid rgba(255,255,255,0.1);">🔒 Mensagens de clientes bloqueadas</span>
+            </div>
+            <div style="display:flex;gap:8px;">
+              <textarea id="chat-input-funcionario-texto" rows="2" placeholder="Digite sua mensagem, relatório ou dúvida para a empresa..." style="flex:1;background:#030308;border:1.5px solid rgba(201,168,76,0.35);border-radius:10px;padding:9px 12px;color:#fff;font-size:12.5px;outline:none;font-family:var(--font);resize:none;line-height:1.4;" onfocus="this.style.borderColor='var(--gold)'" onblur="this.style.borderColor='rgba(201,168,76,0.35)'"></textarea>
+              <button type="button" onclick="enviarMensagemFuncionarioParaEmpresa()" style="background:linear-gradient(135deg,var(--gold-light),var(--gold));color:#000;border:none;padding:0 16px;border-radius:10px;font-weight:900;font-size:13px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;box-shadow:0 3px 12px rgba(201,168,76,0.25);white-space:nowrap;font-family:var(--font);">
+                <span>Enviar</span> <span>➔</span>
+              </button>
+            </div>
           </div>
 
         </div>
@@ -8715,13 +8731,34 @@ function baterPontoNoCliente(tipo) {
 
     function renderizarMensagens(msgs) {
       const area = document.getElementById('chat-mensagens-area');
-      area.innerHTML = msgs.map(m => {
+      if (!area) return;
+
+      // 🔒 BLOQUEIO: O colaborador NUNCA vê mensagens escritas pelo cliente!
+      // Apenas mensagens enviadas pelo próprio colaborador e respostas da empresa são exibidas.
+      const msgsParaColaborador = (msgs || []).filter(m => m.remetente !== 'cliente');
+
+      if (!msgsParaColaborador.length) {
+        area.innerHTML = `
+          <div style="text-align:center;padding:22px 14px;color:#94a3b8;font-size:12.5px;background:rgba(255,255,255,0.02);border-radius:10px;border:1px dashed rgba(255,255,255,0.1);">
+            <div style="font-size:24px;margin-bottom:6px;">💬</div>
+            <div style="font-weight:800;color:#fff;margin-bottom:4px;">Canal Direto da Equipe com a Empresa</div>
+            <div>Envie mensagens, relatórios ou dúvidas diretamente para a administração no campo abaixo.</div>
+            <div style="margin-top:8px;font-size:11px;color:var(--gold-light);">🔒 Mensagens enviadas por clientes são protegidas e restritas à administração.</div>
+          </div>
+        `;
+        return;
+      }
+
+      area.innerHTML = msgsParaColaborador.map(m => {
         const ehEmpresa = m.remetente === 'empresa';
+        const ehFuncionario = m.remetente === 'funcionario';
         return `
-          <div class="msg-bubble ${ehEmpresa ? 'msg-empresa' : 'msg-cliente'}">
-            <div class="msg-sender">${ehEmpresa ? '💎 SD Vidros Oficial' : '👤 Você'}</div>
-            <div>${m.texto}</div>
-            <div class="msg-time">${m.hora || ''}</div>
+          <div class="msg-bubble ${ehEmpresa ? 'msg-empresa' : 'msg-cliente'}" style="${ehFuncionario ? 'background:linear-gradient(135deg,rgba(16,185,129,0.18),rgba(5,150,105,0.28));border:1px solid #10b981;align-self:flex-end;' : ''}">
+            <div class="msg-sender" style="${ehFuncionario ? 'color:#34d399;' : ''}">
+              ${ehEmpresa ? '💎 SD Móveis (Empresa)' : '👷 Sua Mensagem para a Empresa'}
+            </div>
+            <div style="color:#fff;line-height:1.4;">${m.texto}</div>
+            <div class="msg-time" style="font-size:10px;opacity:0.75;margin-top:4px;">${m.hora || ''}</div>
           </div>
         `;
       }).join('');
@@ -8735,55 +8772,51 @@ function baterPontoNoCliente(tipo) {
       }, 50);
     }
 
-    function enviarMensagemCliente() {
-      const input = document.getElementById('chat-input-text');
-      const texto = (input && input.value ? input.value : '').trim();
+    function enviarMensagemFuncionarioParaEmpresa() {
+      const textarea = document.getElementById('chat-input-funcionario-texto');
+      const texto = (textarea && textarea.value ? textarea.value : '').trim();
       if (!texto) {
-        if (input) {
-          input.focus();
-          input.style.borderColor = '#ef4444';
-          setTimeout(() => { input.style.borderColor = 'rgba(255,255,255,0.2)'; }, 1800);
-        }
+        if (textarea) textarea.focus();
         return;
       }
 
-      if (!clienteSessao || !clienteSessao.os) {
-        mostrarToastNotificacao('Atenção', 'Selecione uma O.S. antes de enviar a mensagem.', '⚠️');
-        return;
-      }
-
-      const key = getChatStorageKey(clienteSessao.os);
+      const osAtual = (clienteSessao && clienteSessao.os) || '#GERAL';
+      const key = getChatStorageKey(osAtual);
       let msgs = [];
       try { msgs = JSON.parse(localStorage.getItem(key) || '[]'); } catch(_) {}
 
-      const remetente = (clienteSessao && clienteSessao.isFuncionario) ? 'funcionario' : 'cliente';
+      const nomeFunc = (clienteSessao && clienteSessao.nome) || 'Colaborador';
       const novaMsg = {
         id: Date.now(),
-        remetente: remetente,
+        remetente: 'funcionario',
+        autorNome: nomeFunc,
+        os: osAtual,
         texto: texto,
         hora: new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })
       };
 
       msgs.push(novaMsg);
-      localStorage.setItem(key, JSON.stringify(msgs));
+      try { localStorage.setItem(key, JSON.stringify(msgs)); } catch(_) {}
       renderizarMensagens(msgs);
-      input.value = '';
+      if (textarea) textarea.value = '';
 
-      mostrarToastNotificacao('Mensagem Enviada', `Mensagem enviada referente à ${clienteSessao.os}!`, '💬');
+      mostrarToastNotificacao('Mensagem Enviada', 'Mensagem enviada para a empresa com sucesso!', '📨');
 
-      // Despacha para o barramento ntfy e API
       fetch('/api/portal-cliente', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          action: 'mensagem',
-          remetente: remetente,
-          cliente_nome: clienteSessao.nomeClienteOs || clienteSessao.nome,
-          os: clienteSessao.os,
-          texto: texto,
-          telefone: clienteSessao.telefone || ''
+          action: 'mensagem_equipe',
+          remetente: 'funcionario',
+          funcionario_nome: nomeFunc,
+          os: osAtual,
+          texto: texto
         })
       }).catch(() => {});
+    }
+
+    function enviarMensagemCliente() {
+      enviarMensagemFuncionarioParaEmpresa();
     }
 
     // ══════════════════════════════════════════════
@@ -8863,13 +8896,13 @@ function baterPontoNoCliente(tipo) {
             ${isAtiva ? `
               <div style="margin-top:12px;padding-top:12px;border-top:1px solid rgba(201,168,76,0.3);">
                 <div style="font-size:11.5px;font-weight:800;color:var(--gold-light);margin-bottom:8px;display:flex;align-items:center;gap:6px;">
-                  <span>💬</span><span>Escreva sua mensagem para esta O.S.:</span>
+                  <span>💬</span><span>Escrever mensagem da equipe para a empresa referente à ${numOs}:</span>
                 </div>
                 <div style="display:flex;gap:8px;flex-direction:column;">
-                  <textarea id="msg-card-text-${numOs.replace(/[^a-z0-9]/gi,'_')}" rows="2" placeholder="Digite sua mensagem referente à ${numOs}..." style="width:100%;box-sizing:border-box;background:#090911;border:1.5px solid rgba(201,168,76,0.4);border-radius:10px;padding:10px 12px;color:#fff;font-size:13px;font-family:var(--font);outline:none;resize:none;line-height:1.4;" onfocus="this.style.borderColor='var(--gold)'" onblur="this.style.borderColor='rgba(201,168,76,0.4)'"></textarea>
+                  <textarea id="msg-card-text-${numOs.replace(/[^a-z0-9]/gi,'_')}" rows="2" placeholder="Digite uma mensagem da equipe para a empresa referente à ${numOs}..." style="width:100%;box-sizing:border-box;background:#090911;border:1.5px solid rgba(201,168,76,0.4);border-radius:10px;padding:10px 12px;color:#fff;font-size:13px;font-family:var(--font);outline:none;resize:none;line-height:1.4;" onfocus="this.style.borderColor='var(--gold)'" onblur="this.style.borderColor='rgba(201,168,76,0.4)'"></textarea>
                   <div style="display:flex;justify-content:flex-end;">
                     <button type="button" onclick="enviarMensagemCard('${numOs}', '${nomeCliente}')" style="background:linear-gradient(135deg,var(--gold-light),var(--gold));color:#000;border:none;padding:9px 20px;border-radius:8px;font-size:13px;font-weight:800;cursor:pointer;display:flex;align-items:center;gap:6px;font-family:var(--font);box-shadow:0 3px 10px rgba(0,0,0,0.3);">
-                      Enviar ➔
+                      Enviar para a Empresa ➔
                     </button>
                   </div>
                 </div>
