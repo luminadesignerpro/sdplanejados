@@ -3581,11 +3581,15 @@
             </div>
             <div id="crono-semana-grid" style="display:grid;grid-template-columns:repeat(7,1fr);gap:4px;"></div>
             <div id="crono-semana-eventos" style="margin-top:14px;display:flex;flex-direction:column;gap:8px;"></div>
-            <div style="text-align:center;margin-top:14px;">
-              <button type="button" class="btn btn-sm" onclick="tentarAdicionarEventoCronograma()" style="font-size:12px;font-weight:800;display:inline-flex;align-items:center;gap:8px;background:rgba(255,255,255,0.06);border:1.5px solid rgba(255,255,255,0.18);color:#94a3b8;border-radius:10px;padding:9px 18px;cursor:pointer;box-shadow:none;" title="Recurso bloqueado para colaboradores (Toque no cadeado para Editar Senha)">
-                <span onclick="event.stopPropagation();editarSenhaCronogramaAdmin();" title="Toque no cadeado para Editar Senha" style="cursor:pointer;padding:3px 6px;border-radius:6px;background:rgba(201,168,76,0.18);border:1px solid rgba(201,168,76,0.4);font-size:13.5px;display:inline-flex;align-items:center;">🔒</span>
-                <span>Adicionar Evento / Prazo (Bloqueado)</span>
-              </button>
+            <div style="text-align:center;margin-top:14px;display:flex;align-items:center;justify-content:center;">
+              <div style="display:inline-flex;align-items:center;background:rgba(255,255,255,0.06);border:1.5px solid rgba(255,255,255,0.18);border-radius:10px;overflow:hidden;">
+                <button type="button" onclick="editarSenhaCronogramaAdmin()" style="background:rgba(201,168,76,0.2);border:none;border-right:1px solid rgba(255,255,255,0.15);padding:9px 13px;font-size:15px;cursor:pointer;color:#fff;display:inline-flex;align-items:center;justify-content:center;" title="Toque no cadeado para Editar Senha">
+                  🔒
+                </button>
+                <button type="button" onclick="tentarAdicionarEventoCronograma()" style="background:none;border:none;color:#94a3b8;font-size:12px;font-weight:800;padding:9px 16px;cursor:pointer;" title="Recurso Bloqueado - Requer Senha de Administrador">
+                  Adicionar Evento / Prazo (Bloqueado)
+                </button>
+              </div>
             </div>
           </div>
 
@@ -3603,11 +3607,15 @@
             </div>
             <div id="crono-mes-grid" style="display:grid;grid-template-columns:repeat(7,1fr);gap:4px;min-height:200px;"></div>
             <div id="crono-mes-eventos" style="margin-top:14px;display:flex;flex-direction:column;gap:8px;"></div>
-            <div style="text-align:center;margin-top:14px;">
-              <button type="button" class="btn btn-sm" onclick="tentarAdicionarEventoCronograma()" style="font-size:12px;font-weight:800;display:inline-flex;align-items:center;gap:8px;background:rgba(255,255,255,0.06);border:1.5px solid rgba(255,255,255,0.18);color:#94a3b8;border-radius:10px;padding:9px 18px;cursor:pointer;box-shadow:none;" title="Recurso bloqueado para colaboradores (Toque no cadeado para Editar Senha)">
-                <span onclick="event.stopPropagation();editarSenhaCronogramaAdmin();" title="Toque no cadeado para Editar Senha" style="cursor:pointer;padding:3px 6px;border-radius:6px;background:rgba(201,168,76,0.18);border:1px solid rgba(201,168,76,0.4);font-size:13.5px;display:inline-flex;align-items:center;">🔒</span>
-                <span>Adicionar Evento / Prazo (Bloqueado)</span>
-              </button>
+            <div style="text-align:center;margin-top:14px;display:flex;align-items:center;justify-content:center;">
+              <div style="display:inline-flex;align-items:center;background:rgba(255,255,255,0.06);border:1.5px solid rgba(255,255,255,0.18);border-radius:10px;overflow:hidden;">
+                <button type="button" onclick="editarSenhaCronogramaAdmin()" style="background:rgba(201,168,76,0.2);border:none;border-right:1px solid rgba(255,255,255,0.15);padding:9px 13px;font-size:15px;cursor:pointer;color:#fff;display:inline-flex;align-items:center;justify-content:center;" title="Toque no cadeado para Editar Senha">
+                  🔒
+                </button>
+                <button type="button" onclick="tentarAdicionarEventoCronograma()" style="background:none;border:none;color:#94a3b8;font-size:12px;font-weight:800;padding:9px 16px;cursor:pointer;" title="Recurso Bloqueado - Requer Senha de Administrador">
+                  Adicionar Evento / Prazo (Bloqueado)
+                </button>
+              </div>
             </div>
           </div>
 
@@ -12955,15 +12963,16 @@ function editarSenhaCronogramaAdmin() {
   }
   try {
     localStorage.setItem('sdv_senha_admin_crono', sNova.trim());
-    localStorage.setItem('sdv_is_admin', 'true');
+    localStorage.removeItem('sdv_is_admin');
   } catch(_) {}
   alert('✅ Senha do cronograma atualizada com sucesso!\n\nGuarde bem sua nova senha.');
 }
 
 function verificarPermissaoAdminCronograma() {
   try {
+    localStorage.removeItem('sdv_is_admin');
     const urlP = new URLSearchParams(window.location.search);
-    if (urlP.get('admin') === '1' || localStorage.getItem('sdv_is_admin') === 'true') {
+    if (urlP.get('admin') === '1') {
       return true;
     }
   } catch(_) {}
@@ -12975,15 +12984,12 @@ function tentarAdicionarEventoCronograma() {
     _abrirModalNovoEventoCronogramaInterno();
     return;
   }
-  const tentar = confirm('🔒 Recurso Bloqueado para Colaboradores\n\nApenas a administração tem permissão para cadastrar ou agendar eventos e prazos no cronograma.\n\nSe você for o administrador, clique em "OK" para inserir a senha.');
-  if (tentar) {
-    const senha = prompt('Digite a senha de administrador:');
-    if (senha !== null && validarSenhaAdminCrono(senha)) {
-      try { localStorage.setItem('sdv_is_admin', 'true'); } catch(_) {}
-      _abrirModalNovoEventoCronogramaInterno();
-    } else if (senha !== null) {
-      alert('❌ Senha incorreta. Acesso bloqueado para funcionários.');
-    }
+  const senha = prompt('🔒 Recurso Bloqueado para Colaboradores\n\nApenas a administração tem permissão para cadastrar ou agendar eventos e prazos no cronograma.\n\nDigite a senha de administrador:');
+  if (senha === null) return;
+  if (validarSenhaAdminCrono(senha)) {
+    _abrirModalNovoEventoCronogramaInterno();
+  } else {
+    alert('❌ Senha incorreta. Acesso bloqueado para funcionários.');
   }
 }
 
@@ -12992,15 +12998,12 @@ function tentarEditarEventoCronograma(id) {
     _abrirModalNovoEventoCronogramaInterno(id);
     return;
   }
-  const tentar = confirm('🔒 Edição Bloqueada para Colaboradores\n\nApenas a administração pode alterar este evento.\n\nDeseja inserir a senha de administrador?');
-  if (tentar) {
-    const senha = prompt('Digite a senha de administrador:');
-    if (senha !== null && validarSenhaAdminCrono(senha)) {
-      try { localStorage.setItem('sdv_is_admin', 'true'); } catch(_) {}
-      _abrirModalNovoEventoCronogramaInterno(id);
-    } else if (senha !== null) {
-      alert('❌ Senha incorreta. Acesso bloqueado para funcionários.');
-    }
+  const senha = prompt('🔒 Edição Bloqueada para Colaboradores\n\nApenas a administração pode alterar este evento.\n\nDigite a senha de administrador:');
+  if (senha === null) return;
+  if (validarSenhaAdminCrono(senha)) {
+    _abrirModalNovoEventoCronogramaInterno(id);
+  } else {
+    alert('❌ Senha incorreta. Acesso bloqueado para funcionários.');
   }
 }
 
@@ -13009,15 +13012,12 @@ function tentarExcluirEventoCronograma(id) {
     excluirEventoCronograma(id);
     return;
   }
-  const tentar = confirm('🔒 Exclusão Bloqueada para Colaboradores\n\nApenas a administração pode excluir eventos do cronograma.\n\nDeseja inserir a senha de administrador?');
-  if (tentar) {
-    const senha = prompt('Digite a senha de administrador:');
-    if (senha !== null && validarSenhaAdminCrono(senha)) {
-      try { localStorage.setItem('sdv_is_admin', 'true'); } catch(_) {}
-      excluirEventoCronograma(id);
-    } else if (senha !== null) {
-      alert('❌ Senha incorreta. Acesso bloqueado para funcionários.');
-    }
+  const senha = prompt('🔒 Exclusão Bloqueada para Colaboradores\n\nApenas a administração pode excluir eventos do cronograma.\n\nDigite a senha de administrador:');
+  if (senha === null) return;
+  if (validarSenhaAdminCrono(senha)) {
+    excluirEventoCronograma(id);
+  } else {
+    alert('❌ Senha incorreta. Acesso bloqueado para funcionários.');
   }
 }
 
