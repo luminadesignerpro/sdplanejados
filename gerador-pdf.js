@@ -658,6 +658,148 @@ async function gerarPdfOrcamentoDoc(dados) {
     color: GOLD
   });
 
+  // ── ANEXO: PÁGINAS DE FOTOS E PLANTAS DA GALERIA ──
+  const fotosGaleria = (dados.galeria_plantas && dados.galeria_plantas.length)
+    ? dados.galeria_plantas
+    : ((typeof obterGaleriaProjetosOrc === 'function') ? obterGaleriaProjetosOrc() : []);
+
+  if (fotosGaleria && fotosGaleria.length > 0) {
+    for (let i = 0; i < fotosGaleria.length; i++) {
+      const itemFoto = fotosGaleria[i];
+      const srcFoto = itemFoto.src || itemFoto.dataUrl;
+      if (!srcFoto) continue;
+
+      try {
+        let embeddedImg = null;
+        const b64Data = srcFoto.includes(',') ? srcFoto.split(',')[1] : srcFoto;
+        const binStr = atob(b64Data);
+        const bytesImg = new Uint8Array(binStr.length);
+        for (let k = 0; k < binStr.length; k++) bytesImg[k] = binStr.charCodeAt(k);
+
+        if (srcFoto.startsWith('data:image/png')) {
+          try { embeddedImg = await pdfDoc.embedPng(bytesImg); } catch(_) {}
+        } else {
+          try { embeddedImg = await pdfDoc.embedJpg(bytesImg); } catch(_) {}
+        }
+
+        if (embeddedImg) {
+          const anexoPage = pdfDoc.addPage([PAGE_W, PAGE_H]);
+          const padY = 32;
+
+          // Fundo branco limpo
+          anexoPage.drawRectangle({
+            x: 0,
+            y: 0,
+            width: PAGE_W,
+            height: PAGE_H,
+            color: WHITE
+          });
+
+          // Moldura decorativa dourada
+          anexoPage.drawRectangle({
+            x: MARGIN_X - 4,
+            y: padY - 4,
+            width: CONTENT_W + 8,
+            height: PAGE_H - (padY * 2) + 8,
+            borderColor: GOLD,
+            borderWidth: 1.5,
+            color: WHITE
+          });
+
+          // Cabeçalho da página de anexo
+          anexoPage.drawRectangle({
+            x: MARGIN_X,
+            y: PAGE_H - padY - 45,
+            width: CONTENT_W,
+            height: 42,
+            color: DARK
+          });
+
+          // Faixa dourada decorativa
+          anexoPage.drawRectangle({
+            x: MARGIN_X,
+            y: PAGE_H - padY - 47,
+            width: CONTENT_W,
+            height: 2,
+            color: GOLD
+          });
+
+          const titAnexo = sanitizePdf(`SD MÓVEIS PROJETADOS • ANEXO ${i + 1}: PROJETO / PLANTA EXECUTIVA`);
+          anexoPage.drawText(titAnexo, {
+            x: MARGIN_X + 12,
+            y: PAGE_H - padY - 20,
+            size: 9.5,
+            font: fontBold,
+            color: GOLD
+          });
+
+          const nomeFotoStr = sanitizePdf(itemFoto.nome || `Perspectiva 3D / Planta do Projeto #${i + 1}`);
+          anexoPage.drawText(nomeFotoStr, {
+            x: MARGIN_X + 12,
+            y: PAGE_H - padY - 36,
+            size: 8.5,
+            font: fontRegular,
+            color: WHITE
+          });
+
+          const dataFotoStr = sanitizePdf(itemFoto.data || new Date().toLocaleDateString('pt-BR'));
+          anexoPage.drawText(`Registrado em: ${dataFotoStr}`, {
+            x: MARGIN_X + CONTENT_W - 135,
+            y: PAGE_H - padY - 22,
+            size: 7,
+            font: fontRegular,
+            color: GRAY
+          });
+
+          // Calcular dimensões da imagem mantendo aspecto e centralizando
+          const areaMaxW = CONTENT_W - 20;
+          const areaMaxH = PAGE_H - (padY * 2) - 85;
+          const imgDims = embeddedImg.scale(1.0);
+
+          let finalW = areaMaxW;
+          let finalH = (imgDims.height / imgDims.width) * finalW;
+
+          if (finalH > areaMaxH) {
+            finalH = areaMaxH;
+            finalW = (imgDims.width / imgDims.height) * finalH;
+          }
+
+          const imgPosX = MARGIN_X + (CONTENT_W - finalW) / 2;
+          const imgPosY = padY + 24 + (areaMaxH - finalH) / 2;
+
+          // Borda suave ao redor da foto
+          anexoPage.drawRectangle({
+            x: imgPosX - 2,
+            y: imgPosY - 2,
+            width: finalW + 4,
+            height: finalH + 4,
+            borderColor: BORDER,
+            borderWidth: 1,
+            color: WHITE
+          });
+
+          anexoPage.drawImage(embeddedImg, {
+            x: imgPosX,
+            y: imgPosY,
+            width: finalW,
+            height: finalH
+          });
+
+          // Rodapé da página de anexo
+          anexoPage.drawText(sanitizePdf(`Página ${pdfDoc.getPageCount()} • Proposta Comercial Nº ${dados.numero || ''} • SD Móveis Projetados`), {
+            x: MARGIN_X + 10,
+            y: padY + 6,
+            size: 7.2,
+            font: fontRegular,
+            color: GRAY
+          });
+        }
+      } catch(errImg) {
+        console.warn('Erro ao anexar imagem da galeria no PDF:', errImg);
+      }
+    }
+  }
+
   const pdfBytes = await pdfDoc.save();
   return new Blob([pdfBytes], { type: 'application/pdf' });
 }
