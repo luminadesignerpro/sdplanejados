@@ -39,6 +39,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700;800;900&family=Caveat:wght@700&display=swap" rel="stylesheet">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
   <style>
     :root {
       --gold: #C9A84C;
@@ -20172,22 +20173,39 @@ if (typeof setInterval !== 'undefined') {
 </div>
 
 <!-- 2. MODAL: PREVIEW E ESCOLHER SALVAR O PROJETO NA GALERIA -->
-<div id="modal-preview-salvar-projeto" class="modal-overlay" style="display:none;z-index:9999995;position:fixed;inset:0;background:rgba(0,0,0,0.9);align-items:center;justify-content:center;padding:16px;" onclick="if(event.target===this)fecharPreviewSalvarProjeto()">
-  <div class="modal-box" onclick="event.stopPropagation()" style="max-width:580px;width:100%;padding:20px;background:#0d0d18;border:1.5px solid var(--gold);border-radius:16px;box-shadow:0 10px 40px rgba(0,0,0,0.85);max-height:92vh;overflow-y:auto;">
+<div id="modal-preview-salvar-projeto" class="modal-overlay" style="display:none;z-index:9999995;position:fixed;inset:0;background:rgba(0,0,0,0.92);align-items:center;justify-content:center;padding:14px;" onclick="if(event.target===this)fecharPreviewSalvarProjeto()">
+  <div class="modal-box" onclick="event.stopPropagation()" style="max-width:580px;width:100%;padding:18px;background:#0d0d18;border:1.5px solid var(--gold);border-radius:16px;box-shadow:0 10px 40px rgba(0,0,0,0.9);max-height:94vh;overflow-y:auto;">
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
       <div style="font-size:15px;font-weight:900;color:#fff;display:flex;align-items:center;gap:8px;">
-        <span>🖼️</span> <span>Projeto Selecionado</span>
+        <span>🖼️</span> <span>Projeto e Planta Arquitetônica</span>
       </div>
       <button type="button" class="modal-close" onclick="fecharPreviewSalvarProjeto()" style="background:none;border:none;color:#94a3b8;font-size:20px;cursor:pointer;">✕</button>
     </div>
 
-    <div style="font-size:12px;color:var(--text2);margin-bottom:12px;">
-      Confira o projeto/planta selecionada. Ao clicar em <strong>Salvar na Galeria</strong>, o botão Galeria ficará ativo ao lado de Adicionar Linha.
+    <!-- Barra de Dica e Status de Seleção -->
+    <div onclick="aoClicarNaImagemProjeto()" style="cursor:pointer;background:rgba(201,168,76,0.14);border:1.5px solid var(--gold);border-radius:10px;padding:9px 12px;margin-bottom:12px;display:flex;align-items:center;justify-content:space-between;gap:8px;transition:all 0.2s;">
+      <div style="font-size:12px;color:#fff;font-weight:700;display:flex;align-items:center;gap:6px;">
+        <span>👉</span> <span>Toque na imagem para selecionar e salvar</span>
+      </div>
+      <div id="preview-badge-status" style="background:#22c55e;color:#000;font-size:11px;font-weight:900;padding:4px 10px;border-radius:6px;letter-spacing:0.03em;">
+        ✅ SELECIONADA
+      </div>
     </div>
 
-    <!-- Imagem Preview -->
-    <div style="width:100%;max-height:360px;background:#000;border:1px solid rgba(255,255,255,0.15);border-radius:10px;overflow:auto;display:flex;align-items:center;justify-content:center;margin-bottom:14px;padding:4px;">
-      <img id="preview-projeto-img" src="" style="max-width:100%;max-height:350px;object-fit:contain;border-radius:6px;" alt="Planta do Projeto" />
+    <!-- Container com Múltiplas Pranchas/Páginas (se for PDF com várias páginas) -->
+    <div id="preview-paginas-pdf-container" style="display:none;margin-bottom:14px;background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.12);border-radius:10px;padding:10px;">
+      <div style="font-size:12px;font-weight:800;color:var(--gold-light);margin-bottom:8px;">📄 Pranchas do Projeto (Toque em uma prancha para selecionar):</div>
+      <div id="preview-paginas-pdf-lista" style="display:grid;grid-template-columns:repeat(auto-fill, minmax(130px, 1fr));gap:8px;max-height:160px;overflow-y:auto;padding-right:4px;"></div>
+    </div>
+
+    <!-- Imagem Preview com Clique Direto para Selecionar e Salvar -->
+    <div id="container-preview-img-box" onclick="aoClicarNaImagemProjeto()" style="position:relative;width:100%;max-height:380px;background:#05050a;border:2.5px solid var(--gold);border-radius:12px;overflow:hidden;display:flex;align-items:center;justify-content:center;margin-bottom:14px;cursor:pointer;box-shadow:0 0 25px rgba(201,168,76,0.4);transition:all 0.25s;" title="Toque na imagem para selecionar e salvar na galeria">
+      <img id="preview-projeto-img" src="" style="max-width:100%;max-height:360px;object-fit:contain;border-radius:6px;display:block;" alt="Planta do Projeto" />
+      
+      <!-- Botão Flutuante Direto na Imagem -->
+      <button id="preview-btn-salvar-flutuante" type="button" class="btn btn-gold btn-sm" onclick="event.stopPropagation();salvarProjetoConfirmado()" style="position:absolute;bottom:14px;box-shadow:0 6px 20px rgba(0,0,0,0.85);font-size:12.5px;font-weight:900;padding:9px 18px;border-radius:8px;display:inline-flex;align-items:center;gap:6px;z-index:3;">
+        <span>💾</span> <span>Salvar na Galeria</span>
+      </button>
     </div>
 
     <!-- Identificação do Projeto -->
@@ -20688,6 +20706,12 @@ function aoSelecionarArquivoProjeto(event) {
   const file = event.target.files && event.target.files[0];
   if (!file) return;
 
+  const isPdf = file.type === 'application/pdf' || /\.pdf$/i.test(file.name);
+  if (isPdf) {
+    processarArquivoPdfProjeto(file);
+    return;
+  }
+
   const reader = new FileReader();
   reader.onload = function(e) {
     const rawDataUrl = e.target.result;
@@ -20696,6 +20720,98 @@ function aoSelecionarArquivoProjeto(event) {
     });
   };
   reader.readAsDataURL(file);
+}
+
+function processarArquivoPdfProjeto(file) {
+  if (typeof mostrarToastAprovacao === 'function') {
+    mostrarToastAprovacao('📄 Lendo pranchas e plantas do PDF...');
+  }
+  const fileReader = new FileReader();
+  fileReader.onload = function() {
+    const typedarray = new Uint8Array(this.result);
+    if (typeof pdfjsLib === 'undefined') {
+      alert('Aguarde 2 segundos enquanto a biblioteca de PDF carrega e tente novamente.');
+      return;
+    }
+    try {
+      pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+    } catch(_) {}
+
+    pdfjsLib.getDocument(typedarray).promise.then(function(pdf) {
+      const numPages = pdf.numPages;
+      const nomeBase = file.name.replace(/\.[^/.]+$/, '');
+
+      if (numPages === 1) {
+        renderizarPaginaPdfParaImagem(pdf, 1, function(dataUrl) {
+          abrirPreviewSalvarProjeto(dataUrl, nomeBase);
+        });
+      } else {
+        renderizarMultiplasPaginasPdf(pdf, nomeBase);
+      }
+    }).catch(function(err) {
+      console.error('Erro ao ler PDF:', err);
+      alert('Não foi possível ler as páginas deste PDF. Você também pode enviar uma foto/print da planta.');
+    });
+  };
+  fileReader.readAsArrayBuffer(file);
+}
+
+function renderizarPaginaPdfParaImagem(pdf, numPag, callback) {
+  pdf.getPage(numPag).then(function(page) {
+    const scale = 1.8;
+    const viewport = page.getViewport({ scale: scale });
+    const canvas = document.createElement('canvas');
+    canvas.width = viewport.width;
+    canvas.height = viewport.height;
+    const ctx = canvas.getContext('2d');
+    const renderContext = {
+      canvasContext: ctx,
+      viewport: viewport
+    };
+    page.render(renderContext).promise.then(function() {
+      otimizarImagemProjeto(canvas.toDataURL('image/jpeg', 0.88), 1600, 0.85, callback);
+    });
+  });
+}
+
+function renderizarMultiplasPaginasPdf(pdf, nomeBase) {
+  const container = document.getElementById('preview-paginas-pdf-container');
+  const lista = document.getElementById('preview-paginas-pdf-lista');
+  if (container) container.style.display = 'block';
+  if (lista) lista.innerHTML = '<div style="color:var(--gold-light);font-size:11.5px;padding:8px;">Processando pranchas...</div>';
+
+  const promessas = [];
+  const maxP = Math.min(pdf.numPages, 12);
+  for (let i = 1; i <= maxP; i++) {
+    promessas.push(
+      new Promise(function(resolve) {
+        renderizarPaginaPdfParaImagem(pdf, i, function(dataUrl) {
+          resolve({ num: i, dataUrl: dataUrl });
+        });
+      })
+    );
+  }
+
+  Promise.all(promessas).then(function(resultados) {
+    if (lista) {
+      lista.innerHTML = resultados.map(function(item) {
+        return `
+          <div onclick="selecionarPranchaPdfEspecifica('${item.dataUrl}', '${esc(nomeBase)} - Prancha ${item.num}')" style="cursor:pointer;background:#050508;border:2px solid rgba(201,168,76,0.35);border-radius:8px;padding:6px;text-align:center;transition:all 0.2s;">
+            <img src="${item.dataUrl}" style="width:100%;height:85px;object-fit:cover;border-radius:4px;background:#000;" />
+            <div style="font-size:10.5px;font-weight:800;color:#fff;margin-top:4px;">Prancha ${item.num}</div>
+            <div style="font-size:9.5px;color:var(--gold-light);font-weight:700;">Toque p/ selecionar</div>
+          </div>
+        `;
+      }).join('');
+    }
+    if (resultados.length > 0) {
+      abrirPreviewSalvarProjeto(resultados[0].dataUrl, nomeBase + ' - Prancha 1');
+    }
+  });
+}
+
+function selecionarPranchaPdfEspecifica(dataUrl, nomeSugerido) {
+  abrirPreviewSalvarProjeto(dataUrl, nomeSugerido);
 }
 
 function otimizarImagemProjeto(src, maxDim, qualidade, callback) {
@@ -20741,14 +20857,49 @@ function abrirPreviewSalvarProjeto(dataUrl, nomeSugerido) {
     nomeEl.value = nomeLimpo;
   }
 
+  atualizarEstadoSelecaoImagem(true);
+
   const m = document.getElementById('modal-preview-salvar-projeto');
   if (m) m.style.display = 'flex';
+}
+
+function aoClicarNaImagemProjeto() {
+  atualizarEstadoSelecaoImagem(true);
+  const confirmar = confirm('🖼️ Imagem do Projeto Selecionada!\n\nDeseja salvar esta planta/imagem na Galeria agora?');
+  if (confirmar) {
+    salvarProjetoConfirmado();
+  }
+}
+
+function atualizarEstadoSelecaoImagem(selecionada) {
+  const container = document.getElementById('container-preview-img-box');
+  const badge = document.getElementById('preview-badge-status');
+  const floatBtn = document.getElementById('preview-btn-salvar-flutuante');
+  if (container) {
+    if (selecionada) {
+      container.style.border = '2.5px solid var(--gold)';
+      container.style.boxShadow = '0 0 25px rgba(201,168,76,0.6)';
+    } else {
+      container.style.border = '1px solid rgba(255,255,255,0.2)';
+      container.style.boxShadow = 'none';
+    }
+  }
+  if (badge) {
+    badge.innerHTML = selecionada ? '✅ SELECIONADA' : 'CLIQUE P/ SELECIONAR';
+    badge.style.background = selecionada ? '#22c55e' : 'var(--gold)';
+    badge.style.color = '#000';
+  }
+  if (floatBtn) {
+    floatBtn.style.display = selecionada ? 'inline-flex' : 'none';
+  }
 }
 
 function fecharPreviewSalvarProjeto() {
   const m = document.getElementById('modal-preview-salvar-projeto');
   if (m) m.style.display = 'none';
   _projetoImagemPendente = null;
+  const pCont = document.getElementById('preview-paginas-pdf-container');
+  if (pCont) pCont.style.display = 'none';
 }
 
 function salvarProjetoConfirmado() {
