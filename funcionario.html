@@ -5266,8 +5266,21 @@
         ];
       }
 
-      // Garante que Samuel David está na lista
-      if (!funcs.some(f => f.id === 100 || (f.nome && f.nome.toLowerCase().includes('samuel')))) {
+      // Deduplica estritamente por nome normalizado
+      const vistos = new Set();
+      const funcsLimpos = [];
+      funcs.forEach(f => {
+        if (!f || !f.nome) return;
+        const chave = f.nome.toLowerCase().trim();
+        if (!vistos.has(chave)) {
+          vistos.add(chave);
+          funcsLimpos.push(f);
+        }
+      });
+      funcs = funcsLimpos;
+
+      // Garante que Samuel David está na lista uma única vez
+      if (!funcs.some(f => String(f.id) === '100' || (f.nome && f.nome.toLowerCase().includes('samuel')))) {
         funcs.unshift({ id: 100, nome: 'Samuel David', cargo: 'Instalador / Técnico Líder', whatsapp: '(85) 99760-2237' });
       }
 
@@ -7979,11 +7992,18 @@ function mudarAba(tab) {
       const lista = carregarFuncionariosDoStorage();
       let colab = null;
       if (clienteSessao && clienteSessao.id) {
-        colab = lista.find(f => f.id === clienteSessao.id);
+        colab = lista.find(f => String(f.id) === String(clienteSessao.id));
       }
       if (!colab && clienteSessao && clienteSessao.nome) {
-        const nLimpo = clienteSessao.nome.toLowerCase();
-        colab = lista.find(f => nLimpo.includes((f.nome || '').toLowerCase()) || (f.nome || '').toLowerCase().includes(nLimpo.split(' ')[0]));
+        const nLimpo = clienteSessao.nome.toLowerCase().trim();
+        colab = lista.find(f => {
+          const fn = (f.nome || '').toLowerCase().trim();
+          return fn === nLimpo || fn.includes(nLimpo) || nLimpo.includes(fn);
+        });
+      }
+      if (!colab) {
+        // Se ainda não achou, reaproveita qualquer Samuel David existente
+        colab = lista.find(f => (f.nome || '').toLowerCase().includes('samuel') || String(f.id) === '100');
       }
       if (!colab) {
         colab = {
@@ -8006,8 +8026,24 @@ function mudarAba(tab) {
       try {
         const raw = localStorage.getItem('sdv_funcionarios');
         if (raw) {
-          const arr = JSON.parse(raw);
-          if (Array.isArray(arr) && arr.length > 0) return arr;
+          let arr = JSON.parse(raw);
+          if (Array.isArray(arr) && arr.length > 0) {
+            // Deduplicação estrita: limpa qualquer duplicata acumulada anteriormente no navegador
+            const vistos = new Set();
+            const unicos = [];
+            arr.forEach(f => {
+              if (!f || !f.nome) return;
+              const chaveNome = f.nome.toLowerCase().trim();
+              if (!vistos.has(chaveNome)) {
+                vistos.add(chaveNome);
+                unicos.push(f);
+              }
+            });
+            if (unicos.length !== arr.length) {
+              try { localStorage.setItem('sdv_funcionarios', JSON.stringify(unicos)); } catch(_) {}
+            }
+            if (unicos.length > 0) return unicos;
+          }
         }
       } catch(_) {}
       const padrao = [

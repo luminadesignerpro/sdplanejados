@@ -11395,7 +11395,22 @@ function renderPontoView() {
     const rawF = localStorage.getItem('sdv_funcionarios');
     if (rawF) {
       const arrF = JSON.parse(rawF);
-      if (Array.isArray(arrF) && arrF.length) funcionariosLista = arrF;
+      if (Array.isArray(arrF) && arrF.length) {
+        const vistosF = new Set();
+        const unicosF = [];
+        arrF.forEach(f => {
+          if (!f || !f.nome) return;
+          const chaveF = (f.nome || '').toLowerCase().trim();
+          if (!vistosF.has(chaveF)) {
+            vistosF.add(chaveF);
+            unicosF.push(f);
+          }
+        });
+        funcionariosLista = unicosF;
+        if (unicosF.length !== arrF.length) {
+          try { localStorage.setItem('sdv_funcionarios', JSON.stringify(unicosF)); } catch(_) {}
+        }
+      }
     }
   } catch(_) {}
 

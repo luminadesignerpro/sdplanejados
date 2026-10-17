@@ -1,5 +1,5 @@
-// Service Worker PWA para sdmoveisprojetados - v25.0 (fix-resumo-ponto-sync)
-const CACHE_NAME = 'sdmoveisprojetados-v25.0';
+// Service Worker PWA para sdmoveisprojetados - v26.0 (fix-duplicate-colabs-login)
+const CACHE_NAME = 'sdmoveisprojetados-v26.0';
 
 self.addEventListener('install', (event) => {
   self.skipWaiting();
