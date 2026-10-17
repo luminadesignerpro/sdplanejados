@@ -2012,7 +2012,15 @@
       </div>
 
       <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-top:8px;">
-        <button class="btn btn-sec btn-sm" onclick="addItem()">+ Adicionar linha</button>
+        <button type="button" class="btn btn-sec btn-sm" onclick="addItem()">+ Adicionar linha</button>
+        <button type="button" class="btn btn-sec btn-sm" onclick="abrirModalBuscarProjeto()" style="display:inline-flex;align-items:center;gap:6px;border-color:rgba(201,168,76,0.5);color:var(--gold-light);font-weight:700;">
+          <span>📂</span> <span>Buscar Projeto</span>
+        </button>
+        <button type="button" id="btn-galeria-projeto-orc" class="btn btn-sm" onclick="abrirModalGaleriaProjetos()" style="display:none;align-items:center;gap:6px;background:linear-gradient(135deg,rgba(201,168,76,0.22),rgba(201,168,76,0.4));border:1.5px solid var(--gold);color:#fff;font-weight:800;border-radius:var(--r-sm);box-shadow:0 3px 10px rgba(0,0,0,0.35);">
+          <span>🖼️</span> <span id="btn-galeria-projeto-txt">Galeria</span>
+        </button>
+        <input type="file" id="inp-arquivo-projeto-planta" accept="image/*,.pdf" style="display:none;" onchange="aoSelecionarArquivoProjeto(event)" />
+        <input type="file" id="inp-camera-projeto-planta" accept="image/*" capture="environment" style="display:none;" onchange="aoSelecionarArquivoProjeto(event)" />
       </div>
 
       <!-- Resumo Financeiro Completo: Produtos, Serviço, Taxa de Acréscimo, Frete, Desconto e Total -->
@@ -20122,6 +20130,123 @@ if (typeof setInterval !== 'undefined') {
 </div>
 
 <!-- ══════════════════════════════════════════════════════════════════ -->
+<!--  MODAIS: BUSCAR PROJETO, PREVIEW/SALVAR & GALERIA DE PROJETOS      -->
+<!-- ══════════════════════════════════════════════════════════════════ -->
+
+<!-- 1. MODAL: BUSCAR PROJETO / PLANTA -->
+<div id="modal-buscar-projeto" class="modal-overlay" style="display:none;z-index:9999990;position:fixed;inset:0;background:rgba(0,0,0,0.85);align-items:center;justify-content:center;padding:16px;" onclick="if(event.target===this)fecharModalBuscarProjeto()">
+  <div class="modal-box" onclick="event.stopPropagation()" style="max-width:520px;width:100%;padding:22px;background:#0d0d18;border:1.5px solid rgba(201,168,76,0.4);border-radius:16px;box-shadow:0 10px 40px rgba(0,0,0,0.7);max-height:90vh;overflow-y:auto;">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;border-bottom:1px solid rgba(255,255,255,0.08);padding-bottom:12px;">
+      <div style="font-size:16px;font-weight:900;color:#fff;display:flex;align-items:center;gap:8px;">
+        <span>📂</span> <span>Buscar Projeto e Planta Arquitetônica</span>
+      </div>
+      <button type="button" class="modal-close" onclick="fecharModalBuscarProjeto()" style="background:none;border:none;color:#94a3b8;font-size:20px;cursor:pointer;">✕</button>
+    </div>
+
+    <div style="font-size:12.5px;color:var(--text2);margin-bottom:16px;line-height:1.5;">
+      Selecione a planta baixa, projeto executivo ou render 3D do seu projeto. Ao escolher e salvar a imagem, o botão <strong>Galeria</strong> será criado automaticamente para você visualizar a qualquer momento.
+    </div>
+
+    <!-- Botões de Ação Principal -->
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:18px;">
+      <div onclick="dispararUploadProjeto()" style="background:rgba(201,168,76,0.1);border:1.5px dashed rgba(201,168,76,0.5);border-radius:12px;padding:18px 12px;text-align:center;cursor:pointer;transition:all 0.2s;" onmouseover="this.style.background='rgba(201,168,76,0.18)'" onmouseout="this.style.background='rgba(201,168,76,0.1)'">
+        <div style="font-size:30px;margin-bottom:6px;">📁</div>
+        <div style="font-size:13px;font-weight:800;color:#fff;">Escolher Arquivo</div>
+        <div style="font-size:11px;color:var(--gold-light);margin-top:2px;">Galeria do Celular / PC</div>
+      </div>
+
+      <div onclick="dispararCameraProjeto()" style="background:rgba(59,130,246,0.1);border:1.5px dashed rgba(59,130,246,0.4);border-radius:12px;padding:18px 12px;text-align:center;cursor:pointer;transition:all 0.2s;" onmouseover="this.style.background='rgba(59,130,246,0.18)'" onmouseout="this.style.background='rgba(59,130,246,0.1)'">
+        <div style="font-size:30px;margin-bottom:6px;">📷</div>
+        <div style="font-size:13px;font-weight:800;color:#fff;">Tirar Foto</div>
+        <div style="font-size:11px;color:#93c5fd;margin-top:2px;">Câmera da Planta</div>
+      </div>
+    </div>
+
+    <!-- Projetos já salvos -->
+    <div id="lista-projetos-recentes-busca" style="margin-top:14px;border-top:1px solid rgba(255,255,255,0.08);padding-top:14px;"></div>
+
+    <div style="display:flex;justify-content:flex-end;margin-top:16px;">
+      <button type="button" class="btn btn-sec btn-sm" onclick="fecharModalBuscarProjeto()">Fechar</button>
+    </div>
+  </div>
+</div>
+
+<!-- 2. MODAL: PREVIEW E ESCOLHER SALVAR O PROJETO NA GALERIA -->
+<div id="modal-preview-salvar-projeto" class="modal-overlay" style="display:none;z-index:9999995;position:fixed;inset:0;background:rgba(0,0,0,0.9);align-items:center;justify-content:center;padding:16px;" onclick="if(event.target===this)fecharPreviewSalvarProjeto()">
+  <div class="modal-box" onclick="event.stopPropagation()" style="max-width:580px;width:100%;padding:20px;background:#0d0d18;border:1.5px solid var(--gold);border-radius:16px;box-shadow:0 10px 40px rgba(0,0,0,0.85);max-height:92vh;overflow-y:auto;">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+      <div style="font-size:15px;font-weight:900;color:#fff;display:flex;align-items:center;gap:8px;">
+        <span>🖼️</span> <span>Projeto Selecionado</span>
+      </div>
+      <button type="button" class="modal-close" onclick="fecharPreviewSalvarProjeto()" style="background:none;border:none;color:#94a3b8;font-size:20px;cursor:pointer;">✕</button>
+    </div>
+
+    <div style="font-size:12px;color:var(--text2);margin-bottom:12px;">
+      Confira o projeto/planta selecionada. Ao clicar em <strong>Salvar na Galeria</strong>, o botão Galeria ficará ativo ao lado de Adicionar Linha.
+    </div>
+
+    <!-- Imagem Preview -->
+    <div style="width:100%;max-height:360px;background:#000;border:1px solid rgba(255,255,255,0.15);border-radius:10px;overflow:auto;display:flex;align-items:center;justify-content:center;margin-bottom:14px;padding:4px;">
+      <img id="preview-projeto-img" src="" style="max-width:100%;max-height:350px;object-fit:contain;border-radius:6px;" alt="Planta do Projeto" />
+    </div>
+
+    <!-- Identificação do Projeto -->
+    <div class="field" style="margin-bottom:14px;">
+      <label style="font-size:12px;font-weight:800;color:var(--gold-light);">Nome / Identificação do Projeto:</label>
+      <input type="text" id="preview-projeto-nome" placeholder="Ex: Lélia Napoli Arquitetura - Pranchas 07 a 09" style="width:100%;box-sizing:border-box;padding:10px 12px;border-radius:8px;background:#05050a;border:1.5px solid rgba(201,168,76,0.4);color:#fff;font-size:13px;font-weight:700;outline:none;" />
+    </div>
+
+    <!-- Botões de Ação -->
+    <div style="display:flex;gap:10px;justify-content:flex-end;">
+      <button type="button" class="btn btn-sec btn-sm" onclick="fecharPreviewSalvarProjeto()">Cancelar</button>
+      <button type="button" class="btn btn-gold btn-sm" onclick="salvarProjetoConfirmado()" style="padding:10px 20px;font-size:13px;font-weight:900;display:inline-flex;align-items:center;gap:6px;box-shadow:0 3px 12px rgba(201,168,76,0.35);">
+        <span>💾</span> <span>Salvar na Galeria</span>
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- 3. MODAL: GALERIA DE PROJETOS -->
+<div id="modal-galeria-projetos" class="modal-overlay" style="display:none;z-index:9999992;position:fixed;inset:0;background:rgba(0,0,0,0.88);align-items:center;justify-content:center;padding:16px;" onclick="if(event.target===this)fecharModalGaleriaProjetos()">
+  <div class="modal-box" onclick="event.stopPropagation()" style="max-width:700px;width:100%;padding:22px;background:#0d0d18;border:1.5px solid rgba(201,168,76,0.4);border-radius:16px;box-shadow:0 10px 40px rgba(0,0,0,0.8);max-height:92vh;overflow-y:auto;">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;border-bottom:1px solid rgba(255,255,255,0.08);padding-bottom:12px;flex-wrap:wrap;gap:8px;">
+      <div>
+        <div style="font-size:16px;font-weight:900;color:#fff;display:flex;align-items:center;gap:8px;">
+          <span>🖼️</span> <span>Galeria de Projetos e Plantas</span>
+        </div>
+        <div id="count-galeria-projetos" style="font-size:11.5px;color:var(--gold-light);margin-top:2px;font-weight:700;">0 fotos</div>
+      </div>
+      <div style="display:flex;gap:8px;align-items:center;">
+        <button type="button" class="btn btn-sec btn-xs" onclick="fecharModalGaleriaProjetos();abrirModalBuscarProjeto();" style="display:inline-flex;align-items:center;gap:4px;font-weight:700;">
+          <span>➕</span> <span>Adicionar Planta</span>
+        </button>
+        <button type="button" class="modal-close" onclick="fecharModalGaleriaProjetos()" style="background:none;border:none;color:#94a3b8;font-size:20px;cursor:pointer;">✕</button>
+      </div>
+    </div>
+
+    <!-- Grade de Plantas / Fotos -->
+    <div id="grid-galeria-projetos-lista" style="display:grid;grid-template-columns:repeat(auto-fill, minmax(180px, 1fr));gap:12px;min-height:140px;"></div>
+
+    <div style="display:flex;justify-content:flex-end;margin-top:18px;">
+      <button type="button" class="btn btn-sec btn-sm" onclick="fecharModalGaleriaProjetos()">Fechar Galeria</button>
+    </div>
+  </div>
+</div>
+
+<!-- 4. MODAL: ZOOM / TELA CHEIA DA PLANTA DO PROJETO -->
+<div id="modal-zoom-foto-projeto" class="modal-overlay" style="display:none;z-index:9999998;position:fixed;inset:0;background:rgba(0,0,0,0.96);align-items:center;justify-content:center;padding:12px;" onclick="if(event.target===this)fecharFotoProjetoZoom()">
+  <div style="max-width:96vw;max-height:96vh;display:flex;flex-direction:column;align-items:center;position:relative;">
+    <div style="width:100%;display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;padding:0 8px;">
+      <span id="zoom-foto-projeto-titulo" style="font-size:14px;font-weight:800;color:#fff;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:80vw;">Planta Arquitetônica</span>
+      <button type="button" onclick="fecharFotoProjetoZoom()" style="background:rgba(255,255,255,0.15);border:none;color:#fff;width:34px;height:34px;border-radius:50%;font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;">✕</button>
+    </div>
+    <div style="overflow:auto;max-width:94vw;max-height:85vh;background:#050508;border-radius:8px;box-shadow:0 4px 20px rgba(0,0,0,0.8);display:flex;align-items:center;justify-content:center;">
+      <img id="zoom-foto-projeto-img" src="" style="max-width:100%;max-height:85vh;object-fit:contain;" alt="Visualização em Zoom" />
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════════════ -->
 <!--  MODAL: NOVO EVENTO DO CRONOGRAMA                                 -->
 <!-- ══════════════════════════════════════════════════════════════════ -->
 <div id="modal-novo-evento-cronograma" class="modal-overlay" style="display:none;z-index:9999999;position:fixed;inset:0;" onclick="if(event.target===this)fecharModalNovoEventoCronograma()">
@@ -20489,6 +20614,268 @@ function renderEventoCard(ev) {
       <button onclick="excluirEventoCronograma('${ev.id}')" title="Excluir" style="padding:4px 7px;font-size:12px;background:rgba(239,68,68,0.12);border:1px solid rgba(239,68,68,0.3);border-radius:6px;color:#f87171;cursor:pointer;">🗑️</button>
     </div>
   </div>`;
+}
+
+// ══════════════════════════════════════════════════════════════════
+//  MÓDULO: BUSCA DE PROJETOS, PLANTAS ARQUITETÔNICAS & GALERIA
+// ══════════════════════════════════════════════════════════════════
+
+let _projetoImagemPendente = null;
+
+function obterGaleriaProjetosOrc() {
+  try {
+    const s = localStorage.getItem('sdv_projeto_plantas_orc');
+    return s ? JSON.parse(s) : [];
+  } catch(_) {
+    return [];
+  }
+}
+
+function salvarGaleriaProjetosOrc(arr) {
+  try {
+    localStorage.setItem('sdv_projeto_plantas_orc', JSON.stringify(arr));
+  } catch(e) {
+    console.warn('Erro ao salvar galeria de projetos no localStorage:', e);
+  }
+  atualizarBotaoGaleriaProjeto();
+}
+
+function atualizarBotaoGaleriaProjeto() {
+  const btn = document.getElementById('btn-galeria-projeto-orc');
+  const txt = document.getElementById('btn-galeria-projeto-txt');
+  if (!btn) return;
+  const lista = obterGaleriaProjetosOrc();
+  if (lista.length > 0) {
+    btn.style.display = 'inline-flex';
+    if (txt) txt.textContent = `Galeria (${lista.length})`;
+  } else {
+    btn.style.display = 'none';
+  }
+}
+
+function abrirModalBuscarProjeto() {
+  const m = document.getElementById('modal-buscar-projeto');
+  if (m) {
+    renderizarProjetosRecentesSalvos();
+    m.style.display = 'flex';
+  }
+}
+
+function fecharModalBuscarProjeto() {
+  const m = document.getElementById('modal-buscar-projeto');
+  if (m) m.style.display = 'none';
+}
+
+function dispararUploadProjeto() {
+  fecharModalBuscarProjeto();
+  const inp = document.getElementById('inp-arquivo-projeto-planta');
+  if (inp) {
+    inp.value = '';
+    inp.click();
+  }
+}
+
+function dispararCameraProjeto() {
+  fecharModalBuscarProjeto();
+  const inp = document.getElementById('inp-camera-projeto-planta');
+  if (inp) {
+    inp.value = '';
+    inp.click();
+  }
+}
+
+function aoSelecionarArquivoProjeto(event) {
+  const file = event.target.files && event.target.files[0];
+  if (!file) return;
+
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    const rawDataUrl = e.target.result;
+    otimizarImagemProjeto(rawDataUrl, 1600, 0.85, function(dataUrlFinal) {
+      abrirPreviewSalvarProjeto(dataUrlFinal, file.name);
+    });
+  };
+  reader.readAsDataURL(file);
+}
+
+function otimizarImagemProjeto(src, maxDim, qualidade, callback) {
+  const img = new Image();
+  img.onload = function() {
+    let w = img.width;
+    let h = img.height;
+    if (w > maxDim || h > maxDim) {
+      if (w > h) {
+        h = Math.round((h * maxDim) / w);
+        w = maxDim;
+      } else {
+        w = Math.round((w * maxDim) / h);
+        h = maxDim;
+      }
+    }
+    const canvas = document.createElement('canvas');
+    canvas.width = w;
+    canvas.height = h;
+    const ctx = canvas.getContext('2d');
+    ctx.drawImage(img, 0, 0, w, h);
+    const dataUrl = canvas.toDataURL('image/jpeg', qualidade || 0.85);
+    callback(dataUrl);
+  };
+  img.onerror = function() {
+    callback(src);
+  };
+  img.src = src;
+}
+
+function abrirPreviewSalvarProjeto(dataUrl, nomeSugerido) {
+  _projetoImagemPendente = {
+    dataUrl: dataUrl,
+    nome: nomeSugerido || 'Planta Arquitetônica',
+    data: new Date().toLocaleDateString('pt-BR')
+  };
+
+  const imgEl = document.getElementById('preview-projeto-img');
+  const nomeEl = document.getElementById('preview-projeto-nome');
+  if (imgEl) imgEl.src = dataUrl;
+  if (nomeEl) {
+    const nomeLimpo = (nomeSugerido || 'Projeto Arquitetônico').replace(/\.[^/.]+$/, '');
+    nomeEl.value = nomeLimpo;
+  }
+
+  const m = document.getElementById('modal-preview-salvar-projeto');
+  if (m) m.style.display = 'flex';
+}
+
+function fecharPreviewSalvarProjeto() {
+  const m = document.getElementById('modal-preview-salvar-projeto');
+  if (m) m.style.display = 'none';
+  _projetoImagemPendente = null;
+}
+
+function salvarProjetoConfirmado() {
+  if (!_projetoImagemPendente) return;
+  const nomeEl = document.getElementById('preview-projeto-nome');
+  const nomeFinal = (nomeEl && nomeEl.value.trim()) ? nomeEl.value.trim() : 'Projeto Arquitetônico';
+  
+  const lista = obterGaleriaProjetosOrc();
+  const novoItem = {
+    id: 'proj_' + Date.now(),
+    nome: nomeFinal,
+    src: _projetoImagemPendente.dataUrl,
+    data: new Date().toLocaleDateString('pt-BR') + ' às ' + new Date().toLocaleTimeString('pt-BR', {hour:'2-digit', minute:'2-digit'})
+  };
+  lista.unshift(novoItem);
+  salvarGaleriaProjetosOrc(lista);
+
+  fecharPreviewSalvarProjeto();
+
+  if (typeof mostrarToastAprovacao === 'function') {
+    mostrarToastAprovacao('🖼️ Projeto salvo com sucesso! O botão Galeria foi criado ao lado de Adicionar Linha.');
+  } else {
+    alert('✅ Projeto salvo com sucesso! O botão Galeria foi ativado.');
+  }
+
+  abrirModalGaleriaProjetos();
+}
+
+function abrirModalGaleriaProjetos() {
+  const m = document.getElementById('modal-galeria-projetos');
+  if (!m) return;
+  renderizarGradeGaleriaProjetos();
+  m.style.display = 'flex';
+}
+
+function fecharModalGaleriaProjetos() {
+  const m = document.getElementById('modal-galeria-projetos');
+  if (m) m.style.display = 'none';
+}
+
+function renderizarGradeGaleriaProjetos() {
+  const grid = document.getElementById('grid-galeria-projetos-lista');
+  const countEl = document.getElementById('count-galeria-projetos');
+  if (!grid) return;
+
+  const lista = obterGaleriaProjetosOrc();
+  if (countEl) countEl.textContent = lista.length + (lista.length === 1 ? ' planta/foto salva' : ' plantas/fotos salvas');
+
+  if (!lista.length) {
+    grid.innerHTML = `
+      <div style="grid-column:1/-1;text-align:center;padding:32px 14px;color:var(--text2);font-size:13px;">
+        <div style="font-size:36px;margin-bottom:8px;">📂</div>
+        <div style="font-weight:800;color:#fff;">Nenhuma planta ou projeto salvo no momento.</div>
+        <div style="font-size:12px;margin-top:4px;">Use o botão <strong>Buscar Projeto</strong> para adicionar fotos ou pranchas arquitetônicas.</div>
+      </div>
+    `;
+    return;
+  }
+
+  grid.innerHTML = lista.map((p) => `
+    <div style="background:rgba(255,255,255,0.03);border:1.5px solid rgba(255,255,255,0.1);border-radius:12px;overflow:hidden;display:flex;flex-direction:column;position:relative;">
+      <div style="width:100%;height:140px;background:#000;display:flex;align-items:center;justify-content:center;cursor:pointer;overflow:hidden;" onclick="abrirFotoProjetoZoom('${p.src}', '${esc(p.nome)}')">
+        <img src="${p.src}" style="width:100%;height:100%;object-fit:cover;transition:transform 0.2s;" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'" alt="${esc(p.nome)}" />
+      </div>
+      <div style="padding:10px 12px;flex:1;display:flex;flex-direction:column;justify-content:space-between;">
+        <div style="font-size:12px;font-weight:800;color:#fff;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="${esc(p.nome)}">${esc(p.nome)}</div>
+        <div style="font-size:10.5px;color:var(--text2);margin-top:2px;">📅 ${esc(p.data)}</div>
+        <div style="display:flex;gap:6px;margin-top:10px;">
+          <button type="button" class="btn btn-sec btn-xs" onclick="abrirFotoProjetoZoom('${p.src}', '${esc(p.nome)}')" style="flex:1;font-size:11px;font-weight:800;padding:6px 0;">🔍 Ver</button>
+          <button type="button" class="btn btn-sec btn-xs" onclick="excluirItemGaleriaProjeto('${p.id}')" style="font-size:11px;padding:6px 10px;color:#f87171;" title="Excluir da Galeria">🗑️</button>
+        </div>
+      </div>
+    </div>
+  `).join('');
+}
+
+function excluirItemGaleriaProjeto(id) {
+  if (!confirm('Deseja remover esta planta/imagem da galeria do projeto?')) return;
+  let lista = obterGaleriaProjetosOrc();
+  lista = lista.filter(x => x.id !== id);
+  salvarGaleriaProjetosOrc(lista);
+  renderizarGradeGaleriaProjetos();
+}
+
+function abrirFotoProjetoZoom(src, titulo) {
+  const m = document.getElementById('modal-zoom-foto-projeto');
+  const img = document.getElementById('zoom-foto-projeto-img');
+  const t = document.getElementById('zoom-foto-projeto-titulo');
+  if (img) img.src = src;
+  if (t) t.textContent = titulo || 'Visualização da Planta / Projeto';
+  if (m) m.style.display = 'flex';
+}
+
+function fecharFotoProjetoZoom() {
+  const m = document.getElementById('modal-zoom-foto-projeto');
+  if (m) m.style.display = 'none';
+}
+
+function renderizarProjetosRecentesSalvos() {
+  const container = document.getElementById('lista-projetos-recentes-busca');
+  if (!container) return;
+  const lista = obterGaleriaProjetosOrc();
+  if (!lista.length) {
+    container.innerHTML = `
+      <div style="text-align:center;padding:12px;color:var(--text2);font-size:11.5px;">
+        Nenhum projeto salvo na galeria ainda. Escolha um arquivo acima para começar.
+      </div>
+    `;
+    return;
+  }
+  container.innerHTML = `
+    <div style="font-size:11.5px;font-weight:800;color:var(--gold-light);margin-bottom:8px;">📁 Projetos Já Salvos (Toque para visualizar ou abrir):</div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fill, minmax(90px, 1fr));gap:8px;max-height:160px;overflow-y:auto;padding-right:4px;">
+      ${lista.map(p => `
+        <div onclick="fecharModalBuscarProjeto();abrirFotoProjetoZoom('${p.src}', '${esc(p.nome)}')" style="cursor:pointer;background:#000;border:1px solid rgba(255,255,255,0.15);border-radius:6px;overflow:hidden;text-align:center;">
+          <img src="${p.src}" style="width:100%;height:65px;object-fit:cover;" />
+          <div style="font-size:10px;color:#fff;padding:2px 4px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${esc(p.nome)}</div>
+        </div>
+      `).join('')}
+    </div>
+  `;
+}
+
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', atualizarBotaoGaleriaProjeto);
+} else {
+  atualizarBotaoGaleriaProjeto();
 }
 
 // ── MODAL: NOVO EVENTO ──────────────────────────────────────────
