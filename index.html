@@ -20500,10 +20500,11 @@ if (typeof setInterval !== 'undefined') {
     <div style="display:flex;flex-direction:column;gap:12px;">
       <div class="field">
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">
-          <label style="margin-bottom:0;">Título do Evento</label>
+          <label style="margin-bottom:0;">Nome do Cliente</label>
           <button type="button" onclick="abrirConfiguracaoEventosCronograma('tit')" style="background:none;border:none;color:var(--gold);font-size:11px;font-weight:700;cursor:pointer;display:inline-flex;align-items:center;gap:3px;">⚙️ Títulos rápidos</button>
         </div>
-        <input type="text" id="evento-form-titulo" placeholder="Ex: Entrega de obra - Cliente X" style="width:100%;padding:10px 12px;border-radius:10px;background:#080811;border:1.5px solid rgba(201,168,76,0.3);color:#fff;font-family:var(--font);font-size:13px;">
+        <input type="text" id="evento-form-titulo" placeholder="Ex: Dra Isabelle ou João Silva" style="width:100%;padding:10px 12px;border-radius:10px;background:#080811;border:1.5px solid rgba(201,168,76,0.3);color:#fff;font-family:var(--font);font-size:13px;">
+        <input type="hidden" id="evento-form-cliente-nome">
         <!-- Chips de sugestões de títulos -->
         <div id="evento-sugestoes-titulos" style="display:flex;flex-wrap:wrap;gap:5px;margin-top:6px;"></div>
       </div>
@@ -20540,10 +20541,6 @@ if (typeof setInterval !== 'undefined') {
       <div class="field">
         <label>Responsável (opcional)</label>
         <input type="text" id="evento-form-responsavel" placeholder="Nome do responsável ou equipe" style="width:100%;padding:10px 12px;border-radius:10px;background:#080811;border:1.5px solid rgba(201,168,76,0.3);color:#fff;font-family:var(--font);font-size:13px;">
-      </div>
-      <div class="field">
-        <label>Nome do Cliente</label>
-        <input type="text" id="evento-form-cliente-nome" placeholder="Ex: João Silva" style="width:100%;padding:10px 12px;border-radius:10px;background:#080811;border:1.5px solid rgba(201,168,76,0.3);color:#fff;font-family:var(--font);font-size:13px;">
       </div>
       <div class="field">
         <label>Endereço do Cliente</label>
@@ -21824,11 +21821,11 @@ function salvarEventoCronograma(forcarConflito = false) {
       return el ? (el.value || '').trim() : '';
     };
 
-    let titulo = getVal('evento-form-titulo');
+    let titulo = getVal('evento-form-titulo') || getVal('evento-form-cliente-nome');
     let data = getVal('evento-form-data');
     const tipoSel = getVal('evento-form-tipo') || 'entrega';
     const tipoCustom = getVal('evento-form-tipo-custom');
-    const clienteNome = getVal('evento-form-cliente-nome');
+    const clienteNome = titulo;
     const clienteEndereco = getVal('evento-form-cliente-endereco');
     const responsavel = getVal('evento-form-responsavel');
     const hora = getVal('evento-form-hora');

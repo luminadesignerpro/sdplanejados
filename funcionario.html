@@ -5000,6 +5000,14 @@
     let clienteSessao = null;
     let dadosOsCliente = null;
 
+    function parseNum(val) {
+      if (val == null) return 0;
+      if (typeof val === 'number') return isNaN(val) ? 0 : val;
+      const limpo = String(val).replace(/[^0-9,.-]/g, '').replace(',', '.');
+      const n = parseFloat(limpo);
+      return isNaN(n) ? 0 : n;
+    }
+
     // ── SOM DE NOTIFICAÇÃO VIA SÍNTESE WEB AUDIO ──
     function tocarAlertaSonoro() {
       try {
@@ -8477,190 +8485,200 @@ function registrarSolicitacaoSaidaPendente(solic) {
 
 
 function baterPontoNoCliente(tipo) {
-      try {
-        if (navigator.vibrate) navigator.vibrate([40, 20, 40]);
-      } catch(_) {}
-      const dataHoje = getHojeFormatadoPonto();
-      const pontos = carregarPontosDoStorage();
-      const colab = obterFuncionarioAtivoPonto();
-      const regHoje = pontos.find(x => (x.colaboradorId === colab.id || (x.colaboradorNome && x.colaboradorNome.toLowerCase() === colab.nome.toLowerCase())) && x.data === dataHoje);
+  try {
+    try {
+      if (navigator.vibrate) navigator.vibrate([40, 20, 40]);
+    } catch(_) {}
+    const dataHoje = getHojeFormatadoPonto();
+    const pontos = carregarPontosDoStorage();
+    const colab = (typeof obterFuncionarioAtivoPonto === 'function') ? obterFuncionarioAtivoPonto() : { id: 100, nome: 'Samuel David' };
+    const regHoje = pontos.find(x => (String(x.colaboradorId) === String(colab.id) || (x.colaboradorNome && colab.nome && x.colaboradorNome.toLowerCase() === colab.nome.toLowerCase())) && (x.data === dataHoje || (typeof ehDataHojePonto === 'function' && ehDataHojePonto(x.data))));
 
-      if (tipo === 'horaExtraInicial' || tipo === 'horaExtraFinal') {
-        const colab = obterFuncionarioAtivoPonto();
-        const parseMin = (s) => (s && s.includes(':')) ? s.split(':').map(Number)[0]*60 + s.split(':').map(Number)[1] : null;
-        const horaSaidaPrevista = colab?.horarioSaida || '17:30';
-        const expSaiMin = parseMin(horaSaidaPrevista) || 1050;
-        const agora = new Date();
-        const minAgora = agora.getHours() * 60 + agora.getMinutes();
-        const hh = String(agora.getHours()).padStart(2, '0');
-        const mm = String(agora.getMinutes()).padStart(2, '0');
+    if (tipo === 'horaExtraInicial' || tipo === 'horaExtraFinal') {
+      const parseMin = (s) => (s && s.includes(':')) ? s.split(':').map(Number)[0]*60 + s.split(':').map(Number)[1] : null;
+      const horaSaidaPrevista = colab?.horarioSaida || '17:30';
+      const expSaiMin = parseMin(horaSaidaPrevista) || 1050;
+      const agora = new Date();
+      const minAgora = agora.getHours() * 60 + agora.getMinutes();
+      const hh = String(agora.getHours()).padStart(2, '0');
+      const mm = String(agora.getMinutes()).padStart(2, '0');
 
-        if (!regHoje || !regHoje.saidaFinal) {
-          mostrarToastPontoCliente('🔒 Hora Extra travada! É necessário registrar a Saída Final primeiro.', false);
-          return;
-        }
-        if (minAgora < expSaiMin) {
-          mostrarToastPontoCliente(`🔒 Hora Extra Bloqueada! A Hora Extra só pode ser iniciada após as ${horaSaidaPrevista} (horário final previsto). Horário atual: ${hh}:${mm}.`, false);
-          return;
-        }
-        if (tipo === 'horaExtraFinal' && !regHoje.horaExtraInicial) {
-          mostrarToastPontoCliente('⚠️ Inicie a Hora Extra primeiro (H. Extra Inicial).', false);
-          return;
-        }
+      if (!regHoje || !regHoje.saidaFinal) {
+        mostrarToastPontoCliente('🔒 Hora Extra travada! É necessário registrar a Saída Final primeiro.', false);
+        return;
       }
-      if (tipo === 'saidaFinal') {
-        const agora = new Date();
-        const hh = String(agora.getHours()).padStart(2, '0');
-        const mm = String(agora.getMinutes()).padStart(2, '0');
-        const horaStr = `${hh}:${mm}`;
-        const colab = obterFuncionarioAtivoPonto();
-        const expSaiMin = 1080; // 18:00
-        const horaAgoraMin = agora.getHours() * 60 + agora.getMinutes();
-        const dataHoje = getHojeFormatadoPonto();
-        const ehFds = ehFimDeSemanaPonto(dataHoje);
-        if (horaAgoraMin < (expSaiMin - 5) && !ehFds) {
-          abrirModalSaidaFinalCliente(horaStr);
-          return;
-        }
+      if (minAgora < expSaiMin) {
+        mostrarToastPontoCliente(`🔒 Hora Extra Bloqueada! A Hora Extra só pode ser iniciada após as ${horaSaidaPrevista} (horário final previsto). Horário atual: ${hh}:${mm}.`, false);
+        return;
       }
-      executarBatidaPontoNoCliente(tipo);
+      if (tipo === 'horaExtraFinal' && !regHoje.horaExtraInicial) {
+        mostrarToastPontoCliente('⚠️ Inicie a Hora Extra primeiro (H. Extra Inicial).', false);
+        return;
+      }
     }
-
-    function executarBatidaPontoNoCliente(tipo, horaStrParam, saidaJustificada, motivoJustificativa) {
-      const colab = obterFuncionarioAtivoPonto();
+    if (tipo === 'saidaFinal') {
       const agora = new Date();
       const hh = String(agora.getHours()).padStart(2, '0');
       const mm = String(agora.getMinutes()).padStart(2, '0');
       const horaStr = `${hh}:${mm}`;
+      const parseMin = (s) => (s && s.includes(':')) ? s.split(':').map(Number)[0]*60 + s.split(':').map(Number)[1] : null;
+      const horaSaidaPrevista = colab?.horarioSaida || '17:30';
+      const expSaiMin = parseMin(horaSaidaPrevista) || 1050;
+      const horaAgoraMin = agora.getHours() * 60 + agora.getMinutes();
       const dataHoje = getHojeFormatadoPonto();
-
-      let pontos = carregarPontosDoStorage();
-      let funcionarios = carregarFuncionariosDoStorage();
-      const idxFunc = funcionarios.findIndex(f => f.id === colab.id);
-
-      let p = pontos.find(x => (x.colaboradorId === colab.id || (x.colaboradorNome && x.colaboradorNome.toLowerCase() === colab.nome.toLowerCase())) && (x.data === dataHoje || ehDataHojePonto(x.data)));
-      if (!p) {
-        p = {
-          id: Date.now(),
-          colaboradorId: colab.id,
-          colaboradorNome: colab.nome,
-          data: dataHoje,
-          entrada1: '',
-          saidaAlmoco: '',
-          voltaAlmoco: '',
-          saidaFinal: '',
-          horaExtraInicial: '',
-          horaExtraFinal: '',
-          justificativa: '',
-          tempoTrabalhado: '00h 00m',
-          valorSalario: 'R$ 0,00',
-          valorHoraInfo: `(R$ ${(colab.valorHora || 25.50).toFixed(2).replace('.', ',')}/h)`,
-          status: 'Presente'
-        };
-        pontos.unshift(p);
+      const ehFds = (typeof ehFimDeSemanaPonto === 'function') ? ehFimDeSemanaPonto(dataHoje) : false;
+      if (horaAgoraMin < (expSaiMin - 5) && !ehFds) {
+        abrirModalSaidaFinalCliente(horaStr);
+        return;
       }
-
-      let labelTipo = '';
-      if (tipo === 'entrada1') {
-        p.entrada1 = horaStr;
-        colab.status = 'Presente';
-        p.status = 'Presente';
-        labelTipo = '1ª Entrada';
-      } else if (tipo === 'saidaAlmoco') {
-        p.saidaAlmoco = horaStr;
-        colab.status = 'Em Almoço';
-        p.status = 'Em Almoço';
-        labelTipo = 'Saída Almoço';
-      } else if (tipo === 'voltaAlmoco') {
-        p.voltaAlmoco = horaStr;
-        colab.status = 'Presente';
-        p.status = 'Presente';
-        labelTipo = 'Volta Almoço';
-      } else if (tipo === 'saidaFinal') {
-        p.saidaFinal = horaStr;
-        colab.status = 'Finalizado';
-        p.status = 'Finalizado';
-        if (saidaJustificada) {
-          p.saidaAntecipadaJustificada = true;
-          p.semHoraNegativa = true;
-          p.justificativaSaida = motivoJustificativa || 'Saída Autorizada';
-        }
-        labelTipo = 'Saída Final';
-      } else if (tipo === 'horaExtraInicial') {
-        p.horaExtraInicial = horaStr;
-        colab.status = 'Em Hora Extra';
-        p.status = 'Em Hora Extra';
-        labelTipo = 'Hora Extra Inicial';
-      } else if (tipo === 'horaExtraFinal') {
-        p.horaExtraFinal = horaStr;
-        colab.status = 'H.E. Finalizada';
-        p.status = 'H.E. Finalizada';
-        labelTipo = 'Hora Extra Final';
-      }
-
-      // Calcula horas normais e horas extras
-      const parseMin = (str) => {
-        if (!str || !str.includes(':')) return null;
-        const parts = str.split(':').map(Number);
-        if (isNaN(parts[0]) || isNaN(parts[1])) return null;
-        return parts[0] * 60 + parts[1];
-      };
-
-      const mEnt = parseMin(p.entrada1);
-      const mAlm = parseMin(p.saidaAlmoco);
-      const mVol = parseMin(p.voltaAlmoco);
-      const mSai = parseMin(p.saidaFinal);
-      const mHEIni = parseMin(p.horaExtraInicial);
-      const mHEFim = parseMin(p.horaExtraFinal);
-
-      let totalMin = 0;
-      if (mEnt !== null && mAlm !== null && mAlm >= mEnt) totalMin += (mAlm - mEnt);
-      else if (mEnt !== null && mSai !== null && mSai >= mEnt && mAlm === null) totalMin += (mSai - mEnt);
-
-      if (mVol !== null && mSai !== null && mSai >= mVol) totalMin += (mSai - mVol);
-
-      if (mHEIni !== null && mHEFim !== null && mHEFim >= mHEIni) {
-        totalMin += (mHEFim - mHEIni);
-      }
-
-      const hFinal = Math.floor(totalMin / 60);
-      const mFinal = totalMin % 60;
-      p.tempoTrabalhado = `${String(hFinal).padStart(2, '0')}h ${String(mFinal).padStart(2, '0')}m`;
-      let vHora = (colab && colab.valorHora) ? Number(colab.valorHora) : 0;
-      if (!vHora && colab && colab.salario) {
-        const jH = parseInt(String(colab.jornada || '44').replace(/\D/g, '')) || 44;
-        vHora = Number(colab.salario) / (jH * 4.545);
-      }
-      const valorDia = (totalMin / 60) * vHora;
-      p.valorSalario = 'R$ ' + valorDia.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-      if (vHora > 0) {
-        const vMin = vHora / 60;
-        p.valorHoraInfo = 'R$ ' + vHora.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + '/h · R$ ' + vMin.toFixed(3).replace('.', ',') + '/min';
-      }
-
-      if (idxFunc !== -1) funcionarios[idxFunc] = colab;
-      else funcionarios.push(colab);
-
-      localStorage.setItem('sdv_pontos', JSON.stringify(pontos));
-      localStorage.setItem('sdv_funcionarios', JSON.stringify(funcionarios));
-      localStorage.setItem('sdv_ponto_ultimo_update', Date.now().toString());
-
-      try {
-        if (typeof BroadcastChannel !== 'undefined') {
-          const bc = new BroadcastChannel('sdv_ponto_channel');
-          bc.postMessage({ type: 'PONTO_ATUALIZADO', ponto: p, timestamp: Date.now() });
-          bc.close();
-        }
-      } catch(_) {}
-      try { window.dispatchEvent(new Event('storage')); } catch(_) {}
-
-      renderizarResumoPontoCliente();
-      if (typeof renderizarEspelhoPontoCliente === 'function') {
-        try { renderizarEspelhoPontoCliente(); } catch(_) {}
-      }
-      mostrarToastPontoCliente(`✅ ${labelTipo} registrada com sucesso às ${horaStr}!`, true);
-      if (typeof tocarAlertaSonoro === 'function') tocarAlertaSonoro();
     }
+    executarBatidaPontoNoCliente(tipo);
+  } catch(err) {
+    console.error('Erro em baterPontoNoCliente:', err);
+    mostrarToastPontoCliente('⚠️ Erro ao registrar ponto: ' + err.message, false);
+  }
+}
+
+function executarBatidaPontoNoCliente(tipo, horaStrParam, saidaJustificada, motivoJustificativa) {
+  try {
+    const colab = (typeof obterFuncionarioAtivoPonto === 'function') ? obterFuncionarioAtivoPonto() : { id: 100, nome: 'Samuel David' };
+    const agora = new Date();
+    const hh = String(agora.getHours()).padStart(2, '0');
+    const mm = String(agora.getMinutes()).padStart(2, '0');
+    const horaStr = horaStrParam || `${hh}:${mm}`;
+    const dataHoje = getHojeFormatadoPonto();
+
+    let pontos = carregarPontosDoStorage();
+    let funcionarios = carregarFuncionariosDoStorage();
+    const idxFunc = funcionarios.findIndex(f => String(f.id) === String(colab.id));
+
+    let p = pontos.find(x => (String(x.colaboradorId) === String(colab.id) || (x.colaboradorNome && colab.nome && x.colaboradorNome.toLowerCase() === colab.nome.toLowerCase())) && (x.data === dataHoje || (typeof ehDataHojePonto === 'function' && ehDataHojePonto(x.data))));
+    if (!p) {
+      p = {
+        id: Date.now(),
+        colaboradorId: colab.id,
+        colaboradorNome: colab.nome || 'Samuel David',
+        data: dataHoje,
+        entrada1: '',
+        saidaAlmoco: '',
+        voltaAlmoco: '',
+        saidaFinal: '',
+        horaExtraInicial: '',
+        horaExtraFinal: '',
+        justificativa: '',
+        tempoTrabalhado: '00h 00m',
+        valorSalario: 'R$ 0,00',
+        valorHoraInfo: `(R$ ${Number(colab.valorHora || 25.50).toFixed(2).replace('.', ',')}/h)`,
+        status: 'Presente'
+      };
+      pontos.unshift(p);
+    }
+
+    let labelTipo = '';
+    if (tipo === 'entrada1') {
+      p.entrada1 = horaStr;
+      colab.status = 'Presente';
+      p.status = 'Presente';
+      labelTipo = '1ª Entrada';
+    } else if (tipo === 'saidaAlmoco') {
+      p.saidaAlmoco = horaStr;
+      colab.status = 'Em Almoço';
+      p.status = 'Em Almoço';
+      labelTipo = 'Saída Almoço';
+    } else if (tipo === 'voltaAlmoco') {
+      p.voltaAlmoco = horaStr;
+      colab.status = 'Presente';
+      p.status = 'Presente';
+      labelTipo = 'Volta Almoço';
+    } else if (tipo === 'saidaFinal') {
+      p.saidaFinal = horaStr;
+      colab.status = 'Finalizado';
+      p.status = 'Finalizado';
+      if (saidaJustificada) {
+        p.saidaAntecipadaJustificada = true;
+        p.semHoraNegativa = true;
+        p.justificativaSaida = motivoJustificativa || 'Saída Autorizada';
+      }
+      labelTipo = 'Saída Final';
+    } else if (tipo === 'horaExtraInicial') {
+      p.horaExtraInicial = horaStr;
+      colab.status = 'Em Hora Extra';
+      p.status = 'Em Hora Extra';
+      labelTipo = 'Hora Extra Inicial';
+    } else if (tipo === 'horaExtraFinal') {
+      p.horaExtraFinal = horaStr;
+      colab.status = 'H.E. Finalizada';
+      p.status = 'H.E. Finalizada';
+      labelTipo = 'Hora Extra Final';
+    }
+
+    // Calcula horas normais e horas extras
+    const parseMin = (str) => {
+      if (!str || !str.includes(':')) return null;
+      const parts = str.split(':').map(Number);
+      if (isNaN(parts[0]) || isNaN(parts[1])) return null;
+      return parts[0] * 60 + parts[1];
+    };
+
+    const mEnt = parseMin(p.entrada1);
+    const mAlm = parseMin(p.saidaAlmoco);
+    const mVol = parseMin(p.voltaAlmoco);
+    const mSai = parseMin(p.saidaFinal);
+    const mHEIni = parseMin(p.horaExtraInicial);
+    const mHEFim = parseMin(p.horaExtraFinal);
+
+    let totalMin = 0;
+    if (mEnt !== null && mAlm !== null && mAlm >= mEnt) totalMin += (mAlm - mEnt);
+    else if (mEnt !== null && mSai !== null && mSai >= mEnt && mAlm === null) totalMin += (mSai - mEnt);
+
+    if (mVol !== null && mSai !== null && mSai >= mVol) totalMin += (mSai - mVol);
+
+    if (mHEIni !== null && mHEFim !== null && mHEFim >= mHEIni) {
+      totalMin += (mHEFim - mHEIni);
+    }
+
+    const hFinal = Math.floor(totalMin / 60);
+    const mFinal = totalMin % 60;
+    p.tempoTrabalhado = `${String(hFinal).padStart(2, '0')}h ${String(mFinal).padStart(2, '0')}m`;
+    let vHora = (colab && colab.valorHora) ? Number(colab.valorHora) : 0;
+    if (!vHora && colab && colab.salario) {
+      const jH = parseInt(String(colab.jornada || '44').replace(/\D/g, '')) || 44;
+      vHora = Number(colab.salario) / (jH * 4.545);
+    }
+    const valorDia = (totalMin / 60) * vHora;
+    p.valorSalario = 'R$ ' + valorDia.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    if (vHora > 0) {
+      const vMin = vHora / 60;
+      p.valorHoraInfo = 'R$ ' + vHora.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + '/h · R$ ' + vMin.toFixed(3).replace('.', ',') + '/min';
+    }
+
+    if (idxFunc !== -1) funcionarios[idxFunc] = colab;
+    else funcionarios.push(colab);
+
+    localStorage.setItem('sdv_pontos', JSON.stringify(pontos));
+    localStorage.setItem('sdv_funcionarios', JSON.stringify(funcionarios));
+    localStorage.setItem('sdv_ponto_ultimo_update', Date.now().toString());
+
+    try {
+      if (typeof BroadcastChannel !== 'undefined') {
+        const bc = new BroadcastChannel('sdv_ponto_channel');
+        bc.postMessage({ type: 'PONTO_ATUALIZADO', ponto: p, timestamp: Date.now() });
+        bc.close();
+      }
+    } catch(_) {}
+    try { window.dispatchEvent(new Event('storage')); } catch(_) {}
+
+    try { renderizarResumoPontoCliente(); } catch(e) { console.warn('Erro ao renderizar resumo:', e); }
+    if (typeof renderizarEspelhoPontoCliente === 'function') {
+      try { renderizarEspelhoPontoCliente(); } catch(_) {}
+    }
+    mostrarToastPontoCliente(`✅ ${labelTipo} registrada com sucesso às ${horaStr}!`, true);
+    if (typeof tocarAlertaSonoro === 'function') tocarAlertaSonoro();
+  } catch(err) {
+    console.error('Erro em executarBatidaPontoNoCliente:', err);
+    mostrarToastPontoCliente('⚠️ Erro ao registrar ponto: ' + err.message, false);
+  }
+}
 
     function abrirModalJustificarFalta() {
       const m = document.getElementById('modal-justificar-falta-cliente');
@@ -13705,6 +13723,8 @@ function salvarEventoCronograma() {
   const obj = {
     id: editId || `ev_${Date.now()}`,
     titulo,
+    clienteNome: titulo,
+    cliente: titulo,
     data,
     hora,
     tipo,
@@ -14265,10 +14285,11 @@ setTimeout(aplicarConfigStatusServicoNaTela, 500);
     <div style="display:flex;flex-direction:column;gap:12px;">
       <div class="field">
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">
-          <label style="font-size:12px;font-weight:700;color:var(--text2);margin-bottom:0;">Título do Evento</label>
+          <label style="font-size:12px;font-weight:700;color:var(--text2);margin-bottom:0;">Nome do Cliente</label>
           <button type="button" onclick="abrirConfiguracaoEventosCronograma('tit')" style="background:none;border:none;color:var(--gold);font-size:11px;font-weight:700;cursor:pointer;display:inline-flex;align-items:center;gap:3px;">⚙️ Títulos rápidos</button>
         </div>
-        <input type="text" id="evento-form-titulo" placeholder="Ex: Entrega de obra - Cliente X" style="width:100%;box-sizing:border-box;padding:10px 12px;border-radius:10px;background:#080811;border:1.5px solid rgba(201,168,76,0.3);color:#fff;font-family:inherit;font-size:13px;">
+        <input type="text" id="evento-form-titulo" placeholder="Ex: Dra Isabelle ou João Silva" style="width:100%;box-sizing:border-box;padding:10px 12px;border-radius:10px;background:#080811;border:1.5px solid rgba(201,168,76,0.3);color:#fff;font-family:inherit;font-size:13px;">
+        <input type="hidden" id="evento-form-cliente-nome">
         <!-- Chips de sugestões de títulos -->
         <div id="evento-sugestoes-titulos" style="display:flex;flex-wrap:wrap;gap:5px;margin-top:6px;"></div>
       </div>
