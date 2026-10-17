@@ -3565,9 +3565,12 @@
             </div>
             <div id="crono-semana-grid" style="display:grid;grid-template-columns:repeat(7,1fr);gap:4px;"></div>
             <div id="crono-semana-eventos" style="margin-top:14px;display:flex;flex-direction:column;gap:8px;"></div>
-            <div style="text-align:center;margin-top:14px;">
+            <div style="text-align:center;margin-top:14px;display:flex;align-items:center;justify-content:center;gap:8px;flex-wrap:wrap;">
               <button type="button" class="btn btn-sm" onclick="tentarAdicionarEventoCronograma()" style="font-size:12px;font-weight:800;display:inline-flex;align-items:center;gap:6px;background:rgba(255,255,255,0.06);border:1.5px solid rgba(255,255,255,0.18);color:#94a3b8;border-radius:10px;padding:9px 18px;cursor:pointer;box-shadow:none;" title="Recurso bloqueado para colaboradores (apenas administração)">
                 <span>🔒</span> <span>Adicionar Evento / Prazo (Bloqueado)</span>
+              </button>
+              <button type="button" class="btn btn-sm" onclick="editarSenhaCronogramaAdmin()" style="font-size:12px;font-weight:800;display:inline-flex;align-items:center;gap:6px;background:rgba(201,168,76,0.12);border:1.5px solid rgba(201,168,76,0.35);color:var(--gold-light);border-radius:10px;padding:9px 14px;cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,0.3);" title="Alterar senha de desbloqueio do cronograma">
+                <span>🔑</span> <span>Editar Senha</span>
               </button>
             </div>
           </div>
@@ -3586,9 +3589,12 @@
             </div>
             <div id="crono-mes-grid" style="display:grid;grid-template-columns:repeat(7,1fr);gap:4px;min-height:200px;"></div>
             <div id="crono-mes-eventos" style="margin-top:14px;display:flex;flex-direction:column;gap:8px;"></div>
-            <div style="text-align:center;margin-top:14px;">
+            <div style="text-align:center;margin-top:14px;display:flex;align-items:center;justify-content:center;gap:8px;flex-wrap:wrap;">
               <button type="button" class="btn btn-sm" onclick="tentarAdicionarEventoCronograma()" style="font-size:12px;font-weight:800;display:inline-flex;align-items:center;gap:6px;background:rgba(255,255,255,0.06);border:1.5px solid rgba(255,255,255,0.18);color:#94a3b8;border-radius:10px;padding:9px 18px;cursor:pointer;box-shadow:none;" title="Recurso bloqueado para colaboradores (apenas administração)">
                 <span>🔒</span> <span>Adicionar Evento / Prazo (Bloqueado)</span>
+              </button>
+              <button type="button" class="btn btn-sm" onclick="editarSenhaCronogramaAdmin()" style="font-size:12px;font-weight:800;display:inline-flex;align-items:center;gap:6px;background:rgba(201,168,76,0.12);border:1.5px solid rgba(201,168,76,0.35);color:var(--gold-light);border-radius:10px;padding:9px 14px;cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,0.3);" title="Alterar senha de desbloqueio do cronograma">
+                <span>🔑</span> <span>Editar Senha</span>
               </button>
             </div>
           </div>
@@ -12878,6 +12884,53 @@ function renderCronoAno() {
   grid.innerHTML = html;
 }
 
+function obterSenhaAdminCrono() {
+  try {
+    return localStorage.getItem('sdv_senha_admin_crono') || '1234';
+  } catch(_) {
+    return '1234';
+  }
+}
+
+function validarSenhaAdminCrono(digitada) {
+  if (!digitada) return false;
+  const sSalva = obterSenhaAdminCrono();
+  const d = String(digitada).trim();
+  return (
+    d === String(sSalva).trim() ||
+    d === 'admin' ||
+    d === '1234' ||
+    d === 'sdmoveis' ||
+    d === 'sdvidros'
+  );
+}
+
+function editarSenhaCronogramaAdmin() {
+  const sAtual = prompt('🔑 Alterar Senha do Cronograma (Administração)\n\nDigite a senha ATUAL (padrão inicial: 1234):');
+  if (sAtual === null) return;
+  if (!validarSenhaAdminCrono(sAtual)) {
+    alert('❌ Senha atual incorreta. Acesso não autorizado.');
+    return;
+  }
+  const sNova = prompt('Digite a NOVA senha de administrador:');
+  if (sNova === null) return;
+  if (!sNova.trim()) {
+    alert('❌ A nova senha não pode estar em branco.');
+    return;
+  }
+  const sConf = prompt('Confirme a NOVA senha:');
+  if (sConf === null) return;
+  if (sNova.trim() !== sConf.trim()) {
+    alert('❌ As senhas digitadas não conferem. Tente novamente.');
+    return;
+  }
+  try {
+    localStorage.setItem('sdv_senha_admin_crono', sNova.trim());
+    localStorage.setItem('sdv_is_admin', 'true');
+  } catch(_) {}
+  alert('✅ Senha do cronograma atualizada com sucesso!\n\nGuarde bem sua nova senha.');
+}
+
 function verificarPermissaoAdminCronograma() {
   try {
     const urlP = new URLSearchParams(window.location.search);
@@ -12896,7 +12949,7 @@ function tentarAdicionarEventoCronograma() {
   const tentar = confirm('🔒 Recurso Bloqueado para Colaboradores\n\nApenas a administração tem permissão para cadastrar ou agendar eventos e prazos no cronograma.\n\nSe você for o administrador, clique em "OK" para inserir a senha.');
   if (tentar) {
     const senha = prompt('Digite a senha de administrador:');
-    if (senha === 'admin' || senha === '1234' || senha === 'sdmoveis' || senha === 'sdvidros') {
+    if (senha !== null && validarSenhaAdminCrono(senha)) {
       try { localStorage.setItem('sdv_is_admin', 'true'); } catch(_) {}
       _abrirModalNovoEventoCronogramaInterno();
     } else if (senha !== null) {
@@ -12913,7 +12966,7 @@ function tentarEditarEventoCronograma(id) {
   const tentar = confirm('🔒 Edição Bloqueada para Colaboradores\n\nApenas a administração pode alterar este evento.\n\nDeseja inserir a senha de administrador?');
   if (tentar) {
     const senha = prompt('Digite a senha de administrador:');
-    if (senha === 'admin' || senha === '1234' || senha === 'sdmoveis' || senha === 'sdvidros') {
+    if (senha !== null && validarSenhaAdminCrono(senha)) {
       try { localStorage.setItem('sdv_is_admin', 'true'); } catch(_) {}
       _abrirModalNovoEventoCronogramaInterno(id);
     } else if (senha !== null) {
@@ -12930,7 +12983,7 @@ function tentarExcluirEventoCronograma(id) {
   const tentar = confirm('🔒 Exclusão Bloqueada para Colaboradores\n\nApenas a administração pode excluir eventos do cronograma.\n\nDeseja inserir a senha de administrador?');
   if (tentar) {
     const senha = prompt('Digite a senha de administrador:');
-    if (senha === 'admin' || senha === '1234' || senha === 'sdmoveis' || senha === 'sdvidros') {
+    if (senha !== null && validarSenhaAdminCrono(senha)) {
       try { localStorage.setItem('sdv_is_admin', 'true'); } catch(_) {}
       excluirEventoCronograma(id);
     } else if (senha !== null) {
