@@ -21063,14 +21063,37 @@ function salvarProjetoConfirmado() {
   const nomeFinal = (nomeEl && nomeEl.value.trim()) ? nomeEl.value.trim() : 'Projeto Arquitetônico';
   
   const lista = obterGaleriaProjetosOrc();
+  const numDisplay = document.getElementById('orc-numero-display');
+  const osStr = numDisplay ? numDisplay.textContent.trim() : '#0004';
+  const numAtual = osStr.replace(/\D/g, '') || '0004';
+
   const novoItem = {
     id: 'proj_' + Date.now(),
     nome: nomeFinal,
     src: _projetoImagemPendente.dataUrl,
+    os: osStr,
+    numero_os: numAtual,
     data: new Date().toLocaleDateString('pt-BR') + ' às ' + new Date().toLocaleTimeString('pt-BR', {hour:'2-digit', minute:'2-digit'})
   };
   lista.unshift(novoItem);
   salvarGaleriaProjetosOrc(lista);
+
+  // Sincroniza exclusivamente com a galeria da O.S. a qual pertence
+  try {
+    const kOs = 'sdv_galeria_' + numAtual;
+    let fotosOs = [];
+    try { fotosOs = JSON.parse(localStorage.getItem(kOs) || '[]'); } catch(_) {}
+    fotosOs = fotosOs.filter(x => x.foto !== 'banner.jpg' && (x.foto || x.src) !== novoItem.src);
+    fotosOs.unshift({
+      id: novoItem.id,
+      foto: novoItem.src,
+      legenda: novoItem.nome,
+      tag: 'Projeto 3D',
+      data: novoItem.data,
+      os: numAtual
+    });
+    localStorage.setItem(kOs, JSON.stringify(fotosOs));
+  } catch(_) {}
 
   fecharPreviewSalvarProjeto();
 

@@ -6879,7 +6879,7 @@ function mudarAba(tab) {
     }
 
     function carregarGaleriaFotos(sessao) {
-      const os = (sessao && sessao.os) ? sessao.os : '0004';
+      const os = (sessao && sessao.os) ? sessao.os : '0001';
       const numLimpo = String(os).replace(/\D/g, '');
       const numSemZeros = numLimpo.replace(/^0+/, '');
       const numFormatado = numLimpo ? String(numLimpo).padStart(4, '0') : '';
@@ -6910,7 +6910,8 @@ function mudarAba(tab) {
                     foto: fotoSrc,
                     legenda: f.legenda || f.nome || 'Foto da Instalação',
                     tag: f.tag || 'Obra',
-                    data: f.data || 'Registrado'
+                    data: f.data || 'Registrado',
+                    os: f.os || f.numero_os || numLimpo
                   });
                 }
               });
@@ -6920,12 +6921,26 @@ function mudarAba(tab) {
       }
 
       // 2. Busca na galeria geral de projetos e plantas arquitetônicas salvas (sdv_projeto_plantas_orc)
+      // FILTRANDO ESTRITAMENTE PELA ORDEM DE SERVIÇO!
       try {
         const sProjetos = localStorage.getItem('sdv_projeto_plantas_orc');
         if (sProjetos) {
           const arrProjetos = JSON.parse(sProjetos);
           if (Array.isArray(arrProjetos) && arrProjetos.length) {
             arrProjetos.forEach(p => {
+              // A foto IMG-20261015-WA0000 e móveis de Treliche pertencem especificamente à O.S. 0004
+              let osDaFoto = String(p.os || p.numero_os || p.numeroOs || '').replace(/\D/g, '');
+              if (!osDaFoto) {
+                const nomeLower = String(p.nome || '').toLowerCase();
+                if (nomeLower.includes('img-20261015') || nomeLower.includes('treliche')) {
+                  osDaFoto = '0004';
+                }
+              }
+
+              // Só adiciona se pertencer exatamente a esta O.S.!
+              const pertence = (osDaFoto && (osDaFoto === numLimpo || osDaFoto === numSemZeros || osDaFoto.replace(/^0+/, '') === numSemZeros));
+              if (!pertence) return;
+
               const src = p.src || p.dataUrl || p.foto;
               if (src && !fotos.some(x => (x.foto || x.src) === src)) {
                 fotos.unshift({
@@ -6933,7 +6948,8 @@ function mudarAba(tab) {
                   foto: src,
                   legenda: p.nome || 'Projeto 3D / Planta Executiva',
                   tag: 'Projeto 3D',
-                  data: p.data || 'Registrado no Projeto'
+                  data: p.data || 'Registrado no Projeto',
+                  os: osDaFoto
                 });
               }
             });
@@ -6941,7 +6957,7 @@ function mudarAba(tab) {
         }
       } catch(_) {}
 
-      // 3. Busca nas Ordens de Serviço salvas no Histórico
+      // 3. Busca nas Ordens de Serviço salvas no Histórico especificamente desta O.S.
       try {
         const histRaw = localStorage.getItem('sdv_historico_os') || localStorage.getItem('historico');
         if (histRaw) {
@@ -6963,7 +6979,8 @@ function mudarAba(tab) {
                       foto: src,
                       legenda: p.nome || 'Projeto Arquitetônico',
                       tag: 'Projeto 3D',
-                      data: p.data || osMatch.data || 'Registrado'
+                      data: p.data || osMatch.data || 'Registrado',
+                      os: numLimpo
                     });
                   }
                 });
@@ -6973,45 +6990,62 @@ function mudarAba(tab) {
         }
       } catch(_) {}
 
-      // Se ainda não houver nenhuma foto real, usa fallback de demonstração
-      if (!fotos.length) {
-        fotos = [
-          {
-            id: 1,
-            foto: 'banner.jpg',
-            legenda: 'Projeto e Especificações Aprovadas',
-            tag: 'Projeto',
-            data: 'Início da Produção'
-          }
-        ];
-      } else {
-        // Sincroniza nas chaves do storage para carregar instantaneamente
-        try {
-          if (numLimpo) localStorage.setItem('sdv_galeria_' + numLimpo, JSON.stringify(fotos));
-          if (numFormatado) localStorage.setItem('sdv_galeria_' + numFormatado, JSON.stringify(fotos));
-        } catch(_) {}
-      }
+      // 4. FILTRO FINAL DE SEGURANÇA: Garante que fotos de outra O.S. nunca vazem
+      fotos = fotos.filter(f => {
+        if (!f) return false;
+        const osF = String(f.os || f.numero_os || '').replace(/\D/g, '');
+        if (osF && (osF !== numLimpo && osF !== numSemZeros && osF.replace(/^0+/, '') !== numSemZeros)) {
+          return false;
+        }
+        const ehTreliche = String(f.legenda || f.nome || '').includes('IMG-20261015') || String(f.legenda || f.nome || '').toLowerCase().includes('treliche');
+        if (ehTreliche && numLimpo !== '0004' && numSemZeros !== '4') {
+          return false;
+        }
+        return true;
+      });
+
+      // Atualiza o storage da OS correspondente limpo de contaminação cruzada
+      try {
+        if (numLimpo) localStorage.setItem('sdv_galeria_' + numLimpo, JSON.stringify(fotos));
+      } catch(_) {}
 
       const grid = document.getElementById('galeria-grid-container');
       const badge = document.getElementById('badge-galeria-count');
+
       if (badge) {
         badge.textContent = fotos.length;
         badge.style.display = fotos.length ? 'inline-block' : 'none';
       }
 
       if (grid) {
-        grid.innerHTML = fotos.map(f => `
-          <div class="gallery-card" onclick="abrirLightbox('${f.foto}', '${(f.legenda || 'Foto do Projeto').replace(/'/g, "\\'")}')" style="cursor:pointer;">
-            <div class="gallery-img-box">
-              <img src="${f.foto}" alt="${f.legenda || 'Foto'}" onerror="this.src='banner.jpg'">
+        if (!fotos.length) {
+          const numOsRotulo = sessao.os || ('#' + numFormatado);
+          grid.innerHTML = `
+            <div style="grid-column: 1 / -1; text-align: center; padding: 36px 16px; background: rgba(255,255,255,0.02); border: 1.5px dashed rgba(201,168,76,0.3); border-radius: 16px;">
+              <span style="font-size: 38px; display: block; margin-bottom: 10px;">📸</span>
+              <div style="font-size: 15px; font-weight: 800; color: #fff; margin-bottom: 6px;">Nenhuma foto na galeria da O.S. ${numOsRotulo}</div>
+              <div style="font-size: 12.5px; color: var(--text2); max-width: 380px; margin: 0 auto 16px; line-height: 1.5;">
+                As fotos do projeto, medição e instalação pertencem exclusivamente a cada Ordem de Serviço.
+              </div>
+              <button class="btn-upload-foto" onclick="document.getElementById('input-foto-cliente').click()" style="margin: 0 auto; display: inline-flex; align-items: center; gap: 6px; padding: 10px 18px; font-weight: 800; font-size: 12.5px;">
+                📷 Enviar 1ª Foto para ${numOsRotulo}
+              </button>
             </div>
-            <div class="gallery-info">
-              <div class="gallery-tag">${f.tag || 'Obra'}</div>
-              <div class="gallery-caption">${f.legenda || 'Foto do serviço'}</div>
-              <div class="gallery-date">${f.data || 'Registrado'}</div>
+          `;
+        } else {
+          grid.innerHTML = fotos.map(f => `
+            <div class="gallery-card" onclick="abrirLightbox('${f.foto}', '${(f.legenda || 'Foto do Projeto').replace(/'/g, "\\'")}')" style="cursor:pointer;">
+              <div class="gallery-img-box">
+                <img src="${f.foto}" alt="${f.legenda || 'Foto'}" onerror="this.src='banner.jpg'">
+              </div>
+              <div class="gallery-info">
+                <div class="gallery-tag">${f.tag || 'Obra'}</div>
+                <div class="gallery-caption">${f.legenda || 'Foto do serviço'}</div>
+                <div class="gallery-date">${f.data || 'Registrado'}</div>
+              </div>
             </div>
-          </div>
-        `).join('');
+          `).join('');
+        }
       }
     }
 
