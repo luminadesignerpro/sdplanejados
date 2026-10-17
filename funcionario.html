@@ -2466,9 +2466,14 @@
       <!-- ── ABA 1: STATUS DO SERVIÇO ── -->
       <div id="pane-status" class="tab-pane active">
         <!-- Card Destaque de Status -->
-        <div class="status-hero">
-          <div>
-            <div class="status-current-label">Status Atual do seu Pedido</div>
+        <div class="status-hero" style="position:relative;">
+          <div style="flex:1;min-width:220px;">
+            <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:6px;">
+              <div class="status-current-label" style="margin-bottom:0;">Status Atual do seu Pedido</div>
+              <button type="button" onclick="abrirModalConfigurarStatusServico()" style="background:linear-gradient(135deg,rgba(201,168,76,0.25),rgba(201,168,76,0.1));border:1.5px solid var(--gold);color:var(--gold-light);padding:5px 12px;border-radius:8px;font-size:11.5px;font-weight:900;cursor:pointer;display:inline-flex;align-items:center;gap:6px;box-shadow:0 2px 10px rgba(0,0,0,0.4);transition:all 0.2s;" title="Editar o status atual do serviço">
+                <span>⚙️</span> <span>Editar Status do Serviço</span>
+              </button>
+            </div>
             <div class="status-current-title">
               <span class="status-pulse-dot"></span>
               <span id="hero-status-nome">Em Fabricação & Têmpera</span>
@@ -2477,7 +2482,7 @@
               Vidros temperados e ferragens em processo de corte e usinagem na fábrica.
             </div>
           </div>
-          <div style="background: rgba(0,0,0,0.35); border: 1px solid rgba(201,168,76,0.3); border-radius: 14px; padding: 12px 18px; text-align: right;">
+          <div style="background: rgba(0,0,0,0.35); border: 1px solid rgba(201,168,76,0.3); border-radius: 14px; padding: 12px 18px; text-align: right;display:flex;flex-direction:column;justify-content:center;">
             <div style="font-size: 10.5px; color: var(--gold-light); font-weight: 800; text-transform: uppercase;">Previsão de Instalação</div>
             <div style="font-size: 16px; font-weight: 900; color: #fff; margin-top: 2px;" id="hero-previsao-data">A Combinar</div>
           </div>
@@ -2485,9 +2490,14 @@
 
         <!-- Linha do Tempo / Stepper -->
         <div class="portal-card">
-          <div class="card-title">
-            <span>📍 Etapas do Seu Projeto</span>
-            <span class="badge-gold">Tempo Real</span>
+          <div class="card-title" style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;">
+            <div style="display:flex;align-items:center;gap:8px;">
+              <span>📍 Etapas do Seu Projeto</span>
+              <span class="badge-gold">Tempo Real</span>
+            </div>
+            <button type="button" onclick="abrirModalConfigurarStatusServico()" style="background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.18);color:#cbd5e1;padding:5px 11px;border-radius:8px;font-size:11px;font-weight:800;cursor:pointer;display:inline-flex;align-items:center;gap:5px;" title="Configurar Etapa Atual">
+              <span>⚙️</span> <span>Mudar Etapa</span>
+            </button>
           </div>
 
           <div class="timeline" id="timeline-container">
@@ -4715,6 +4725,66 @@
         </div>
       </div>
 
+
+  <!-- ══ MODAL DE CONFIGURAÇÃO DE STATUS DO SERVIÇO ══ -->
+  <div id="modal-configurar-status-servico" class="modal-overlay" style="display:none;z-index:10000040;position:fixed;inset:0;background:rgba(0,0,0,0.92);backdrop-filter:blur(10px);align-items:center;justify-content:center;padding:16px;" onclick="if(event.target===this)fecharModalConfigurarStatusServico()">
+    <div class="modal-box" onclick="event.stopPropagation()" style="max-width:550px;width:100%;padding:22px;background:#0d0d18;border:1.5px solid var(--gold);border-radius:18px;box-shadow:0 12px 50px rgba(0,0,0,0.92);max-height:92vh;overflow-y:auto;box-sizing:border-box;">
+      
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;border-bottom:1px solid rgba(255,255,255,0.1);padding-bottom:10px;">
+        <div style="display:flex;align-items:center;gap:10px;">
+          <span style="font-size:22px;">⚙️</span>
+          <div>
+            <div style="font-size:16px;font-weight:900;color:#fff;">Editar Status do Serviço</div>
+            <div style="font-size:11.5px;color:var(--gold-light);font-weight:700;">Atualize o andamento da Ordem de Serviço / Projeto</div>
+          </div>
+        </div>
+        <button type="button" onclick="fecharModalConfigurarStatusServico()" style="background:none;border:none;color:#94a3b8;font-size:20px;cursor:pointer;">✕</button>
+      </div>
+
+      <!-- 1. Selecionar Etapa Atual -->
+      <div style="margin-bottom:14px;">
+        <label style="display:block;font-size:11.5px;font-weight:800;color:var(--gold-light);text-transform:uppercase;margin-bottom:8px;">
+          1. Selecione a Etapa do Projeto:
+        </label>
+        <div id="grid-seletor-etapas-status" style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+          <!-- Preenchido via script -->
+        </div>
+      </div>
+
+      <!-- 2. Título do Status -->
+      <div style="margin-bottom:12px;">
+        <label style="display:block;font-size:11.5px;font-weight:800;color:var(--gold-light);text-transform:uppercase;margin-bottom:4px;">
+          2. Título do Status (Exibido no Card Principal):
+        </label>
+        <input type="text" id="cfg-status-titulo" placeholder="Ex: Em Fabricação & Têmpera" style="width:100%;box-sizing:border-box;padding:10px 12px;background:#05050a;border:1.5px solid rgba(201,168,76,0.4);border-radius:8px;color:#fff;font-size:13.5px;font-weight:800;outline:none;" />
+      </div>
+
+      <!-- 3. Descrição Detalhada -->
+      <div style="margin-bottom:12px;">
+        <label style="display:block;font-size:11.5px;font-weight:800;color:var(--gold-light);text-transform:uppercase;margin-bottom:4px;">
+          3. Descrição / Detalhes para o Cliente e Equipe:
+        </label>
+        <textarea id="cfg-status-desc" rows="3" placeholder="Detalhes do que está sendo realizado nesta etapa..." style="width:100%;box-sizing:border-box;padding:10px 12px;background:#05050a;border:1px solid rgba(255,255,255,0.18);border-radius:8px;color:#fff;font-size:12.5px;line-height:1.4;outline:none;resize:vertical;"></textarea>
+      </div>
+
+      <!-- 4. Previsão de Instalação / Entrega -->
+      <div style="margin-bottom:16px;">
+        <label style="display:block;font-size:11.5px;font-weight:800;color:var(--gold-light);text-transform:uppercase;margin-bottom:4px;">
+          4. Previsão de Instalação / Conclusão:
+        </label>
+        <input type="text" id="cfg-status-previsao" placeholder="Ex: A Combinar / 25/10/2026 / Segunda-feira às 14h" style="width:100%;box-sizing:border-box;padding:10px 12px;background:#05050a;border:1px solid rgba(255,255,255,0.18);border-radius:8px;color:#fff;font-size:13px;font-weight:700;outline:none;" />
+      </div>
+
+      <!-- Botões de Ação -->
+      <div style="display:flex;gap:10px;justify-content:flex-end;">
+        <button type="button" class="btn btn-sec btn-sm" onclick="fecharModalConfigurarStatusServico()">Cancelar</button>
+        <button type="button" class="btn btn-gold btn-sm" onclick="salvarConfigStatusServico()" style="padding:10px 22px;font-size:13px;font-weight:900;display:inline-flex;align-items:center;gap:6px;box-shadow:0 3px 15px rgba(201,168,76,0.35);">
+          <span>💾</span> <span>Salvar Status</span>
+        </button>
+      </div>
+
+    </div>
+  </div>
 
   <!-- ══ MODAL ESCOLHER COLABORADOR CADASTRADO PARA JOGAR ══ -->
   <div id="modal-escolher-colaborador-jogo" class="modal-overlay" style="display:none;z-index:10000050;background:rgba(0,0,0,0.88);backdrop-filter:blur(10px);position:fixed;inset:0;align-items:center;justify-content:center;padding:16px;">
@@ -13313,6 +13383,214 @@ function enviarPedidoMaterialWhatsApp() {
 
   window.open(url, '_blank', 'noopener');
 }
+
+// ══════════════════════════════════════════════════════════════════
+//  MÓDULO: CONFIGURAR STATUS DO SERVIÇO & ETAPAS DO PROJETO
+// ══════════════════════════════════════════════════════════════════
+const ETAPAS_STATUS_SERVICO_PRESETS = [
+  {
+    num: 1,
+    icone: '✓',
+    label: '1. Orçamento Aprovado',
+    titulo: 'Orçamento Aprovado & Confirmado',
+    desc: 'Projeto aceito e registrado no sistema. Medição técnica sendo agendada.',
+    previsao: 'A Combinar'
+  },
+  {
+    num: 2,
+    icone: '📐',
+    label: '2. Medição Técnica',
+    titulo: 'Medição Técnica Realizada',
+    desc: 'Conferência milimétrica dos vãos e detalhes de fixação concluída no local.',
+    previsao: 'A Combinar'
+  },
+  {
+    num: 3,
+    icone: '⚙️',
+    label: '3. Fabricação & Têmpera',
+    titulo: 'Em Fabricação & Têmpera',
+    desc: 'Vidros cortados e encaminhados para têmpera e lapidação.',
+    previsao: 'A combinar com equipe'
+  },
+  {
+    num: 4,
+    icone: '🚚',
+    label: '4. Pronto p/ Transporte',
+    titulo: 'Pronto para Transporte & Montagem',
+    desc: 'Peças revisadas no controle de qualidade, embaladas e aguardando rota de instalação.',
+    previsao: 'A combinar com equipe'
+  },
+  {
+    num: 5,
+    icone: '🔧',
+    label: '5. Em Instalação',
+    titulo: 'Em Instalação no Local',
+    desc: 'Equipe de vidraceiros e montadores realizando a instalação e ajustes finos no local.',
+    previsao: 'Em andamento hoje'
+  },
+  {
+    num: 6,
+    icone: '🏆',
+    label: '6. Concluído',
+    titulo: 'Concluído com Sucesso',
+    desc: 'Serviço entregue, vistoriado, limpo e termo de garantia ativado com sucesso!',
+    previsao: 'Entregue'
+  }
+];
+
+let _etapaStatusSelecionadaModal = 3;
+
+function obterChaveStorageStatusServico() {
+  try {
+    const urlP = new URLSearchParams(window.location.search);
+    const pid = urlP.get('id') || urlP.get('pedido') || urlP.get('os') || 'default';
+    return 'sdv_status_servico_os_' + pid;
+  } catch(_) {
+    return 'sdv_status_servico_os_default';
+  }
+}
+
+function obterConfigStatusServico() {
+  const chave = obterChaveStorageStatusServico();
+  try {
+    const salvo = localStorage.getItem(chave) || localStorage.getItem('sdv_status_servico_config');
+    if (salvo) return JSON.parse(salvo);
+  } catch(_) {}
+  return {
+    etapa: 3,
+    titulo: 'Em Fabricação & Têmpera',
+    desc: 'Vidros cortados e encaminhados para têmpera e lapidação.',
+    previsao: 'A combinar com equipe'
+  };
+}
+
+function salvarConfigStatusServicoDados(cfg) {
+  const chave = obterChaveStorageStatusServico();
+  try {
+    localStorage.setItem(chave, JSON.stringify(cfg));
+    localStorage.setItem('sdv_status_servico_config', JSON.stringify(cfg));
+  } catch(_) {}
+}
+
+function abrirModalConfigurarStatusServico() {
+  const cfg = obterConfigStatusServico();
+  _etapaStatusSelecionadaModal = cfg.etapa || 3;
+
+  renderizarSeletorEtapasStatusModal();
+
+  const inpTit = document.getElementById('cfg-status-titulo');
+  const inpDesc = document.getElementById('cfg-status-desc');
+  const inpPrev = document.getElementById('cfg-status-previsao');
+
+  if (inpTit) inpTit.value = cfg.titulo || '';
+  if (inpDesc) inpDesc.value = cfg.desc || '';
+  if (inpPrev) inpPrev.value = cfg.previsao || '';
+
+  const m = document.getElementById('modal-configurar-status-servico');
+  if (m) m.style.display = 'flex';
+}
+
+function fecharModalConfigurarStatusServico() {
+  const m = document.getElementById('modal-configurar-status-servico');
+  if (m) m.style.display = 'none';
+}
+
+function renderizarSeletorEtapasStatusModal() {
+  const grid = document.getElementById('grid-seletor-etapas-status');
+  if (!grid) return;
+
+  grid.innerHTML = ETAPAS_STATUS_SERVICO_PRESETS.map(p => {
+    const isSel = p.num === _etapaStatusSelecionadaModal;
+    return `
+      <div onclick="selecionarEtapaPredefinidaModal(${p.num})" style="cursor:pointer;padding:8px 10px;border-radius:10px;border:1.5px solid ${isSel ? 'var(--gold)' : 'rgba(255,255,255,0.1)'};background:${isSel ? 'rgba(201,168,76,0.18)' : '#070912'};display:flex;align-items:center;gap:8px;transition:all 0.2s;">
+        <span style="font-size:16px;">${p.icone}</span>
+        <div style="font-size:11.5px;font-weight:${isSel ? '900' : '700'};color:${isSel ? '#fff' : '#94a3b8'};overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">
+          ${p.label}
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+function selecionarEtapaPredefinidaModal(num) {
+  _etapaStatusSelecionadaModal = num;
+  renderizarSeletorEtapasStatusModal();
+
+  const preset = ETAPAS_STATUS_SERVICO_PRESETS.find(p => p.num === num);
+  if (preset) {
+    const inpTit = document.getElementById('cfg-status-titulo');
+    const inpDesc = document.getElementById('cfg-status-desc');
+    const inpPrev = document.getElementById('cfg-status-previsao');
+
+    if (inpTit) inpTit.value = preset.titulo;
+    if (inpDesc) inpDesc.value = preset.desc;
+    if (inpPrev && (!inpPrev.value || inpPrev.value === 'A Combinar' || inpPrev.value === 'A combinar com equipe')) {
+      inpPrev.value = preset.previsao;
+    }
+  }
+}
+
+function salvarConfigStatusServico() {
+  const inpTit = document.getElementById('cfg-status-titulo');
+  const inpDesc = document.getElementById('cfg-status-desc');
+  const inpPrev = document.getElementById('cfg-status-previsao');
+
+  const tituloFinal = (inpTit && inpTit.value.trim()) ? inpTit.value.trim() : 'Em Andamento';
+  const descFinal = (inpDesc && inpDesc.value.trim()) ? inpDesc.value.trim() : 'Serviço em execução.';
+  const prevFinal = (inpPrev && inpPrev.value.trim()) ? inpPrev.value.trim() : 'A Combinar';
+
+  const cfg = {
+    etapa: _etapaStatusSelecionadaModal,
+    titulo: tituloFinal,
+    desc: descFinal,
+    previsao: prevFinal,
+    dataAtualizacao: new Date().toLocaleDateString('pt-BR') + ' às ' + new Date().toLocaleTimeString('pt-BR', {hour:'2-digit', minute:'2-digit'})
+  };
+
+  salvarConfigStatusServicoDados(cfg);
+  aplicarConfigStatusServicoNaTela(cfg);
+  fecharModalConfigurarStatusServico();
+
+  alert('✅ Status do serviço atualizado com sucesso!\n\nEtapa ' + cfg.etapa + ': ' + cfg.titulo);
+}
+
+function aplicarConfigStatusServicoNaTela(cfg) {
+  if (!cfg) cfg = obterConfigStatusServico();
+
+  const titEl = document.getElementById('hero-status-nome');
+  const descEl = document.getElementById('hero-status-desc');
+  const prevEl = document.getElementById('hero-previsao-data');
+
+  if (titEl) titEl.textContent = cfg.titulo || 'Em Fabricação & Têmpera';
+  if (descEl) descEl.textContent = cfg.desc || 'Vidros cortados e encaminhados para têmpera e lapidação.';
+  if (prevEl) prevEl.textContent = cfg.previsao || 'A Combinar';
+
+  const etapaAtiva = Number(cfg.etapa) || 3;
+  for (let i = 1; i <= 6; i++) {
+    const stepEl = document.getElementById('step-' + i);
+    if (!stepEl) continue;
+
+    const iconEl = stepEl.querySelector('.timeline-icon-wrap');
+    stepEl.classList.remove('done', 'active');
+
+    if (i < etapaAtiva) {
+      stepEl.classList.add('done');
+      if (iconEl) iconEl.textContent = '✓';
+    } else if (i === etapaAtiva) {
+      stepEl.classList.add('active');
+      const preset = ETAPAS_STATUS_SERVICO_PRESETS.find(p => p.num === i);
+      if (iconEl) iconEl.textContent = (preset && preset.icone) ? preset.icone : '⚙️';
+    } else {
+      const preset = ETAPAS_STATUS_SERVICO_PRESETS.find(p => p.num === i);
+      if (iconEl) iconEl.textContent = (preset && preset.icone) ? preset.icone : i;
+    }
+  }
+}
+
+window.addEventListener('DOMContentLoaded', function() {
+  setTimeout(aplicarConfigStatusServicoNaTela, 100);
+});
+setTimeout(aplicarConfigStatusServicoNaTela, 500);
 
   </script>
 
