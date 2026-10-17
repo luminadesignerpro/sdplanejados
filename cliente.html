@@ -6879,13 +6879,101 @@ function mudarAba(tab) {
     }
 
     function carregarGaleriaFotos(sessao) {
-      const key = getGaleriaStorageKey(sessao.os);
-      let fotos = [];
-      try {
-        fotos = JSON.parse(localStorage.getItem(key) || '[]');
-      } catch (_) {}
+      const os = (sessao && sessao.os) ? sessao.os : '0004';
+      const numLimpo = String(os).replace(/\D/g, '');
+      const numSemZeros = numLimpo.replace(/^0+/, '');
+      const numFormatado = numLimpo ? String(numLimpo).padStart(4, '0') : '';
 
-      // Fotos padrão de demonstração se vazio
+      let fotos = [];
+
+      // 1. Tenta carregar fotos específicas salvas para esta OS
+      const chaves = [
+        'sdv_galeria_' + numLimpo,
+        'sdv_galeria_' + numSemZeros,
+        'sdv_galeria_' + numFormatado,
+        'sdv_galeria_os_' + numLimpo,
+        'sdv_galeria_os_' + numFormatado
+      ];
+
+      for (const k of chaves) {
+        if (!k || k === 'sdv_galeria_') continue;
+        try {
+          const s = localStorage.getItem(k);
+          if (s) {
+            const arr = JSON.parse(s);
+            if (Array.isArray(arr) && arr.length) {
+              arr.forEach(f => {
+                const fotoSrc = f.foto || f.src || f.dataUrl;
+                if (fotoSrc && fotoSrc !== 'banner.jpg' && !fotos.some(x => (x.foto || x.src) === fotoSrc)) {
+                  fotos.push({
+                    id: f.id || Date.now(),
+                    foto: fotoSrc,
+                    legenda: f.legenda || f.nome || 'Foto da Instalação',
+                    tag: f.tag || 'Obra',
+                    data: f.data || 'Registrado'
+                  });
+                }
+              });
+            }
+          }
+        } catch(_) {}
+      }
+
+      // 2. Busca na galeria geral de projetos e plantas arquitetônicas salvas (sdv_projeto_plantas_orc)
+      try {
+        const sProjetos = localStorage.getItem('sdv_projeto_plantas_orc');
+        if (sProjetos) {
+          const arrProjetos = JSON.parse(sProjetos);
+          if (Array.isArray(arrProjetos) && arrProjetos.length) {
+            arrProjetos.forEach(p => {
+              const src = p.src || p.dataUrl || p.foto;
+              if (src && !fotos.some(x => (x.foto || x.src) === src)) {
+                fotos.unshift({
+                  id: p.id || ('proj_' + Date.now()),
+                  foto: src,
+                  legenda: p.nome || 'Projeto 3D / Planta Executiva',
+                  tag: 'Projeto 3D',
+                  data: p.data || 'Registrado no Projeto'
+                });
+              }
+            });
+          }
+        }
+      } catch(_) {}
+
+      // 3. Busca nas Ordens de Serviço salvas no Histórico
+      try {
+        const histRaw = localStorage.getItem('sdv_historico_os') || localStorage.getItem('historico');
+        if (histRaw) {
+          const hist = JSON.parse(histRaw);
+          if (Array.isArray(hist)) {
+            const osMatch = hist.find(x => {
+              const n = String(x.numero || x.id || '').replace(/\D/g, '');
+              return n === numLimpo || n === numSemZeros;
+            });
+            if (osMatch) {
+              const dadosOs = osMatch.dados || osMatch;
+              const galPlantas = dadosOs.galeria_plantas || osMatch.galeria_plantas;
+              if (Array.isArray(galPlantas) && galPlantas.length) {
+                galPlantas.forEach(p => {
+                  const src = p.src || p.dataUrl || p.foto;
+                  if (src && !fotos.some(x => (x.foto || x.src) === src)) {
+                    fotos.unshift({
+                      id: p.id || ('proj_' + Date.now()),
+                      foto: src,
+                      legenda: p.nome || 'Projeto Arquitetônico',
+                      tag: 'Projeto 3D',
+                      data: p.data || osMatch.data || 'Registrado'
+                    });
+                  }
+                });
+              }
+            }
+          }
+        }
+      } catch(_) {}
+
+      // Se ainda não houver nenhuma foto real, usa fallback de demonstração
       if (!fotos.length) {
         fotos = [
           {
@@ -6896,7 +6984,12 @@ function mudarAba(tab) {
             data: 'Início da Produção'
           }
         ];
-        localStorage.setItem(key, JSON.stringify(fotos));
+      } else {
+        // Sincroniza nas chaves do storage para carregar instantaneamente
+        try {
+          if (numLimpo) localStorage.setItem('sdv_galeria_' + numLimpo, JSON.stringify(fotos));
+          if (numFormatado) localStorage.setItem('sdv_galeria_' + numFormatado, JSON.stringify(fotos));
+        } catch(_) {}
       }
 
       const grid = document.getElementById('galeria-grid-container');
@@ -6906,18 +6999,20 @@ function mudarAba(tab) {
         badge.style.display = fotos.length ? 'inline-block' : 'none';
       }
 
-      grid.innerHTML = fotos.map(f => `
-        <div class="gallery-card" onclick="abrirLightbox('${f.foto}', '${f.legenda || 'Foto da obra'}')">
-          <div class="gallery-img-box">
-            <img src="${f.foto}" alt="${f.legenda || 'Foto'}" onerror="this.src='banner.jpg'">
+      if (grid) {
+        grid.innerHTML = fotos.map(f => `
+          <div class="gallery-card" onclick="abrirLightbox('${f.foto}', '${(f.legenda || 'Foto do Projeto').replace(/'/g, "\\'")}')" style="cursor:pointer;">
+            <div class="gallery-img-box">
+              <img src="${f.foto}" alt="${f.legenda || 'Foto'}" onerror="this.src='banner.jpg'">
+            </div>
+            <div class="gallery-info">
+              <div class="gallery-tag">${f.tag || 'Obra'}</div>
+              <div class="gallery-caption">${f.legenda || 'Foto do serviço'}</div>
+              <div class="gallery-date">${f.data || 'Registrado'}</div>
+            </div>
           </div>
-          <div class="gallery-info">
-            <div class="gallery-tag">${f.tag || 'Obra'}</div>
-            <div class="gallery-caption">${f.legenda || 'Foto do serviço'}</div>
-            <div class="gallery-date">${f.data || 'Hoje'}</div>
-          </div>
-        </div>
-      `).join('');
+        `).join('');
+      }
     }
 
     function uploadFotoCliente(event) {
