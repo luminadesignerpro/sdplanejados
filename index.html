@@ -619,16 +619,16 @@
       border: 1px solid rgba(255,255,255,0.07); margin-top: 12px;
     }
     .ponto-table {
-      width: 100%; border-collapse: collapse; min-width: 820px; font-size: 13px;
+      width: 100%; border-collapse: collapse; min-width: 980px; font-size: 13px;
     }
     .ponto-table th {
       background: #0a0a14; color: var(--muted); font-size: 11px; font-weight: 800;
       text-transform: uppercase; letter-spacing: 0.06em; padding: 12px 14px; text-align: left;
-      border-bottom: 1px solid rgba(255,255,255,0.08);
+      border-bottom: 1px solid rgba(255,255,255,0.08); white-space: nowrap;
     }
     .ponto-table td {
       padding: 12px 14px; border-bottom: 1px solid rgba(255,255,255,0.04); background: var(--surface);
-      vertical-align: middle;
+      vertical-align: middle; white-space: nowrap;
     }
     .ponto-table tr:hover td {
       background: rgba(255,255,255,0.02);
@@ -2481,18 +2481,19 @@
           </div>
           <div class="field">
             <label style="font-size:11px;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:0.05em;display:block;margin-bottom:4px;">Tipo de Atendimento</label>
-            <select id="pessoal-novo-tipo" style="width:100%;padding:10px;border-radius:8px;background:#080811;border:1px solid rgba(255,255,255,0.12);color:#fff;font-family:var(--font);">
-              <option value="Medição Técnica">📐 Medição Técnica</option>
-              <option value="Compromisso Pessoal">📅 Compromisso Pessoal</option>
-              <option value="Reunião">👥 Reunião</option>
-              <option value="Instalação de Box">🚿 Instalação de Box</option>
-              <option value="Instalação de Vidro / Janela">🪟 Instalação Vidro/Janela</option>
-              <option value="Entrega de Espelho">🪞 Entrega de Espelho</option>
-              <option value="Manutenção / Regulagem">🔧 Manutenção / Regulagem</option>
-              <option value="Vistoria Técnica">📋 Vistoria Técnica</option>
-              <option value="Banco / Finanças">💰 Banco / Finanças</option>
-              <option value="Outro Atendimento">📍 Outro Atendimento</option>
-            </select>
+            <input list="lista-tipos-atendimento" id="pessoal-novo-tipo" placeholder="Escreva o tipo de atendimento..." style="width:100%;box-sizing:border-box;padding:10px 12px;border-radius:8px;background:#080811;border:1px solid rgba(255,255,255,0.12);color:#fff;font-family:var(--font);font-size:13px;" />
+            <datalist id="lista-tipos-atendimento">
+              <option value="Medição Técnica">
+              <option value="Compromisso Pessoal">
+              <option value="Reunião">
+              <option value="Instalação de Box">
+              <option value="Instalação de Vidro / Janela">
+              <option value="Entrega de Espelho">
+              <option value="Manutenção / Regulagem">
+              <option value="Vistoria Técnica">
+              <option value="Banco / Finanças">
+              <option value="Outro Atendimento">
+            </datalist>
           </div>
         </div>
 
@@ -3113,15 +3114,15 @@
           <thead>
             <tr>
               <th style="min-width:150px">COLABORADOR</th>
-              <th style="width:95px">DATA</th>
-              <th style="width:85px">ENTRADA 1</th>
-              <th style="width:95px">SAÍDA ALMOÇO</th>
-              <th style="width:95px">VOLTA ALMOÇO</th>
-              <th style="width:90px">SAÍDA FINAL</th>
+              <th style="min-width:95px">DATA</th>
+              <th style="min-width:85px">ENTRADA 1</th>
+              <th style="min-width:95px">SAÍDA ALMOÇO</th>
+              <th style="min-width:95px">VOLTA ALMOÇO</th>
+              <th style="min-width:105px">SAÍDA FINAL</th>
               <th style="min-width:115px">HORA NEGATIVA</th>
               <th style="min-width:130px">VALOR DO SALÁRIO</th>
               <th style="min-width:110px">TEMPO TRABALHADO</th>
-              <th style="width:110px;text-align:center">AÇÕES</th>
+              <th style="min-width:110px;text-align:center">AÇÕES</th>
             </tr>
           </thead>
           <tbody id="espelho-ponto-tbody"></tbody>
@@ -11385,6 +11386,19 @@ function atualizarEspelhoPontoTempoReal() {
 }
 
 function renderPontoView() {
+  try {
+    const rawP = localStorage.getItem('sdv_pontos');
+    if (rawP) {
+      const arrP = JSON.parse(rawP);
+      if (Array.isArray(arrP)) pontosLista = arrP;
+    }
+    const rawF = localStorage.getItem('sdv_funcionarios');
+    if (rawF) {
+      const arrF = JSON.parse(rawF);
+      if (Array.isArray(arrF) && arrF.length) funcionariosLista = arrF;
+    }
+  } catch(_) {}
+
   iniciarRelogioPonto();
   atualizarSelectColaboradoresPonto();
   renderFuncionarios();
@@ -11502,8 +11516,24 @@ function renderEspelhoPonto() {
   const tbody = document.getElementById('espelho-ponto-tbody');
   if (!tbody) return;
 
+  // Recarrega sempre do storage para sincronizar instantaneamente com batidas do Portal Equipe
+  try {
+    const rawP = localStorage.getItem('sdv_pontos');
+    if (rawP) {
+      const arrP = JSON.parse(rawP);
+      if (Array.isArray(arrP)) pontosLista = arrP;
+    }
+    const rawF = localStorage.getItem('sdv_funcionarios');
+    if (rawF) {
+      const arrF = JSON.parse(rawF);
+      if (Array.isArray(arrF) && arrF.length) funcionariosLista = arrF;
+    }
+  } catch(_) {}
+
   const selFiltro = document.getElementById('filtro-ponto-colaborador');
   const filtroId = selFiltro && selFiltro.value ? parseInt(selFiltro.value) : null;
+  const colabFiltro = filtroId ? funcionariosLista.find(x => x.id === filtroId) : null;
+  const colabFiltroPri = colabFiltro ? (colabFiltro.nome || '').toLowerCase().split(' ')[0] : '';
 
   // Garante que todos os registros tenham recálculo exato de horas, minutos trabalhados e salário
   pontosLista.forEach(p => {
@@ -11512,7 +11542,14 @@ function renderEspelhoPonto() {
 
   let lista = pontosLista.slice();
   if (filtroId) {
-    lista = lista.filter(p => p.colaboradorId === filtroId);
+    lista = lista.filter(p => {
+      if (p.colaboradorId === filtroId) return true;
+      if (colabFiltroPri && p.colaboradorNome) {
+        const pPri = String(p.colaboradorNome).toLowerCase().split(' ')[0];
+        if (pPri === colabFiltroPri && pPri.length >= 3) return true;
+      }
+      return false;
+    });
   }
 
   // Se não há registros e há colaboradores ativos, cria hoje para que os valores apareçam
@@ -11528,7 +11565,12 @@ function renderEspelhoPonto() {
   }
 
   tbody.innerHTML = lista.map(p => {
-    const f = funcionariosLista.find(x => x.id === p.colaboradorId) || funcionariosLista.find(x => (x.nome||'').toLowerCase() === (p.colaboradorNome||'').toLowerCase());
+    const pNome = String(p.colaboradorNome || '').toLowerCase();
+    const pPri = pNome.split(' ')[0];
+    const f = funcionariosLista.find(x => x.id === p.colaboradorId) ||
+              funcionariosLista.find(x => (x.nome||'').toLowerCase() === pNome) ||
+              funcionariosLista.find(x => (x.nome||'').toLowerCase().split(' ')[0] === pPri && pPri.length >= 3) ||
+              funcionariosLista[0];
     const nomeColab = f ? f.nome : (p.colaboradorNome || 'Colaborador');
     const vhInfo = p.valorHoraInfo || (f && f.valorHora ? `R$ ${Number(f.valorHora).toFixed(2).replace('.',',')}/h` : '');
 
@@ -11537,8 +11579,8 @@ function renderEspelhoPonto() {
       : `<span class="ponto-badge-tempo">${p.tempoTrabalhado || '00h 00m'}</span>`;
 
     const saidaFinalBadge = p.saidaFinal
-      ? `<span class="ponto-hora-sai">${p.saidaFinal}</span>`
-      : (p.emAndamento ? `<span style="color:#4ade80;font-size:11px;font-weight:800;background:rgba(34,197,94,0.12);padding:2px 6px;border-radius:6px;border:1px solid rgba(34,197,94,0.3);">🟢 Em Aberto</span>` : `<span class="ponto-hora-null">--:--</span>`);
+      ? `<span class="ponto-hora-sai" style="white-space:nowrap;">${p.saidaFinal}</span>`
+      : (p.emAndamento ? `<span style="color:#4ade80;font-size:11px;font-weight:800;background:rgba(34,197,94,0.12);padding:2px 7px;border-radius:6px;border:1px solid rgba(34,197,94,0.3);white-space:nowrap;display:inline-flex;align-items:center;gap:4px;">🟢 Em Aberto</span>` : `<span class="ponto-hora-null" style="white-space:nowrap;">--:--</span>`);
 
     // Badges visíveis diretamente em cada ponto (ENTRADA 1, ALMOÇO, etc.)
     const ehFdsP = ehFimDeSemanaPonto(p.data);
@@ -12466,9 +12508,11 @@ function recalcularHorasPonto(p, colab) {
   }
   if (!colab && p.colaboradorNome) {
     const pNome = String(p.colaboradorNome).toLowerCase().trim();
+    const pPri = pNome.split(' ')[0];
     colab = funcionariosLista.find(x => {
       const xNome = String(x.nome || '').toLowerCase().trim();
-      return xNome === pNome || xNome.includes(pNome) || pNome.includes(xNome);
+      const xPri = xNome.split(' ')[0];
+      return xNome === pNome || xNome.includes(pNome) || pNome.includes(xNome) || (xPri === pPri && pPri.length >= 3);
     });
   }
 
@@ -20424,17 +20468,29 @@ if (typeof setInterval !== 'undefined') {
 <!-- ══════════════════════════════════════════════════════════════════ -->
 <div id="modal-novo-evento-cronograma" class="modal-overlay" style="display:none;z-index:9999999;position:fixed;inset:0;" onclick="if(event.target===this)fecharModalNovoEventoCronograma()">
   <div class="modal-box" onclick="event.stopPropagation()" style="max-width:460px;padding:24px 20px;">
-    <div class="modal-title" style="display:flex;justify-content:space-between;align-items:center;margin-bottom:18px;">
-      <div style="font-size:15px;font-weight:900;color:#fff;display:flex;align-items:center;gap:8px;"><span>📅</span> <span id="evento-cronograma-titulo">Novo Evento / Prazo</span></div>
-      <button type="button" class="modal-close" onclick="fecharModalNovoEventoCronograma()">✕</button>
+    <div class="modal-title" style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
+      <div style="font-size:15px;font-weight:900;color:#fff;display:flex;align-items:center;gap:8px;">
+        <span>📅</span> <span id="evento-cronograma-titulo">Novo Evento / Prazo</span>
+      </div>
+      <div style="display:flex;align-items:center;gap:8px;">
+        <button type="button" onclick="abrirConfiguracaoEventosCronograma()" title="Configurar Tipos, Categorias e Títulos" style="background:linear-gradient(135deg,rgba(201,168,76,0.22),rgba(201,168,76,0.08));border:1.2px solid var(--gold);color:var(--gold-light);padding:5px 11px;border-radius:8px;font-size:11.5px;font-weight:800;display:inline-flex;align-items:center;gap:5px;cursor:pointer;transition:all 0.2s;">
+          <span>⚙️</span> <span>Configurar</span>
+        </button>
+        <button type="button" class="modal-close" onclick="fecharModalNovoEventoCronograma()">✕</button>
+      </div>
     </div>
 
     <input type="hidden" id="evento-cronograma-edit-id" value="">
 
     <div style="display:flex;flex-direction:column;gap:12px;">
       <div class="field">
-        <label>Título do Evento</label>
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">
+          <label style="margin-bottom:0;">Título do Evento</label>
+          <button type="button" onclick="abrirConfiguracaoEventosCronograma('tit')" style="background:none;border:none;color:var(--gold);font-size:11px;font-weight:700;cursor:pointer;display:inline-flex;align-items:center;gap:3px;">⚙️ Títulos rápidos</button>
+        </div>
         <input type="text" id="evento-form-titulo" placeholder="Ex: Entrega de obra - Cliente X" style="width:100%;padding:10px 12px;border-radius:10px;background:#080811;border:1.5px solid rgba(201,168,76,0.3);color:#fff;font-family:var(--font);font-size:13px;">
+        <!-- Chips de sugestões de títulos -->
+        <div id="evento-sugestoes-titulos" style="display:flex;flex-wrap:wrap;gap:5px;margin-top:6px;"></div>
       </div>
       <div class="field-row">
         <div class="field">
@@ -20447,7 +20503,10 @@ if (typeof setInterval !== 'undefined') {
         </div>
       </div>
       <div class="field">
-        <label>Tipo / Categoria</label>
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">
+          <label style="margin-bottom:0;">Tipo / Categoria</label>
+          <button type="button" onclick="abrirConfiguracaoEventosCronograma('cat')" style="background:none;border:none;color:var(--gold);font-size:11px;font-weight:700;cursor:pointer;display:inline-flex;align-items:center;gap:3px;">⚙️ Gerenciar Categorias</button>
+        </div>
         <select id="evento-form-tipo" onchange="alternarCampoCustomTipoEvento(this.value)" style="width:100%;padding:10px 12px;border-radius:10px;background:#080811;border:1.5px solid rgba(201,168,76,0.3);color:#fff;font-family:var(--font);font-size:13px;">
           <option value="editar_os">📋 Editar O.S. (Ordem de Serviço)</option>
           <option value="entrega">🚚 Entrega de Obra</option>
@@ -20484,6 +20543,92 @@ if (typeof setInterval !== 'undefined') {
     <div style="display:flex;gap:8px;margin-top:16px;">
       <button type="button" class="btn btn-sec btn-sm" onclick="fecharModalNovoEventoCronograma()" style="flex:1;">Cancelar</button>
       <button type="button" class="btn btn-gold" onclick="salvarEventoCronograma()" style="flex:2;font-size:13px;font-weight:800;">💾 Salvar Evento</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════════════ -->
+<!--  MODAL: CONFIGURAR EVENTOS, CATEGORIAS E TÍTULOS                  -->
+<!-- ══════════════════════════════════════════════════════════════════ -->
+<div id="modal-config-eventos-cronograma" class="modal-overlay" style="display:none;z-index:99999999;position:fixed;inset:0;" onclick="if(event.target===this)fecharConfiguracaoEventosCronograma()">
+  <div class="modal-box" onclick="event.stopPropagation()" style="max-width:480px;padding:22px 20px;max-height:90vh;overflow-y:auto;">
+    <div class="modal-title" style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;">
+      <div style="font-size:15px;font-weight:900;color:#fff;display:flex;align-items:center;gap:8px;">
+        <span>⚙️</span> <span>Configurar Eventos & Categorias</span>
+      </div>
+      <button type="button" class="modal-close" onclick="fecharConfiguracaoEventosCronograma()">✕</button>
+    </div>
+
+    <!-- Navegação de Abas da Configuração -->
+    <div style="display:flex;gap:6px;margin-bottom:16px;background:rgba(255,255,255,0.05);padding:4px;border-radius:10px;">
+      <button type="button" id="tab-btn-cfg-cat" onclick="trocarAbaConfigEventos('cat')" style="flex:1;padding:8px 12px;border:none;border-radius:8px;font-size:12px;font-weight:800;background:var(--gold);color:#0a0914;cursor:pointer;transition:all 0.2s;">
+        🏷️ Tipos & Categorias
+      </button>
+      <button type="button" id="tab-btn-cfg-tit" onclick="trocarAbaConfigEventos('tit')" style="flex:1;padding:8px 12px;border:none;border-radius:8px;font-size:12px;font-weight:700;background:transparent;color:var(--text2);cursor:pointer;transition:all 0.2s;">
+        📝 Títulos Sugeridos
+      </button>
+    </div>
+
+    <!-- ABA 1: CATEGORIAS -->
+    <div id="aba-cfg-categorias" style="display:block;">
+      <div style="font-size:12px;color:var(--muted);margin-bottom:12px;">
+        Personalize os tipos de eventos, cores e emojis exibidos no cronograma:
+      </div>
+
+      <!-- Formulário de Nova / Editar Categoria -->
+      <div style="background:rgba(201,168,76,0.08);border:1px dashed rgba(201,168,76,0.3);border-radius:10px;padding:12px;margin-bottom:14px;">
+        <div style="font-size:12px;font-weight:800;color:var(--gold-light);margin-bottom:8px;" id="titulo-form-cfg-cat">
+          ➕ Adicionar Nova Categoria
+        </div>
+        <input type="hidden" id="cfg-cat-edit-id" value="">
+        <div style="display:grid;grid-template-columns:55px 1fr 60px;gap:8px;margin-bottom:8px;">
+          <div>
+            <label style="font-size:10px;color:var(--muted);display:block;margin-bottom:3px;">Ícone</label>
+            <input type="text" id="cfg-cat-emoji" value="📌" style="width:100%;text-align:center;padding:8px;border-radius:8px;background:#080811;border:1px solid rgba(201,168,76,0.3);color:#fff;font-size:15px;">
+          </div>
+          <div>
+            <label style="font-size:10px;color:var(--muted);display:block;margin-bottom:3px;">Nome da Categoria</label>
+            <input type="text" id="cfg-cat-nome" placeholder="Ex: Vistoria Prévia" style="width:100%;padding:8px 10px;border-radius:8px;background:#080811;border:1px solid rgba(201,168,76,0.3);color:#fff;font-size:12.5px;">
+          </div>
+          <div>
+            <label style="font-size:10px;color:var(--muted);display:block;margin-bottom:3px;">Cor</label>
+            <input type="color" id="cfg-cat-color" value="#38bdf8" style="width:100%;height:36px;padding:2px;border-radius:8px;background:#080811;border:1px solid rgba(201,168,76,0.3);cursor:pointer;">
+          </div>
+        </div>
+        <div style="display:flex;gap:6px;">
+          <button type="button" id="btn-cancelar-edit-cat" onclick="cancelarEdicaoCategoriaEvento()" style="display:none;flex:1;padding:7px;border-radius:7px;background:rgba(255,255,255,0.1);color:#fff;font-size:11px;border:none;cursor:pointer;">Cancelar</button>
+          <button type="button" class="btn btn-gold btn-sm" onclick="salvarFormularioCategoriaEvento()" style="flex:2;padding:7px;font-size:11.5px;font-weight:800;">Salvar Categoria</button>
+        </div>
+      </div>
+
+      <!-- Lista de Categorias Atuais -->
+      <div style="font-size:11.5px;font-weight:700;color:var(--text2);margin-bottom:6px;">Categorias Cadastradas:</div>
+      <div id="lista-cfg-categorias" style="display:flex;flex-direction:column;gap:6px;max-height:220px;overflow-y:auto;padding-right:4px;">
+        <!-- Itens inseridos dinamicamente -->
+      </div>
+    </div>
+
+    <!-- ABA 2: TÍTULOS SUGERIDOS -->
+    <div id="aba-cfg-titulos" style="display:none;">
+      <div style="font-size:12px;color:var(--muted);margin-bottom:12px;">
+        Cadastre títulos frequentes para preencher o evento com apenas 1 clique:
+      </div>
+
+      <div style="display:flex;gap:8px;margin-bottom:14px;">
+        <input type="text" id="cfg-novo-titulo-inp" placeholder="Ex: Montagem Guarda-Roupa Casal" style="flex:1;padding:8px 12px;border-radius:8px;background:#080811;border:1px solid rgba(201,168,76,0.3);color:#fff;font-size:12.5px;">
+        <button type="button" class="btn btn-gold btn-sm" onclick="adicionarNovoTituloSugerido()" style="padding:8px 14px;font-size:12px;font-weight:800;">➕ Adicionar</button>
+      </div>
+
+      <div style="font-size:11.5px;font-weight:700;color:var(--text2);margin-bottom:6px;">Títulos Rápidos Atuais:</div>
+      <div id="lista-cfg-titulos" style="display:flex;flex-direction:column;gap:6px;max-height:250px;overflow-y:auto;padding-right:4px;">
+        <!-- Itens inseridos dinamicamente -->
+      </div>
+    </div>
+
+    <!-- Rodapé -->
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-top:18px;padding-top:12px;border-top:1px solid rgba(255,255,255,0.08);">
+      <button type="button" onclick="restaurarPadroesEventosCronograma()" style="background:none;border:none;color:#94a3b8;font-size:11px;cursor:pointer;text-decoration:underline;">↺ Restaurar Padrões</button>
+      <button type="button" class="btn btn-sec btn-sm" onclick="fecharConfiguracaoEventosCronograma()" style="padding:6px 16px;">Concluir</button>
     </div>
   </div>
 </div>
@@ -20575,6 +20720,67 @@ function nomeDiaSemana(idx) {
   return ['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'][idx];
 }
 
+// ── CONFIGURAÇÃO DE EVENTOS & CATEGORIAS (CRONOGRAMA) ─────────────
+const DEFAULT_CATEGORIAS_EVENTO = [
+  { id: 'entrega', nome: 'Entrega de Obra', emoji: '🚚', color: '#38bdf8' },
+  { id: 'instalacao', nome: 'Instalação / Montagem', emoji: '🔧', color: '#fbbf24' },
+  { id: 'medicao', nome: 'Medição Técnica', emoji: '📏', color: '#a78bfa' },
+  { id: 'projeto', nome: 'Apresentação de Projeto', emoji: '📐', color: '#60a5fa' },
+  { id: 'visita', nome: 'Visita Técnica', emoji: '🚗', color: '#f97316' },
+  { id: 'reuniao', nome: 'Reunião com Cliente', emoji: '🤝', color: '#34d399' },
+  { id: 'pagamento', nome: 'Pagamento / Cobrança', emoji: '💰', color: '#4ade80' },
+  { id: 'prazo', nome: 'Prazo Limite / Vencimento', emoji: '⏰', color: '#f87171' },
+  { id: 'editar_os', nome: 'Editar O.S. (Ordem de Serviço)', emoji: '📋', color: '#38bdf8' },
+  { id: 'outro', nome: 'Outro (Personalizado)', emoji: '✏️', color: '#94a3b8' }
+];
+
+const DEFAULT_TITULOS_SUGERIDOS = [
+  'Entrega de Móveis Planejados',
+  'Instalação Cozinha Planejada',
+  'Instalação Roupeiro / Dormitório',
+  'Medição Técnica no Local',
+  'Reunião de Apresentação 3D',
+  'Ajuste Final / Regulagem',
+  'Assinatura de Contrato',
+  'Vencimento de Parcela'
+];
+
+function carregarConfigCategoriasEventos() {
+  try {
+    const raw = localStorage.getItem('sdv_cronograma_categorias');
+    if (raw) {
+      const arr = JSON.parse(raw);
+      if (Array.isArray(arr) && arr.length > 0) return arr;
+    }
+  } catch(_) {}
+  return JSON.parse(JSON.stringify(DEFAULT_CATEGORIAS_EVENTO));
+}
+
+function salvarConfigCategoriasEventos(arr) {
+  try {
+    localStorage.setItem('sdv_cronograma_categorias', JSON.stringify(arr));
+  } catch(_) {}
+  atualizarSelectsCategoriasCronograma();
+}
+
+function carregarConfigTitulosSugeridos() {
+  try {
+    const raw = localStorage.getItem('sdv_cronograma_titulos_sugeridos');
+    if (raw) {
+      const arr = JSON.parse(raw);
+      if (Array.isArray(arr) && arr.length > 0) return arr;
+    }
+  } catch(_) {}
+  return JSON.parse(JSON.stringify(DEFAULT_TITULOS_SUGERIDOS));
+}
+
+function salvarConfigTitulosSugeridos(arr) {
+  try {
+    localStorage.setItem('sdv_cronograma_titulos_sugeridos', JSON.stringify(arr));
+  } catch(_) {}
+  renderizarChipsTitulosSugeridos();
+}
+
 // ── EVENTOS DO CRONOGRAMA ────────────────────────────────────────
 function carregarEventosCrono() {
   try { return JSON.parse(localStorage.getItem(K_CRONO.eventos) || '[]'); } catch(_) { return []; }
@@ -20588,7 +20794,12 @@ function eventosNaData(iso) {
 }
 
 function tipoEventoInfo(tipo) {
-  const m = {
+  const cats = carregarConfigCategoriasEventos();
+  const c = cats.find(x => x.id === tipo || (x.nome && x.nome.toLowerCase() === (tipo || '').toLowerCase()));
+  if (c) {
+    return { emoji: c.emoji || '📌', color: c.color || '#94a3b8', nome: c.nome };
+  }
+  const fallback = {
     entrega: { emoji: '🚚', color: '#38bdf8' },
     instalacao: { emoji: '🔧', color: '#fbbf24' },
     medicao: { emoji: '📏', color: '#a78bfa' },
@@ -20598,7 +20809,219 @@ function tipoEventoInfo(tipo) {
     editar_os: { emoji: '📋', color: '#38bdf8' },
     outro: { emoji: '📌', color: '#94a3b8' }
   };
-  return m[tipo] || { emoji: '📌', color: '#94a3b8' };
+  return fallback[tipo] || { emoji: '📌', color: '#94a3b8', nome: tipo };
+}
+
+function atualizarSelectsCategoriasCronograma(valSelecionado = '') {
+  const sel = document.getElementById('evento-form-tipo');
+  if (!sel) return;
+  const cats = carregarConfigCategoriasEventos();
+  const valAtual = valSelecionado || sel.value || 'entrega';
+  let html = '';
+  cats.forEach(c => {
+    html += `<option value="${c.id}">${c.emoji || '📌'} ${c.nome}</option>`;
+  });
+  sel.innerHTML = html;
+  if (cats.some(c => c.id === valAtual)) {
+    sel.value = valAtual;
+  } else if (cats.length > 0) {
+    sel.value = cats[0].id;
+  }
+  if (typeof alternarCampoCustomTipoEvento === 'function') {
+    alternarCampoCustomTipoEvento(sel.value);
+  }
+}
+
+function renderizarChipsTitulosSugeridos() {
+  const box = document.getElementById('evento-sugestoes-titulos');
+  if (!box) return;
+  const titulos = carregarConfigTitulosSugeridos();
+  if (!titulos.length) {
+    box.innerHTML = '';
+    return;
+  }
+  box.innerHTML = titulos.slice(0, 8).map(t => {
+    const safe = t.replace(/"/g, '&quot;');
+    return `<button type="button" onclick="selecionarTituloSugerido('${safe}')" style="background:rgba(201,168,76,0.12);border:1px solid rgba(201,168,76,0.25);color:var(--gold-light);padding:3px 8px;border-radius:6px;font-size:11px;font-weight:600;cursor:pointer;transition:all 0.15s;white-space:nowrap;" onmouseover="this.style.background='rgba(201,168,76,0.25)'" onmouseout="this.style.background='rgba(201,168,76,0.12)'">+ ${t}</button>`;
+  }).join('');
+}
+
+function selecionarTituloSugerido(txt) {
+  const inp = document.getElementById('evento-form-titulo');
+  if (inp) {
+    inp.value = txt;
+    inp.focus();
+  }
+}
+
+function abrirConfiguracaoEventosCronograma(aba = 'cat') {
+  const m = document.getElementById('modal-config-eventos-cronograma');
+  if (!m) return;
+  trocarAbaConfigEventos(aba);
+  renderizarListaConfigCategorias();
+  renderizarListaConfigTitulos();
+  m.style.zIndex = '99999999';
+  m.style.display = 'flex';
+}
+
+function fecharConfiguracaoEventosCronograma() {
+  const m = document.getElementById('modal-config-eventos-cronograma');
+  if (m) m.style.display = 'none';
+  atualizarSelectsCategoriasCronograma();
+  renderizarChipsTitulosSugeridos();
+}
+
+function trocarAbaConfigEventos(aba) {
+  const btnCat = document.getElementById('tab-btn-cfg-cat');
+  const btnTit = document.getElementById('tab-btn-cfg-tit');
+  const abaCat = document.getElementById('aba-cfg-categorias');
+  const abaTit = document.getElementById('aba-cfg-titulos');
+
+  if (aba === 'cat') {
+    if (btnCat) { btnCat.style.background = 'var(--gold)'; btnCat.style.color = '#0a0914'; btnCat.style.fontWeight = '800'; }
+    if (btnTit) { btnTit.style.background = 'transparent'; btnTit.style.color = 'var(--text2)'; btnTit.style.fontWeight = '700'; }
+    if (abaCat) abaCat.style.display = 'block';
+    if (abaTit) abaTit.style.display = 'none';
+  } else {
+    if (btnTit) { btnTit.style.background = 'var(--gold)'; btnTit.style.color = '#0a0914'; btnTit.style.fontWeight = '800'; }
+    if (btnCat) { btnCat.style.background = 'transparent'; btnCat.style.color = 'var(--text2)'; btnCat.style.fontWeight = '700'; }
+    if (abaTit) abaTit.style.display = 'block';
+    if (abaCat) abaCat.style.display = 'none';
+  }
+}
+
+function renderizarListaConfigCategorias() {
+  const box = document.getElementById('lista-cfg-categorias');
+  if (!box) return;
+  const cats = carregarConfigCategoriasEventos();
+  if (!cats.length) {
+    box.innerHTML = '<div style="color:var(--muted);font-size:12px;text-align:center;padding:12px;">Nenhuma categoria cadastrada.</div>';
+    return;
+  }
+  box.innerHTML = cats.map(c => `
+    <div style="display:flex;align-items:center;justify-content:space-between;background:#0d0d18;border:1px solid rgba(255,255,255,0.08);border-radius:8px;padding:8px 10px;">
+      <div style="display:flex;align-items:center;gap:8px;">
+        <span style="display:inline-block;width:12px;height:12px;border-radius:50%;background:${c.color || '#94a3b8'};"></span>
+        <span style="font-size:15px;">${c.emoji || '📌'}</span>
+        <span style="font-size:12.5px;font-weight:700;color:#fff;">${c.nome}</span>
+      </div>
+      <div style="display:flex;gap:4px;">
+        <button type="button" onclick="iniciarEdicaoCategoriaEvento('${c.id}')" style="background:rgba(255,255,255,0.08);border:none;border-radius:5px;padding:4px 7px;font-size:11px;color:#fff;cursor:pointer;">✏️</button>
+        <button type="button" onclick="removerCategoriaEvento('${c.id}')" style="background:rgba(239,68,68,0.15);border:none;border-radius:5px;padding:4px 7px;font-size:11px;color:#f87171;cursor:pointer;">🗑️</button>
+      </div>
+    </div>
+  `).join('');
+}
+
+function iniciarEdicaoCategoriaEvento(id) {
+  const cats = carregarConfigCategoriasEventos();
+  const c = cats.find(x => x.id === id);
+  if (!c) return;
+  document.getElementById('cfg-cat-edit-id').value = c.id;
+  document.getElementById('cfg-cat-emoji').value = c.emoji || '📌';
+  document.getElementById('cfg-cat-nome').value = c.nome || '';
+  document.getElementById('cfg-cat-color').value = c.color || '#38bdf8';
+  document.getElementById('titulo-form-cfg-cat').textContent = `✏️ Editando: ${c.nome}`;
+  document.getElementById('btn-cancelar-edit-cat').style.display = 'block';
+}
+
+function cancelarEdicaoCategoriaEvento() {
+  document.getElementById('cfg-cat-edit-id').value = '';
+  document.getElementById('cfg-cat-emoji').value = '📌';
+  document.getElementById('cfg-cat-nome').value = '';
+  document.getElementById('cfg-cat-color').value = '#38bdf8';
+  document.getElementById('titulo-form-cfg-cat').textContent = '➕ Adicionar Nova Categoria';
+  document.getElementById('btn-cancelar-edit-cat').style.display = 'none';
+}
+
+function salvarFormularioCategoriaEvento() {
+  const editId = (document.getElementById('cfg-cat-edit-id')?.value || '').trim();
+  const emoji = (document.getElementById('cfg-cat-emoji')?.value || '📌').trim();
+  const nome = (document.getElementById('cfg-cat-nome')?.value || '').trim();
+  const color = document.getElementById('cfg-cat-color')?.value || '#38bdf8';
+
+  if (!nome) {
+    alert('Digite o nome da categoria.');
+    return;
+  }
+
+  let cats = carregarConfigCategoriasEventos();
+  if (editId) {
+    const idx = cats.findIndex(x => x.id === editId);
+    if (idx >= 0) {
+      cats[idx] = { ...cats[idx], emoji, nome, color };
+    }
+  } else {
+    const novoId = 'cat_' + Date.now();
+    cats.push({ id: novoId, emoji, nome, color });
+  }
+
+  salvarConfigCategoriasEventos(cats);
+  cancelarEdicaoCategoriaEvento();
+  renderizarListaConfigCategorias();
+  if (typeof renderCronoSemana === 'function') renderCronoSemana();
+  if (typeof renderCronoMes === 'function') renderCronoMes();
+}
+
+function removerCategoriaEvento(id) {
+  if (!confirm('Deseja remover esta categoria?')) return;
+  let cats = carregarConfigCategoriasEventos();
+  cats = cats.filter(x => x.id !== id);
+  if (!cats.length) cats = JSON.parse(JSON.stringify(DEFAULT_CATEGORIAS_EVENTO));
+  salvarConfigCategoriasEventos(cats);
+  renderizarListaConfigCategorias();
+  if (typeof renderCronoSemana === 'function') renderCronoSemana();
+  if (typeof renderCronoMes === 'function') renderCronoMes();
+}
+
+function renderizarListaConfigTitulos() {
+  const box = document.getElementById('lista-cfg-titulos');
+  if (!box) return;
+  const titulos = carregarConfigTitulosSugeridos();
+  if (!titulos.length) {
+    box.innerHTML = '<div style="color:var(--muted);font-size:12px;text-align:center;padding:12px;">Nenhum título rápido cadastrado.</div>';
+    return;
+  }
+  box.innerHTML = titulos.map((t, idx) => `
+    <div style="display:flex;align-items:center;justify-content:space-between;background:#0d0d18;border:1px solid rgba(255,255,255,0.08);border-radius:8px;padding:8px 10px;">
+      <span style="font-size:12.5px;color:#fff;font-weight:600;">${t}</span>
+      <button type="button" onclick="removerTituloSugerido(${idx})" style="background:rgba(239,68,68,0.15);border:none;border-radius:5px;padding:4px 7px;font-size:11px;color:#f87171;cursor:pointer;">🗑️</button>
+    </div>
+  `).join('');
+}
+
+function adicionarNovoTituloSugerido() {
+  const inp = document.getElementById('cfg-novo-titulo-inp');
+  const val = (inp?.value || '').trim();
+  if (!val) return;
+  let titulos = carregarConfigTitulosSugeridos();
+  if (!titulos.includes(val)) {
+    titulos.push(val);
+    salvarConfigTitulosSugeridos(titulos);
+  }
+  inp.value = '';
+  renderizarListaConfigTitulos();
+}
+
+function removerTituloSugerido(idx) {
+  let titulos = carregarConfigTitulosSugeridos();
+  titulos.splice(idx, 1);
+  if (!titulos.length) titulos = JSON.parse(JSON.stringify(DEFAULT_TITULOS_SUGERIDOS));
+  salvarConfigTitulosSugeridos(titulos);
+  renderizarListaConfigTitulos();
+}
+
+function restaurarPadroesEventosCronograma() {
+  if (!confirm('Deseja restaurar as categorias e títulos sugeridos originais de fábrica?')) return;
+  localStorage.removeItem('sdv_cronograma_categorias');
+  localStorage.removeItem('sdv_cronograma_titulos_sugeridos');
+  atualizarSelectsCategoriasCronograma();
+  renderizarChipsTitulosSugeridos();
+  renderizarListaConfigCategorias();
+  renderizarListaConfigTitulos();
+  cancelarEdicaoCategoriaEvento();
+  if (typeof renderCronoSemana === 'function') renderCronoSemana();
+  if (typeof renderCronoMes === 'function') renderCronoMes();
 }
 
 // ── SEMANA ───────────────────────────────────────────────────────
@@ -21251,27 +21674,30 @@ function abrirModalNovoEventoCronograma(id) {
       alternarCampoCustomTipoEvento('entrega');
     }
 
+    let tipoSelecionado = 'entrega';
+
     // Se estiver editando
     if (id && typeof id !== 'object' && typeof carregarEventosCrono === 'function') {
       const lista = carregarEventosCrono() || [];
       const ev = lista.find(e => String(e.id) === String(id));
       if (ev) {
+        tipoSelecionado = ev.tipo || 'entrega';
         setVal('evento-cronograma-edit-id', ev.id);
         setText('evento-cronograma-titulo', 'Editar Evento');
         setVal('evento-form-titulo', ev.titulo || '');
         setVal('evento-form-data', ev.data || dataPadrao);
         setVal('evento-form-hora', ev.hora || '');
-        setVal('evento-form-tipo', ev.tipo || 'entrega');
         setVal('evento-form-tipo-custom', ev.tipoCustom || '');
         setVal('evento-form-responsavel', ev.responsavel || '');
         setVal('evento-form-cliente-nome', ev.clienteNome || ev.cliente || '');
         setVal('evento-form-cliente-endereco', ev.clienteEndereco || ev.endereco || '');
         setVal('evento-form-desc', ev.desc || '');
-        if (typeof alternarCampoCustomTipoEvento === 'function') {
-          alternarCampoCustomTipoEvento(ev.tipo || 'entrega');
-        }
       }
     }
+
+    // Atualiza select de categorias dinâmico e chips de títulos
+    atualizarSelectsCategoriasCronograma(tipoSelecionado);
+    renderizarChipsTitulosSugeridos();
 
     m.style.zIndex = '9999999';
     m.style.display = 'flex';
@@ -21383,30 +21809,79 @@ function salvarEventoCronograma(forcarConflito = false) {
       return el ? (el.value || '').trim() : '';
     };
 
-    const titulo = getVal('evento-form-titulo');
-    const data = getVal('evento-form-data');
-    if (!titulo || !data) {
-      alert('Preencha o título e a data do evento.');
-      return;
+    let titulo = getVal('evento-form-titulo');
+    let data = getVal('evento-form-data');
+    const tipoSel = getVal('evento-form-tipo') || 'entrega';
+    const tipoCustom = getVal('evento-form-tipo-custom');
+    const clienteNome = getVal('evento-form-cliente-nome');
+    const clienteEndereco = getVal('evento-form-cliente-endereco');
+    const responsavel = getVal('evento-form-responsavel');
+    const hora = getVal('evento-form-hora');
+    const desc = getVal('evento-form-desc');
+
+    // Se data estiver vazia, usa data selecionada ou data atual
+    if (!data) {
+      if (typeof _cronoDiaSelecionado !== 'undefined' && _cronoDiaSelecionado) {
+        data = _cronoDiaSelecionado;
+      } else if (typeof isoHoje === 'function') {
+        data = isoHoje();
+      } else {
+        const n = new Date();
+        data = `${n.getFullYear()}-${String(n.getMonth()+1).padStart(2,'0')}-${String(n.getDate()).padStart(2,'0')}`;
+      }
+    }
+
+    // Se a data vier no formato DD/MM/YYYY, converte para YYYY-MM-DD
+    if (data.includes('/') && data.split('/').length === 3) {
+      const parts = data.split('/');
+      if (parts[0].length === 2 && parts[2].length === 4) {
+        data = `${parts[2]}-${parts[1].padStart(2, '0')}-${parts[0].padStart(2, '0')}`;
+      }
+    }
+
+    // Se título não foi preenchido manualmente, define automaticamente pelo tipo e/ou cliente
+    if (!titulo) {
+      const mapaTipo = {
+        entrega: 'Entrega de Obra',
+        montagem: 'Montagem',
+        instalacao: 'Instalação Técnica',
+        medicao: 'Medição Técnica',
+        projeto: 'Apresentação de Projeto',
+        visita: 'Visita Técnica',
+        corte: 'Corte e Usinagem',
+        fita: 'Colagem de Borda',
+        furacao: 'Furação e Pré-montagem',
+        revisao: 'Revisão Técnica',
+        reuniao: 'Reunião',
+        pagamento: 'Pagamento / Cobrança',
+        prazo: 'Prazo',
+        outro: 'Evento / Prazo',
+        editar_os: 'Prazo da O.S.'
+      };
+      const tipoNome = (tipoSel === 'outro' && tipoCustom) ? tipoCustom : (mapaTipo[tipoSel] || (tipoSel.charAt(0).toUpperCase() + tipoSel.slice(1)));
+      titulo = clienteNome ? `${tipoNome} - ${clienteNome}` : tipoNome;
     }
 
     const editId = getVal('evento-cronograma-edit-id');
-    const lista = (typeof carregarEventosCrono === 'function') ? carregarEventosCrono() : [];
-
-    const tipoSel = getVal('evento-form-tipo') || 'entrega';
-    const tipoCustom = getVal('evento-form-tipo-custom');
+    let lista = [];
+    try {
+      lista = (typeof carregarEventosCrono === 'function') ? carregarEventosCrono() : [];
+      if (!Array.isArray(lista)) lista = [];
+    } catch(_) {
+      lista = [];
+    }
 
     const obj = {
       id: editId || `ev_${Date.now()}`,
       titulo,
       data,
-      hora: getVal('evento-form-hora'),
+      hora,
       tipo: tipoSel,
       tipoCustom: (tipoSel === 'outro' || tipoSel === 'editar_os') ? tipoCustom : '',
-      responsavel: getVal('evento-form-responsavel'),
-      clienteNome: getVal('evento-form-cliente-nome'),
-      clienteEndereco: getVal('evento-form-cliente-endereco'),
-      desc: getVal('evento-form-desc'),
+      responsavel,
+      clienteNome,
+      clienteEndereco,
+      desc,
       criadoEm: editId ? undefined : new Date().toISOString()
     };
 
@@ -21421,11 +21896,50 @@ function salvarEventoCronograma(forcarConflito = false) {
     if (typeof salvarEventosCrono === 'function') {
       salvarEventosCrono(lista);
     }
+    try {
+      localStorage.setItem('sdv_cronograma_eventos', JSON.stringify(lista));
+    } catch(_) {}
+
+    // Sincroniza também com a Agenda Pessoal / Geral caso exista
+    try {
+      const rawAgenda = localStorage.getItem('sdv_agenda_pessoal');
+      if (rawAgenda) {
+        let ag = JSON.parse(rawAgenda);
+        if (Array.isArray(ag)) {
+          const itemAgenda = {
+            id: obj.id,
+            cliente: obj.clienteNome || obj.titulo,
+            data: obj.data,
+            hora: obj.hora || '08:00',
+            tipo: obj.titulo,
+            end: obj.clienteEndereco || '',
+            origem: 'cronograma'
+          };
+          const exIdx = ag.findIndex(x => String(x.id) === String(obj.id));
+          if (exIdx >= 0) ag[exIdx] = {...ag[exIdx], ...itemAgenda};
+          else ag.push(itemAgenda);
+          localStorage.setItem('sdv_agenda_pessoal', JSON.stringify(ag));
+          if (typeof renderAgendaPessoal === 'function') renderAgendaPessoal();
+        }
+      }
+    } catch(_) {}
+
     fecharModalNovoEventoCronograma();
 
     if (_cronoAbaAtual === 'semana' && typeof renderCronoSemana === 'function') renderCronoSemana();
     else if (_cronoAbaAtual === 'mes' && typeof renderCronoMes === 'function') renderCronoMes();
     else if (_cronoAbaAtual === 'ano' && typeof renderCronoAno === 'function') renderCronoAno();
+    else {
+      if (typeof renderCronoSemana === 'function') renderCronoSemana();
+      if (typeof renderCronoMes === 'function') renderCronoMes();
+    }
+    if (typeof renderCronogramaGeral === 'function') renderCronogramaGeral();
+
+    if (typeof mostrarToastAgenda === 'function') {
+      mostrarToastAgenda(`<strong>Evento Salvo!</strong><div style="font-size:12px;color:rgba(255,255,255,0.8);">${titulo} (${data})</div>`);
+    } else if (typeof mostrarMsgPonto === 'function') {
+      mostrarMsgPonto(`✅ Evento "${titulo}" salvo com sucesso!`, true);
+    }
   } catch (err) {
     console.error('Erro em salvarEventoCronograma:', err);
     alert('Erro ao salvar evento: ' + (err.message || err));
@@ -25679,7 +26193,7 @@ function abrirModalNovoCompromissoPessoal(id, isReagendar = false) {
   editIdEl.value = '';
   inpTit.value = '';
   if (inpTel) inpTel.value = '';
-  if (selTipo) selTipo.value = 'Medição Técnica';
+  if (selTipo) selTipo.value = '';
   inpData.value = new Date().toISOString().split('T')[0];
   inpHora.value = '09:00';
   inpLocal.value = '';
@@ -25729,7 +26243,7 @@ function salvarCompromissoPessoal(forcarConflito = false, enviarWhatsApp = false
   const editId = document.getElementById('pessoal-edit-id').value;
   const titulo = (document.getElementById('pessoal-novo-titulo').value || '').trim();
   const tel = (document.getElementById('pessoal-novo-tel') ? document.getElementById('pessoal-novo-tel').value : '').trim();
-  const tipo = (document.getElementById('pessoal-novo-tipo') ? document.getElementById('pessoal-novo-tipo').value : 'Medição Técnica');
+  const tipo = (document.getElementById('pessoal-novo-tipo') ? document.getElementById('pessoal-novo-tipo').value.trim() : '') || 'Atendimento';
   const data = document.getElementById('pessoal-novo-data').value;
   const hora = document.getElementById('pessoal-novo-hora').value;
   const local = (document.getElementById('pessoal-novo-local').value || '').trim();

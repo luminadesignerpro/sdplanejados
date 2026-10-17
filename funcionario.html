@@ -3011,23 +3011,23 @@
             <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(90px,1fr));gap:8px;text-align:center;" id="cliente-ponto-grid-horas">
               <div style="background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.07);border-radius:10px;padding:10px 4px;">
                 <div style="font-size:9.5px;color:var(--muted);text-transform:uppercase;font-weight:800;">1ª Entrada</div>
-                <div id="resumo-ponto-ent1" style="font-size:15px;font-weight:900;color:#34d399;margin-top:4px;">--:--</div>
+                <div id="resumo-ponto-ent1" class="resumo-ponto-target-ent" data-alias="resumo-ponto-ent" style="font-size:15px;font-weight:900;color:#34d399;margin-top:4px;">--:--</div>
               </div>
               <div style="background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.07);border-radius:10px;padding:10px 4px;">
                 <div style="font-size:9.5px;color:var(--muted);text-transform:uppercase;font-weight:800;">Saída Almoço</div>
-                <div id="resumo-ponto-almsai" style="font-size:15px;font-weight:900;color:#f59e0b;margin-top:4px;">--:--</div>
+                <div id="resumo-ponto-almsai" class="resumo-ponto-target-alm" data-alias="resumo-ponto-alm" style="font-size:15px;font-weight:900;color:#f59e0b;margin-top:4px;">--:--</div>
               </div>
               <div style="background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.07);border-radius:10px;padding:10px 4px;">
                 <div style="font-size:9.5px;color:var(--muted);text-transform:uppercase;font-weight:800;">Volta Almoço</div>
-                <div id="resumo-ponto-almvol" style="font-size:15px;font-weight:900;color:#38bdf8;margin-top:4px;">--:--</div>
+                <div id="resumo-ponto-almvol" class="resumo-ponto-target-vol" data-alias="resumo-ponto-vol" style="font-size:15px;font-weight:900;color:#38bdf8;margin-top:4px;">--:--</div>
               </div>
               <div style="background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.07);border-radius:10px;padding:10px 4px;">
                 <div style="font-size:9.5px;color:var(--muted);text-transform:uppercase;font-weight:800;">Saída Final</div>
-                <div id="resumo-ponto-sai2" style="font-size:15px;font-weight:900;color:#ef4444;margin-top:4px;">--:--</div>
+                <div id="resumo-ponto-sai2" class="resumo-ponto-target-sai" data-alias="resumo-ponto-sai" style="font-size:15px;font-weight:900;color:#ef4444;margin-top:4px;">--:--</div>
               </div>
               <div style="background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.07);border-radius:10px;padding:10px 4px;">
                 <div style="font-size:9.5px;color:var(--muted);text-transform:uppercase;font-weight:800;">Horas Extras</div>
-                <div id="resumo-ponto-he" style="font-size:15px;font-weight:900;color:#a855f7;margin-top:4px;">--:--</div>
+                <div id="resumo-ponto-he" class="resumo-ponto-target-he" data-alias="resumo-ponto-he-ini" style="font-size:15px;font-weight:900;color:#a855f7;margin-top:4px;">--:--</div>
               </div>
             </div>
           </div>
@@ -4966,6 +4966,30 @@
 
 
   <script>
+    // ── PONTE DE COMPATIBILIDADE DE IDS DO PONTO (Garante resolução para scripts legados e PWA) ──
+    (function() {
+      try {
+        const _origGet = Document.prototype.getElementById;
+        const _aliases = {
+          'resumo-ponto-alm': 'resumo-ponto-almsai',
+          'resumo-ponto-vol': 'resumo-ponto-almvol',
+          'resumo-ponto-sai': 'resumo-ponto-sai2',
+          'resumo-ponto-he-ini': 'resumo-ponto-he',
+          'resumo-ponto-he-fim': 'resumo-ponto-he',
+          'resumo-ponto-almsai': 'resumo-ponto-alm',
+          'resumo-ponto-almvol': 'resumo-ponto-vol',
+          'resumo-ponto-sai2': 'resumo-ponto-sai'
+        };
+        Document.prototype.getElementById = function(id) {
+          let el = _origGet.call(this, id);
+          if (!el && _aliases[id]) {
+            el = _origGet.call(this, _aliases[id]);
+          }
+          return el;
+        };
+      } catch(_) {}
+    })();
+
     // ══════════════════════════════════════════════
     //  CANAL EM TEMPO REAL (NTFY PUB/SUB)
     // ══════════════════════════════════════════════
@@ -8016,7 +8040,41 @@ function mudarAba(tab) {
 
       const dataHoje = getHojeFormatadoPonto();
       const pontos = carregarPontosDoStorage();
-      const reg = pontos.find(p => (p.colaboradorId === colab.id || (p.colaboradorNome && p.colaboradorNome.toLowerCase() === colab.nome.toLowerCase())) && p.data === dataHoje);
+
+      const cNome = (colab.nome || obterNomeColaboradorPonto() || '').toLowerCase().trim();
+      const cPri = cNome.split(' ')[0];
+
+      // Consolida registros de hoje para evitar perda de batidas caso existam duplicatas
+      const regsHoje = pontos.filter(p => {
+        if (!ehDataHojePonto(p.data) && p.data !== dataHoje) return false;
+        if (p.colaboradorId && colab.id && String(p.colaboradorId) === String(colab.id)) return true;
+        const pNome = (p.colaboradorNome || '').toLowerCase().trim();
+        const pPri = pNome.split(' ')[0];
+        if (pNome && cNome) {
+          if (pNome === cNome || pNome.includes(cNome) || cNome.includes(pNome)) return true;
+          if (pPri === cPri && pPri.length >= 3) return true;
+        }
+        if ((cNome.includes('samuel') || cPri === 'samuel') && (pNome.includes('samuel') || pPri === 'samuel')) return true;
+        return false;
+      });
+
+      let reg = null;
+      if (regsHoje.length === 1) {
+        reg = regsHoje[0];
+      } else if (regsHoje.length > 1) {
+        // Encontra o registro mais completo ou une os campos das batidas de hoje
+        reg = regsHoje[0];
+        for (let i = 1; i < regsHoje.length; i++) {
+          const r = regsHoje[i];
+          ['entrada1', 'saidaAlmoco', 'voltaAlmoco', 'saidaFinal', 'horaExtraInicial', 'horaExtraFinal', 'justificativa'].forEach(k => {
+            if (!reg[k] && r[k]) reg[k] = r[k];
+          });
+        }
+      }
+
+      if (reg) {
+        recalcularHorasPontoCliente(reg, colab);
+      }
 
       // Só ativa status oficial quando o colaborador efetivamente bate o ponto no botão hoje
       const temBatidaHoje = Boolean(reg && (reg.entrada1 || reg.saidaAlmoco || reg.voltaAlmoco || reg.saidaFinal || reg.horaExtraInicial || reg.horaExtraFinal || (reg.status && reg.status.includes('Falta')) || reg.justificativa));
@@ -8075,21 +8133,42 @@ function mudarAba(tab) {
       marcarBtn('btn-ponto-he-fim', 'badge-ponto-he-fim', reg && reg.horaExtraFinal);
       marcarBtn('btn-ponto-falta', 'badge-ponto-falta', (reg && reg.justificativa) ? '✓ Justificada' : '');
 
-      const ent1El = document.getElementById('resumo-ponto-ent1');
-      const almEl = document.getElementById('resumo-ponto-alm');
-      const volEl = document.getElementById('resumo-ponto-vol');
-      const saiEl = document.getElementById('resumo-ponto-sai');
-      const heIniEl = document.getElementById('resumo-ponto-he-ini');
-      const heFimEl = document.getElementById('resumo-ponto-he-fim');
-      const totEl = document.getElementById('cliente-ponto-total-horas');
+      // Atualiza elementos do Resumo do Ponto com suporte multi-IDs e classes
+      const atualizarElementoResumo = (idPrincipal, idsAlternativos, classe, valor) => {
+        const v = valor || '--:--';
+        const el = document.getElementById(idPrincipal);
+        if (el) el.textContent = v;
+        if (Array.isArray(idsAlternativos)) {
+          idsAlternativos.forEach(altId => {
+            const aEl = document.getElementById(altId);
+            if (aEl && aEl !== el) aEl.textContent = v;
+          });
+        }
+        if (classe) {
+          document.querySelectorAll('.' + classe).forEach(cEl => {
+            if (cEl) cEl.textContent = v;
+          });
+        }
+      };
 
-      if (ent1El) ent1El.textContent = (reg && reg.entrada1) ? reg.entrada1 : '--:--';
-      if (almEl) almEl.textContent = (reg && reg.saidaAlmoco) ? reg.saidaAlmoco : '--:--';
-      if (volEl) volEl.textContent = (reg && reg.voltaAlmoco) ? reg.voltaAlmoco : '--:--';
-      if (saiEl) saiEl.textContent = (reg && reg.saidaFinal) ? reg.saidaFinal : '--:--';
-      if (heIniEl) heIniEl.textContent = (reg && reg.horaExtraInicial) ? reg.horaExtraInicial : '--:--';
-      if (heFimEl) heFimEl.textContent = (reg && reg.horaExtraFinal) ? reg.horaExtraFinal : '--:--';
-      if (totEl) totEl.textContent = (reg && reg.tempoTrabalhado) ? `${reg.tempoTrabalhado} trabalhadas` : '00h 00m trabalhadas';
+      atualizarElementoResumo('resumo-ponto-ent1', ['resumo-ponto-ent'], 'resumo-ponto-target-ent', (reg && reg.entrada1) ? reg.entrada1 : '--:--');
+      atualizarElementoResumo('resumo-ponto-almsai', ['resumo-ponto-alm'], 'resumo-ponto-target-alm', (reg && reg.saidaAlmoco) ? reg.saidaAlmoco : '--:--');
+      atualizarElementoResumo('resumo-ponto-almvol', ['resumo-ponto-vol'], 'resumo-ponto-target-vol', (reg && reg.voltaAlmoco) ? reg.voltaAlmoco : '--:--');
+      atualizarElementoResumo('resumo-ponto-sai2', ['resumo-ponto-sai'], 'resumo-ponto-target-sai', (reg && reg.saidaFinal) ? reg.saidaFinal : '--:--');
+      
+      let vHe = '--:--';
+      if (reg && reg.horaExtraFinal) vHe = reg.horaExtraFinal;
+      else if (reg && reg.horaExtraInicial) vHe = reg.horaExtraInicial;
+      atualizarElementoResumo('resumo-ponto-he', ['resumo-ponto-he-ini', 'resumo-ponto-he-fim'], 'resumo-ponto-target-he', vHe);
+
+      const totEl = document.getElementById('cliente-ponto-total-horas');
+      if (totEl) {
+        if (reg && reg.tempoTrabalhado) {
+          totEl.innerHTML = (reg.emAndamento ? '<span style="display:inline-block;width:7px;height:7px;border-radius:50%;background:#4ade80;margin-right:6px;animation:pulseDot 1.5s infinite;vertical-align:middle;"></span>' : '') + `${reg.tempoTrabalhado} trabalhadas`;
+        } else {
+          totEl.textContent = '00h 00m trabalhadas';
+        }
+      }
 
       const justBox = document.getElementById('resumo-ponto-justificativa-box');
       const justTxt = document.getElementById('resumo-ponto-justificativa-txt');
@@ -8104,6 +8183,10 @@ function mudarAba(tab) {
 
       if (comFeedback) {
         mostrarToastPontoCliente('Horários sincronizados com sucesso!', true);
+      }
+
+      if (typeof renderizarEspelhoPontoCliente === 'function') {
+        try { renderizarEspelhoPontoCliente(); } catch(_) {}
       }
     }
 
@@ -8256,7 +8339,7 @@ function executarBatidaSaidaFinalComOpcao(horaStr, tipoDecisao, motivo, obs, min
 
   const dataHoje = getHojeFormatadoPonto();
   let pontos = carregarPontosDoStorage();
-  let p = pontos.find(x => (x.colaboradorId === colab.id || (x.colaboradorNome && x.colaboradorNome.toLowerCase() === colab.nome.toLowerCase())) && x.data === dataHoje);
+  let p = pontos.find(x => (x.colaboradorId === colab.id || (x.colaboradorNome && x.colaboradorNome.toLowerCase() === colab.nome.toLowerCase())) && (x.data === dataHoje || ehDataHojePonto(x.data)));
 
   if (!p) {
     p = {
@@ -8324,14 +8407,20 @@ function executarBatidaSaidaFinalComOpcao(horaStr, tipoDecisao, motivo, obs, min
     toastMsg = `💰 Saída registrada! Desconto de R$ ${vDesc.toFixed(2)} em folha.`;
   }
 
-  // Recalcula horas trabalhadas
-  if (typeof executarBatidaPontoNoCliente === 'function') {
-    // Salva pontos atualizados
-    localStorage.setItem('sdv_pontos', JSON.stringify(pontos));
-    renderizarResumoPontoCliente();
-  } else {
-    localStorage.setItem('sdv_pontos', JSON.stringify(pontos));
-  }
+  // Salva pontos atualizados
+  localStorage.setItem('sdv_pontos', JSON.stringify(pontos));
+  localStorage.setItem('sdv_ponto_ultimo_update', Date.now().toString());
+
+  try {
+    if (typeof BroadcastChannel !== 'undefined') {
+      const bc = new BroadcastChannel('sdv_ponto_channel');
+      bc.postMessage({ type: 'PONTO_ATUALIZADO', ponto: p, timestamp: Date.now() });
+      bc.close();
+    }
+  } catch(_) {}
+  try { window.dispatchEvent(new Event('storage')); } catch(_) {}
+
+  renderizarResumoPontoCliente();
 
   if (typeof mostrarToastPontoCliente === 'function') {
     mostrarToastPontoCliente(toastMsg, true);
@@ -8413,7 +8502,7 @@ function baterPontoNoCliente(tipo) {
       let funcionarios = carregarFuncionariosDoStorage();
       const idxFunc = funcionarios.findIndex(f => f.id === colab.id);
 
-      let p = pontos.find(x => (x.colaboradorId === colab.id || (x.colaboradorNome && x.colaboradorNome.toLowerCase() === colab.nome.toLowerCase())) && x.data === dataHoje);
+      let p = pontos.find(x => (x.colaboradorId === colab.id || (x.colaboradorNome && x.colaboradorNome.toLowerCase() === colab.nome.toLowerCase())) && (x.data === dataHoje || ehDataHojePonto(x.data)));
       if (!p) {
         p = {
           id: Date.now(),
@@ -8518,8 +8607,21 @@ function baterPontoNoCliente(tipo) {
 
       localStorage.setItem('sdv_pontos', JSON.stringify(pontos));
       localStorage.setItem('sdv_funcionarios', JSON.stringify(funcionarios));
+      localStorage.setItem('sdv_ponto_ultimo_update', Date.now().toString());
+
+      try {
+        if (typeof BroadcastChannel !== 'undefined') {
+          const bc = new BroadcastChannel('sdv_ponto_channel');
+          bc.postMessage({ type: 'PONTO_ATUALIZADO', ponto: p, timestamp: Date.now() });
+          bc.close();
+        }
+      } catch(_) {}
+      try { window.dispatchEvent(new Event('storage')); } catch(_) {}
 
       renderizarResumoPontoCliente();
+      if (typeof renderizarEspelhoPontoCliente === 'function') {
+        try { renderizarEspelhoPontoCliente(); } catch(_) {}
+      }
       mostrarToastPontoCliente(`✅ ${labelTipo} registrada com sucesso às ${horaStr}!`, true);
       if (typeof tocarAlertaSonoro === 'function') tocarAlertaSonoro();
     }
@@ -8586,6 +8688,7 @@ function baterPontoNoCliente(tipo) {
 
       localStorage.setItem('sdv_pontos', JSON.stringify(pontos));
       localStorage.setItem('sdv_funcionarios', JSON.stringify(funcionarios));
+      localStorage.setItem('sdv_ponto_ultimo_update', Date.now().toString());
 
       fecharModalJustificarFalta();
       renderizarResumoPontoCliente();
@@ -10575,42 +10678,27 @@ function baterPontoNoCliente(tipo) {
 
       const colab = obterFuncionarioAtivoPonto();
       const todosPontos = JSON.parse(localStorage.getItem('sdv_pontos') || '[]');
-      const nomeColab = (colab.nome || obterNomeColaboradorPonto() || '').toLowerCase();
+      const cNome = (colab.nome || obterNomeColaboradorPonto() || '').toLowerCase().trim();
+      const cPri = cNome.split(' ')[0];
 
       // Recalcula horas trabalhadas e salários para todos os pontos
       todosPontos.forEach(p => {
         recalcularHorasPontoCliente(p, colab);
       });
 
-      // Filtra pontos apenas deste colaborador
+      // Filtra pontos apenas deste colaborador com tolerância de primeiro nome (ex: Samuel)
       let pontosColab = todosPontos.filter(function(p) {
-        const pNome = (p.colaboradorNome || '').toLowerCase();
-        return (p.colaboradorId && colab.id && String(p.colaboradorId) === String(colab.id)) ||
-               pNome === nomeColab || pNome.includes(nomeColab) || (nomeColab.includes(pNome) && pNome.length > 3);
+        if (!p) return false;
+        if (p.colaboradorId && colab.id && String(p.colaboradorId) === String(colab.id)) return true;
+        const pNome = (p.colaboradorNome || '').toLowerCase().trim();
+        const pPri = pNome.split(' ')[0];
+        if (pNome && cNome) {
+          if (pNome === cNome || pNome.includes(cNome) || cNome.includes(pNome)) return true;
+          if (pPri === cPri && pPri.length >= 3) return true;
+        }
+        if ((cNome.includes('samuel') || cPri === 'samuel') && (pNome.includes('samuel') || pPri === 'samuel')) return true;
+        return false;
       });
-
-      // Se lista vazia ou sem registro de hoje, inicializa o dia de hoje
-      const hojeData = getHojeFormatadoPonto();
-      const temHoje = pontosColab.some(p => ehDataHojePonto(p.data));
-      if (!temHoje) {
-        const pHoje = {
-          id: Date.now(),
-          colaboradorId: colab.id,
-          colaboradorNome: colab.nome,
-          data: hojeData,
-          entrada1: '08:00',
-          saidaAlmoco: '12:00',
-          voltaAlmoco: '13:00',
-          saidaFinal: '',
-          tempoTrabalhado: '00h 00m',
-          valorSalario: 'R$ 0,00',
-          status: colab.status || 'Presente'
-        };
-        recalcularHorasPontoCliente(pHoje, colab);
-        todosPontos.unshift(pHoje);
-        pontosColab.unshift(pHoje);
-        try { localStorage.setItem('sdv_pontos', JSON.stringify(todosPontos)); } catch(_) {}
-      }
 
       // Filtro de Período (Dia, Semana, Mês, Ano)
       const agora = new Date();
@@ -10640,13 +10728,11 @@ function baterPontoNoCliente(tipo) {
 
       pontosFiltrados.forEach(function(p) {
         recalcularHorasPontoCliente(p, colab);
-        if (p.totalMinutos) {
+        if (p.totalMinutos != null) {
           totalMinutosTrabalhados += p.totalMinutos;
         } else if (p.horasTrabalhadas && p.horasTrabalhadas.includes(':')) {
           const parts = p.horasTrabalhadas.split(':');
           totalMinutosTrabalhados += (parseInt(parts[0], 10) || 0) * 60 + (parseInt(parts[1], 10) || 0);
-        } else {
-          totalMinutosTrabalhados += 8 * 60;
         }
 
         if (p.horasExtras && p.horasExtras.includes(':')) {
@@ -10654,7 +10740,7 @@ function baterPontoNoCliente(tipo) {
           totalMinutosExtras += (parseInt(heParts[0], 10) || 0) * 60 + (parseInt(heParts[1], 10) || 0);
         }
 
-        if ((p.status || '').toLowerCase().includes('presente') || (p.status || '').toLowerCase().includes('extra')) {
+        if (p.entrada1 || p.saidaAlmoco || p.voltaAlmoco || p.saidaFinal || (p.status || '').toLowerCase().includes('presente') || (p.status || '').toLowerCase().includes('extra') || (p.tempoTrabalhado && p.tempoTrabalhado !== '00h 00m')) {
           diasPresentes++;
         }
       });
@@ -10668,9 +10754,9 @@ function baterPontoNoCliente(tipo) {
       const elExtH = document.getElementById('ponto-stat-horas-extras');
       const elDiasP = document.getElementById('ponto-stat-dias-pres');
 
-      if (elTotH) elTotH.textContent = String(hTotal).padStart(2, '0') + 'h ' + String(mTotal).padStart(2, '0') + 'm';
-      if (elExtH) elExtH.textContent = String(hExtra).padStart(2, '0') + 'h ' + String(mExtra).padStart(2, '0') + 'm';
-      if (elDiasP) elDiasP.textContent = diasPresentes + ' dias';
+      if (elTotH) elTotH.textContent = String(hTotal).padStart(2, '0') + ':' + String(mTotal).padStart(2, '0');
+      if (elExtH) elExtH.textContent = String(hExtra).padStart(2, '0') + ':' + String(mExtra).padStart(2, '0');
+      if (elDiasP) elDiasP.textContent = String(diasPresentes);
 
       if (!pontosFiltrados.length) {
         tbody.innerHTML = '<tr><td colspan="9" style="text-align:center;padding:24px;color:var(--muted);">Nenhum registro de ponto encontrado para este período.</td></tr>';
@@ -12899,6 +12985,66 @@ function toISO(d) {
   return `${y}-${m}-${day}`;
 }
 
+// ── CONFIGURAÇÃO DE EVENTOS & CATEGORIAS (CRONOGRAMA) ─────────────
+const DEFAULT_CATEGORIAS_EVENTO = [
+  { id: 'entrega', nome: 'Entrega de Obra', emoji: '🚚', color: '#38bdf8' },
+  { id: 'instalacao', nome: 'Instalação / Montagem', emoji: '🔧', color: '#fbbf24' },
+  { id: 'medicao', nome: 'Medição Técnica', emoji: '📏', color: '#a78bfa' },
+  { id: 'projeto', nome: 'Apresentação de Projeto', emoji: '📐', color: '#60a5fa' },
+  { id: 'visita', nome: 'Visita Técnica', emoji: '🚗', color: '#f97316' },
+  { id: 'reuniao', nome: 'Reunião com Cliente', emoji: '🤝', color: '#34d399' },
+  { id: 'pagamento', nome: 'Pagamento / Cobrança', emoji: '💰', color: '#4ade80' },
+  { id: 'prazo', nome: 'Prazo Limite / Vencimento', emoji: '⏰', color: '#f87171' },
+  { id: 'outro', nome: 'Outro (Personalizado)', emoji: '✏️', color: '#94a3b8' }
+];
+
+const DEFAULT_TITULOS_SUGERIDOS = [
+  'Entrega de Móveis Planejados',
+  'Instalação Cozinha Planejada',
+  'Instalação Roupeiro / Dormitório',
+  'Medição Técnica no Local',
+  'Reunião de Apresentação 3D',
+  'Ajuste Final / Regulagem',
+  'Assinatura de Contrato',
+  'Vencimento de Parcela'
+];
+
+function carregarConfigCategoriasEventos() {
+  try {
+    const raw = localStorage.getItem('sdv_cronograma_categorias');
+    if (raw) {
+      const arr = JSON.parse(raw);
+      if (Array.isArray(arr) && arr.length > 0) return arr;
+    }
+  } catch(_) {}
+  return JSON.parse(JSON.stringify(DEFAULT_CATEGORIAS_EVENTO));
+}
+
+function salvarConfigCategoriasEventos(arr) {
+  try {
+    localStorage.setItem('sdv_cronograma_categorias', JSON.stringify(arr));
+  } catch(_) {}
+  atualizarSelectsCategoriasCronograma();
+}
+
+function carregarConfigTitulosSugeridos() {
+  try {
+    const raw = localStorage.getItem('sdv_cronograma_titulos_sugeridos');
+    if (raw) {
+      const arr = JSON.parse(raw);
+      if (Array.isArray(arr) && arr.length > 0) return arr;
+    }
+  } catch(_) {}
+  return JSON.parse(JSON.stringify(DEFAULT_TITULOS_SUGERIDOS));
+}
+
+function salvarConfigTitulosSugeridos(arr) {
+  try {
+    localStorage.setItem('sdv_cronograma_titulos_sugeridos', JSON.stringify(arr));
+  } catch(_) {}
+  renderizarChipsTitulosSugeridos();
+}
+
 function carregarEventosCrono() {
   try { return JSON.parse(localStorage.getItem(K_CRONO.eventos) || '[]'); } catch(_) { return []; }
 }
@@ -12909,7 +13055,12 @@ function eventosNaData(iso) {
   return carregarEventosCrono().filter(e => e.data === iso);
 }
 function tipoEventoInfo(tipo) {
-  const m = {
+  const cats = carregarConfigCategoriasEventos();
+  const c = cats.find(x => x.id === tipo || (x.nome && x.nome.toLowerCase() === (tipo || '').toLowerCase()));
+  if (c) {
+    return { emoji: c.emoji || '📌', color: c.color || '#94a3b8', nome: c.nome };
+  }
+  const fallback = {
     entrega: { emoji: '🚚', color: '#38bdf8' },
     instalacao: { emoji: '🔧', color: '#fbbf24' },
     medicao: { emoji: '📏', color: '#a78bfa' },
@@ -12918,7 +13069,216 @@ function tipoEventoInfo(tipo) {
     prazo: { emoji: '⏰', color: '#f87171' },
     outro: { emoji: '📌', color: '#94a3b8' }
   };
-  return m[tipo] || { emoji: '📌', color: '#94a3b8' };
+  return fallback[tipo] || { emoji: '📌', color: '#94a3b8', nome: tipo };
+}
+
+function atualizarSelectsCategoriasCronograma(valSelecionado = '') {
+  const sel = document.getElementById('evento-form-tipo');
+  if (!sel) return;
+  const cats = carregarConfigCategoriasEventos();
+  const valAtual = valSelecionado || sel.value || 'entrega';
+  let html = '';
+  cats.forEach(c => {
+    html += `<option value="${c.id}">${c.emoji || '📌'} ${c.nome}</option>`;
+  });
+  sel.innerHTML = html;
+  if (cats.some(c => c.id === valAtual)) {
+    sel.value = valAtual;
+  } else if (cats.length > 0) {
+    sel.value = cats[0].id;
+  }
+}
+
+function renderizarChipsTitulosSugeridos() {
+  const box = document.getElementById('evento-sugestoes-titulos');
+  if (!box) return;
+  const titulos = carregarConfigTitulosSugeridos();
+  if (!titulos.length) {
+    box.innerHTML = '';
+    return;
+  }
+  box.innerHTML = titulos.slice(0, 8).map(t => {
+    const safe = t.replace(/"/g, '&quot;');
+    return `<button type="button" onclick="selecionarTituloSugerido('${safe}')" style="background:rgba(201,168,76,0.12);border:1px solid rgba(201,168,76,0.25);color:var(--gold-light);padding:3px 8px;border-radius:6px;font-size:11px;font-weight:600;cursor:pointer;transition:all 0.15s;white-space:nowrap;" onmouseover="this.style.background='rgba(201,168,76,0.25)'" onmouseout="this.style.background='rgba(201,168,76,0.12)'">+ ${t}</button>`;
+  }).join('');
+}
+
+function selecionarTituloSugerido(txt) {
+  const inp = document.getElementById('evento-form-titulo');
+  if (inp) {
+    inp.value = txt;
+    inp.focus();
+  }
+}
+
+function abrirConfiguracaoEventosCronograma(aba = 'cat') {
+  const m = document.getElementById('modal-config-eventos-cronograma');
+  if (!m) return;
+  trocarAbaConfigEventos(aba);
+  renderizarListaConfigCategorias();
+  renderizarListaConfigTitulos();
+  m.style.zIndex = '99999999';
+  m.style.display = 'flex';
+}
+
+function fecharConfiguracaoEventosCronograma() {
+  const m = document.getElementById('modal-config-eventos-cronograma');
+  if (m) m.style.display = 'none';
+  atualizarSelectsCategoriasCronograma();
+  renderizarChipsTitulosSugeridos();
+}
+
+function trocarAbaConfigEventos(aba) {
+  const btnCat = document.getElementById('tab-btn-cfg-cat');
+  const btnTit = document.getElementById('tab-btn-cfg-tit');
+  const abaCat = document.getElementById('aba-cfg-categorias');
+  const abaTit = document.getElementById('aba-cfg-titulos');
+
+  if (aba === 'cat') {
+    if (btnCat) { btnCat.style.background = 'var(--gold)'; btnCat.style.color = '#0a0914'; btnCat.style.fontWeight = '800'; }
+    if (btnTit) { btnTit.style.background = 'transparent'; btnTit.style.color = 'var(--text2)'; btnTit.style.fontWeight = '700'; }
+    if (abaCat) abaCat.style.display = 'block';
+    if (abaTit) abaTit.style.display = 'none';
+  } else {
+    if (btnTit) { btnTit.style.background = 'var(--gold)'; btnTit.style.color = '#0a0914'; btnTit.style.fontWeight = '800'; }
+    if (btnCat) { btnCat.style.background = 'transparent'; btnCat.style.color = 'var(--text2)'; btnCat.style.fontWeight = '700'; }
+    if (abaTit) abaTit.style.display = 'block';
+    if (abaCat) abaCat.style.display = 'none';
+  }
+}
+
+function renderizarListaConfigCategorias() {
+  const box = document.getElementById('lista-cfg-categorias');
+  if (!box) return;
+  const cats = carregarConfigCategoriasEventos();
+  if (!cats.length) {
+    box.innerHTML = '<div style="color:var(--muted);font-size:12px;text-align:center;padding:12px;">Nenhuma categoria cadastrada.</div>';
+    return;
+  }
+  box.innerHTML = cats.map(c => `
+    <div style="display:flex;align-items:center;justify-content:space-between;background:#0d0d18;border:1px solid rgba(255,255,255,0.08);border-radius:8px;padding:8px 10px;">
+      <div style="display:flex;align-items:center;gap:8px;">
+        <span style="display:inline-block;width:12px;height:12px;border-radius:50%;background:${c.color || '#94a3b8'};"></span>
+        <span style="font-size:15px;">${c.emoji || '📌'}</span>
+        <span style="font-size:12.5px;font-weight:700;color:#fff;">${c.nome}</span>
+      </div>
+      <div style="display:flex;gap:4px;">
+        <button type="button" onclick="iniciarEdicaoCategoriaEvento('${c.id}')" style="background:rgba(255,255,255,0.08);border:none;border-radius:5px;padding:4px 7px;font-size:11px;color:#fff;cursor:pointer;">✏️</button>
+        <button type="button" onclick="removerCategoriaEvento('${c.id}')" style="background:rgba(239,68,68,0.15);border:none;border-radius:5px;padding:4px 7px;font-size:11px;color:#f87171;cursor:pointer;">🗑️</button>
+      </div>
+    </div>
+  `).join('');
+}
+
+function iniciarEdicaoCategoriaEvento(id) {
+  const cats = carregarConfigCategoriasEventos();
+  const c = cats.find(x => x.id === id);
+  if (!c) return;
+  document.getElementById('cfg-cat-edit-id').value = c.id;
+  document.getElementById('cfg-cat-emoji').value = c.emoji || '📌';
+  document.getElementById('cfg-cat-nome').value = c.nome || '';
+  document.getElementById('cfg-cat-color').value = c.color || '#38bdf8';
+  document.getElementById('titulo-form-cfg-cat').textContent = `✏️ Editando: ${c.nome}`;
+  document.getElementById('btn-cancelar-edit-cat').style.display = 'block';
+}
+
+function cancelarEdicaoCategoriaEvento() {
+  document.getElementById('cfg-cat-edit-id').value = '';
+  document.getElementById('cfg-cat-emoji').value = '📌';
+  document.getElementById('cfg-cat-nome').value = '';
+  document.getElementById('cfg-cat-color').value = '#38bdf8';
+  document.getElementById('titulo-form-cfg-cat').textContent = '➕ Adicionar Nova Categoria';
+  document.getElementById('btn-cancelar-edit-cat').style.display = 'none';
+}
+
+function salvarFormularioCategoriaEvento() {
+  const editId = (document.getElementById('cfg-cat-edit-id')?.value || '').trim();
+  const emoji = (document.getElementById('cfg-cat-emoji')?.value || '📌').trim();
+  const nome = (document.getElementById('cfg-cat-nome')?.value || '').trim();
+  const color = document.getElementById('cfg-cat-color')?.value || '#38bdf8';
+
+  if (!nome) {
+    alert('Digite o nome da categoria.');
+    return;
+  }
+
+  let cats = carregarConfigCategoriasEventos();
+  if (editId) {
+    const idx = cats.findIndex(x => x.id === editId);
+    if (idx >= 0) {
+      cats[idx] = { ...cats[idx], emoji, nome, color };
+    }
+  } else {
+    const novoId = 'cat_' + Date.now();
+    cats.push({ id: novoId, emoji, nome, color });
+  }
+
+  salvarConfigCategoriasEventos(cats);
+  cancelarEdicaoCategoriaEvento();
+  renderizarListaConfigCategorias();
+  if (typeof renderCronoSemana === 'function') renderCronoSemana();
+  if (typeof renderCronoMes === 'function') renderCronoMes();
+}
+
+function removerCategoriaEvento(id) {
+  if (!confirm('Deseja remover esta categoria?')) return;
+  let cats = carregarConfigCategoriasEventos();
+  cats = cats.filter(x => x.id !== id);
+  if (!cats.length) cats = JSON.parse(JSON.stringify(DEFAULT_CATEGORIAS_EVENTO));
+  salvarConfigCategoriasEventos(cats);
+  renderizarListaConfigCategorias();
+  if (typeof renderCronoSemana === 'function') renderCronoSemana();
+  if (typeof renderCronoMes === 'function') renderCronoMes();
+}
+
+function renderizarListaConfigTitulos() {
+  const box = document.getElementById('lista-cfg-titulos');
+  if (!box) return;
+  const titulos = carregarConfigTitulosSugeridos();
+  if (!titulos.length) {
+    box.innerHTML = '<div style="color:var(--muted);font-size:12px;text-align:center;padding:12px;">Nenhum título rápido cadastrado.</div>';
+    return;
+  }
+  box.innerHTML = titulos.map((t, idx) => `
+    <div style="display:flex;align-items:center;justify-content:space-between;background:#0d0d18;border:1px solid rgba(255,255,255,0.08);border-radius:8px;padding:8px 10px;">
+      <span style="font-size:12.5px;color:#fff;font-weight:600;">${t}</span>
+      <button type="button" onclick="removerTituloSugerido(${idx})" style="background:rgba(239,68,68,0.15);border:none;border-radius:5px;padding:4px 7px;font-size:11px;color:#f87171;cursor:pointer;">🗑️</button>
+    </div>
+  `).join('');
+}
+
+function adicionarNovoTituloSugerido() {
+  const inp = document.getElementById('cfg-novo-titulo-inp');
+  const val = (inp?.value || '').trim();
+  if (!val) return;
+  let titulos = carregarConfigTitulosSugeridos();
+  if (!titulos.includes(val)) {
+    titulos.push(val);
+    salvarConfigTitulosSugeridos(titulos);
+  }
+  inp.value = '';
+  renderizarListaConfigTitulos();
+}
+
+function removerTituloSugerido(idx) {
+  let titulos = carregarConfigTitulosSugeridos();
+  titulos.splice(idx, 1);
+  if (!titulos.length) titulos = JSON.parse(JSON.stringify(DEFAULT_TITULOS_SUGERIDOS));
+  salvarConfigTitulosSugeridos(titulos);
+  renderizarListaConfigTitulos();
+}
+
+function restaurarPadroesEventosCronograma() {
+  if (!confirm('Deseja restaurar as categorias e títulos sugeridos originais de fábrica?')) return;
+  localStorage.removeItem('sdv_cronograma_categorias');
+  localStorage.removeItem('sdv_cronograma_titulos_sugeridos');
+  atualizarSelectsCategoriasCronograma();
+  renderizarChipsTitulosSugeridos();
+  renderizarListaConfigCategorias();
+  renderizarListaConfigTitulos();
+  cancelarEdicaoCategoriaEvento();
+  if (typeof renderCronoSemana === 'function') renderCronoSemana();
+  if (typeof renderCronoMes === 'function') renderCronoMes();
 }
 
 function navCronoSemana(dir) {
@@ -13232,7 +13592,7 @@ function _abrirModalNovoEventoCronogramaInterno(id) {
   document.getElementById('evento-form-titulo').value = '';
   document.getElementById('evento-form-data').value = _cronoDiaSelecionado || isoHoje();
   document.getElementById('evento-form-hora').value = '';
-  document.getElementById('evento-form-tipo').value = 'entrega';
+  let tipoSel = 'entrega';
   document.getElementById('evento-form-responsavel').value = (clienteSessao && clienteSessao.nome) || '';
   document.getElementById('evento-form-desc').value = '';
 
@@ -13244,11 +13604,14 @@ function _abrirModalNovoEventoCronogramaInterno(id) {
       document.getElementById('evento-form-titulo').value = ev.titulo || '';
       document.getElementById('evento-form-data').value = ev.data || '';
       document.getElementById('evento-form-hora').value = ev.hora || '';
-      document.getElementById('evento-form-tipo').value = ev.tipo || 'outro';
+      tipoSel = ev.tipo || 'entrega';
       document.getElementById('evento-form-responsavel').value = ev.responsavel || '';
       document.getElementById('evento-form-desc').value = ev.desc || '';
     }
   }
+  atualizarSelectsCategoriasCronograma(tipoSel);
+  renderizarChipsTitulosSugeridos();
+  m.style.zIndex = '9999999';
   m.style.display = 'flex';
 }
 
@@ -13258,37 +13621,90 @@ function fecharModalNovoEventoCronograma() {
 }
 
 function salvarEventoCronograma() {
-  const titulo = (document.getElementById('evento-form-titulo').value || '').trim();
-  const data = document.getElementById('evento-form-data').value;
-  if (!titulo || !data) { alert('Informe pelo menos o título e a data do evento.'); return; }
+  let titulo = (document.getElementById('evento-form-titulo')?.value || '').trim();
+  let data = (document.getElementById('evento-form-data')?.value || '').trim();
+  const tipo = document.getElementById('evento-form-tipo')?.value || 'entrega';
+  const responsavel = (document.getElementById('evento-form-responsavel')?.value || '').trim();
+  const hora = document.getElementById('evento-form-hora')?.value || '';
+  const desc = (document.getElementById('evento-form-desc')?.value || '').trim();
 
-  const lista = carregarEventosCrono();
-  const editId = document.getElementById('evento-cronograma-edit-id').value;
+  // Se data estiver vazia, usa data selecionada ou hoje
+  if (!data) {
+    if (typeof _cronoDiaSelecionado !== 'undefined' && _cronoDiaSelecionado) {
+      data = _cronoDiaSelecionado;
+    } else if (typeof isoHoje === 'function') {
+      data = isoHoje();
+    } else {
+      const n = new Date();
+      data = `${n.getFullYear()}-${String(n.getMonth()+1).padStart(2,'0')}-${String(n.getDate()).padStart(2,'0')}`;
+    }
+  }
+
+  // Se a data vier no formato DD/MM/YYYY, converte para YYYY-MM-DD
+  if (data.includes('/') && data.split('/').length === 3) {
+    const parts = data.split('/');
+    if (parts[0].length === 2 && parts[2].length === 4) {
+      data = `${parts[2]}-${parts[1].padStart(2, '0')}-${parts[0].padStart(2, '0')}`;
+    }
+  }
+
+  // Se título não foi preenchido, preenche automaticamente pelo tipo
+  if (!titulo) {
+    const mapaTipo = {
+      entrega: 'Entrega de Obra',
+      instalacao: 'Instalação Técnica',
+      medicao: 'Medição Técnica',
+      reuniao: 'Reunião',
+      pagamento: 'Pagamento',
+      prazo: 'Prazo',
+      outro: 'Evento / Prazo'
+    };
+    const tipoNome = mapaTipo[tipo] || (tipo.charAt(0).toUpperCase() + tipo.slice(1));
+    titulo = responsavel ? `${tipoNome} - ${responsavel}` : tipoNome;
+  }
+
+  const lista = (typeof carregarEventosCrono === 'function') ? carregarEventosCrono() : [];
+  const editId = document.getElementById('evento-cronograma-edit-id')?.value || '';
 
   const obj = {
     id: editId || `ev_${Date.now()}`,
     titulo,
     data,
-    hora: document.getElementById('evento-form-hora').value,
-    tipo: document.getElementById('evento-form-tipo').value,
-    responsavel: (document.getElementById('evento-form-responsavel').value || '').trim(),
-    desc: (document.getElementById('evento-form-desc').value || '').trim(),
+    hora,
+    tipo,
+    responsavel,
+    desc,
     criadoEm: editId ? undefined : new Date().toISOString()
   };
 
   if (editId) {
-    const idx = lista.findIndex(x => x.id === editId);
+    const idx = lista.findIndex(x => String(x.id) === String(editId));
     if (idx >= 0) lista[idx] = {...lista[idx], ...obj};
     else lista.push(obj);
   } else {
     lista.push(obj);
   }
 
-  salvarEventosCrono(lista);
+  if (typeof salvarEventosCrono === 'function') {
+    salvarEventosCrono(lista);
+  }
+  try {
+    localStorage.setItem('sdv_cronograma_eventos', JSON.stringify(lista));
+  } catch(_) {}
+
   fecharModalNovoEventoCronograma();
-  if (_cronoAbaAtual === 'semana') renderCronoSemana();
-  else if (_cronoAbaAtual === 'mes') renderCronoMes();
-  else if (_cronoAbaAtual === 'ano') renderCronoAno();
+
+  if (_cronoAbaAtual === 'semana' && typeof renderCronoSemana === 'function') renderCronoSemana();
+  else if (_cronoAbaAtual === 'mes' && typeof renderCronoMes === 'function') renderCronoMes();
+  else if (_cronoAbaAtual === 'ano' && typeof renderCronoAno === 'function') renderCronoAno();
+  else {
+    if (typeof renderCronoSemana === 'function') renderCronoSemana();
+    if (typeof renderCronoMes === 'function') renderCronoMes();
+  }
+
+  if (typeof mostrarToastPontoCliente === 'function') {
+    mostrarToastPontoCliente(`✅ Evento "${titulo}" salvo com sucesso!`, true);
+  }
 }
 
 function excluirEventoCronograma(id) {
@@ -13794,19 +14210,31 @@ setTimeout(aplicarConfigStatusServicoNaTela, 500);
 <!-- ══════════════════════════════════════════════════════════════════ -->
 <!--  MODAL: NOVO EVENTO DO CRONOGRAMA                                 -->
 <!-- ══════════════════════════════════════════════════════════════════ -->
-<div id="modal-novo-evento-cronograma" class="modal-overlay" style="display:none" onclick="if(event.target===this)fecharModalNovoEventoCronograma()">
+<div id="modal-novo-evento-cronograma" class="modal-overlay" style="display:none;z-index:9999999;position:fixed;inset:0;" onclick="if(event.target===this)fecharModalNovoEventoCronograma()">
   <div class="modal-box" onclick="event.stopPropagation()" style="max-width:460px;padding:24px 20px;">
-    <div class="modal-title" style="display:flex;justify-content:space-between;align-items:center;margin-bottom:18px;">
-      <div style="font-size:15px;font-weight:900;color:#fff;display:flex;align-items:center;gap:8px;"><span>📅</span> <span id="evento-cronograma-titulo">Novo Evento / Prazo</span></div>
-      <button class="modal-close" onclick="fecharModalNovoEventoCronograma()">✕</button>
+    <div class="modal-title" style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
+      <div style="font-size:15px;font-weight:900;color:#fff;display:flex;align-items:center;gap:8px;">
+        <span>📅</span> <span id="evento-cronograma-titulo">Novo Evento / Prazo</span>
+      </div>
+      <div style="display:flex;align-items:center;gap:8px;">
+        <button type="button" onclick="abrirConfiguracaoEventosCronograma()" title="Configurar Tipos, Categorias e Títulos" style="background:linear-gradient(135deg,rgba(201,168,76,0.22),rgba(201,168,76,0.08));border:1.2px solid var(--gold);color:var(--gold-light);padding:5px 11px;border-radius:8px;font-size:11.5px;font-weight:800;display:inline-flex;align-items:center;gap:5px;cursor:pointer;transition:all 0.2s;">
+          <span>⚙️</span> <span>Configurar</span>
+        </button>
+        <button type="button" class="modal-close" onclick="fecharModalNovoEventoCronograma()">✕</button>
+      </div>
     </div>
 
     <input type="hidden" id="evento-cronograma-edit-id" value="">
 
     <div style="display:flex;flex-direction:column;gap:12px;">
       <div class="field">
-        <label style="font-size:12px;font-weight:700;color:var(--text2);display:block;margin-bottom:4px;">Título do Evento</label>
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">
+          <label style="font-size:12px;font-weight:700;color:var(--text2);margin-bottom:0;">Título do Evento</label>
+          <button type="button" onclick="abrirConfiguracaoEventosCronograma('tit')" style="background:none;border:none;color:var(--gold);font-size:11px;font-weight:700;cursor:pointer;display:inline-flex;align-items:center;gap:3px;">⚙️ Títulos rápidos</button>
+        </div>
         <input type="text" id="evento-form-titulo" placeholder="Ex: Entrega de obra - Cliente X" style="width:100%;box-sizing:border-box;padding:10px 12px;border-radius:10px;background:#080811;border:1.5px solid rgba(201,168,76,0.3);color:#fff;font-family:inherit;font-size:13px;">
+        <!-- Chips de sugestões de títulos -->
+        <div id="evento-sugestoes-titulos" style="display:flex;flex-wrap:wrap;gap:5px;margin-top:6px;"></div>
       </div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
         <div class="field">
@@ -13819,7 +14247,10 @@ setTimeout(aplicarConfigStatusServicoNaTela, 500);
         </div>
       </div>
       <div class="field">
-        <label style="font-size:12px;font-weight:700;color:var(--text2);display:block;margin-bottom:4px;">Tipo / Categoria</label>
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">
+          <label style="font-size:12px;font-weight:700;color:var(--text2);margin-bottom:0;">Tipo / Categoria</label>
+          <button type="button" onclick="abrirConfiguracaoEventosCronograma('cat')" style="background:none;border:none;color:var(--gold);font-size:11px;font-weight:700;cursor:pointer;display:inline-flex;align-items:center;gap:3px;">⚙️ Gerenciar Categorias</button>
+        </div>
         <select id="evento-form-tipo" style="width:100%;box-sizing:border-box;padding:10px 12px;border-radius:10px;background:#080811;border:1.5px solid rgba(201,168,76,0.3);color:#fff;font-family:inherit;font-size:13px;">
           <option value="entrega">🚚 Entrega de Obra</option>
           <option value="instalacao">🔧 Instalação</option>
@@ -13843,6 +14274,92 @@ setTimeout(aplicarConfigStatusServicoNaTela, 500);
     <div style="display:flex;gap:8px;margin-top:16px;">
       <button type="button" class="btn btn-sec btn-sm" onclick="fecharModalNovoEventoCronograma()" style="flex:1;">Cancelar</button>
       <button type="button" class="btn btn-gold" onclick="salvarEventoCronograma()" style="flex:2;font-size:13px;font-weight:800;">💾 Salvar Evento</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════════════ -->
+<!--  MODAL: CONFIGURAR EVENTOS, CATEGORIAS E TÍTULOS                  -->
+<!-- ══════════════════════════════════════════════════════════════════ -->
+<div id="modal-config-eventos-cronograma" class="modal-overlay" style="display:none;z-index:99999999;position:fixed;inset:0;" onclick="if(event.target===this)fecharConfiguracaoEventosCronograma()">
+  <div class="modal-box" onclick="event.stopPropagation()" style="max-width:480px;padding:22px 20px;max-height:90vh;overflow-y:auto;">
+    <div class="modal-title" style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;">
+      <div style="font-size:15px;font-weight:900;color:#fff;display:flex;align-items:center;gap:8px;">
+        <span>⚙️</span> <span>Configurar Eventos & Categorias</span>
+      </div>
+      <button type="button" class="modal-close" onclick="fecharConfiguracaoEventosCronograma()">✕</button>
+    </div>
+
+    <!-- Navegação de Abas da Configuração -->
+    <div style="display:flex;gap:6px;margin-bottom:16px;background:rgba(255,255,255,0.05);padding:4px;border-radius:10px;">
+      <button type="button" id="tab-btn-cfg-cat" onclick="trocarAbaConfigEventos('cat')" style="flex:1;padding:8px 12px;border:none;border-radius:8px;font-size:12px;font-weight:800;background:var(--gold);color:#0a0914;cursor:pointer;transition:all 0.2s;">
+        🏷️ Tipos & Categorias
+      </button>
+      <button type="button" id="tab-btn-cfg-tit" onclick="trocarAbaConfigEventos('tit')" style="flex:1;padding:8px 12px;border:none;border-radius:8px;font-size:12px;font-weight:700;background:transparent;color:var(--text2);cursor:pointer;transition:all 0.2s;">
+        📝 Títulos Sugeridos
+      </button>
+    </div>
+
+    <!-- ABA 1: CATEGORIAS -->
+    <div id="aba-cfg-categorias" style="display:block;">
+      <div style="font-size:12px;color:var(--muted);margin-bottom:12px;">
+        Personalize os tipos de eventos, cores e emojis exibidos no cronograma:
+      </div>
+
+      <!-- Formulário de Nova / Editar Categoria -->
+      <div style="background:rgba(201,168,76,0.08);border:1px dashed rgba(201,168,76,0.3);border-radius:10px;padding:12px;margin-bottom:14px;">
+        <div style="font-size:12px;font-weight:800;color:var(--gold-light);margin-bottom:8px;" id="titulo-form-cfg-cat">
+          ➕ Adicionar Nova Categoria
+        </div>
+        <input type="hidden" id="cfg-cat-edit-id" value="">
+        <div style="display:grid;grid-template-columns:55px 1fr 60px;gap:8px;margin-bottom:8px;">
+          <div>
+            <label style="font-size:10px;color:var(--muted);display:block;margin-bottom:3px;">Ícone</label>
+            <input type="text" id="cfg-cat-emoji" value="📌" style="width:100%;text-align:center;padding:8px;border-radius:8px;background:#080811;border:1px solid rgba(201,168,76,0.3);color:#fff;font-size:15px;">
+          </div>
+          <div>
+            <label style="font-size:10px;color:var(--muted);display:block;margin-bottom:3px;">Nome da Categoria</label>
+            <input type="text" id="cfg-cat-nome" placeholder="Ex: Vistoria Prévia" style="width:100%;padding:8px 10px;border-radius:8px;background:#080811;border:1px solid rgba(201,168,76,0.3);color:#fff;font-size:12.5px;">
+          </div>
+          <div>
+            <label style="font-size:10px;color:var(--muted);display:block;margin-bottom:3px;">Cor</label>
+            <input type="color" id="cfg-cat-color" value="#38bdf8" style="width:100%;height:36px;padding:2px;border-radius:8px;background:#080811;border:1px solid rgba(201,168,76,0.3);cursor:pointer;">
+          </div>
+        </div>
+        <div style="display:flex;gap:6px;">
+          <button type="button" id="btn-cancelar-edit-cat" onclick="cancelarEdicaoCategoriaEvento()" style="display:none;flex:1;padding:7px;border-radius:7px;background:rgba(255,255,255,0.1);color:#fff;font-size:11px;border:none;cursor:pointer;">Cancelar</button>
+          <button type="button" class="btn btn-gold btn-sm" onclick="salvarFormularioCategoriaEvento()" style="flex:2;padding:7px;font-size:11.5px;font-weight:800;">Salvar Categoria</button>
+        </div>
+      </div>
+
+      <!-- Lista de Categorias Atuais -->
+      <div style="font-size:11.5px;font-weight:700;color:var(--text2);margin-bottom:6px;">Categorias Cadastradas:</div>
+      <div id="lista-cfg-categorias" style="display:flex;flex-direction:column;gap:6px;max-height:220px;overflow-y:auto;padding-right:4px;">
+        <!-- Itens inseridos dinamicamente -->
+      </div>
+    </div>
+
+    <!-- ABA 2: TÍTULOS SUGERIDOS -->
+    <div id="aba-cfg-titulos" style="display:none;">
+      <div style="font-size:12px;color:var(--muted);margin-bottom:12px;">
+        Cadastre títulos frequentes para preencher o evento com apenas 1 clique:
+      </div>
+
+      <div style="display:flex;gap:8px;margin-bottom:14px;">
+        <input type="text" id="cfg-novo-titulo-inp" placeholder="Ex: Montagem Guarda-Roupa Casal" style="flex:1;padding:8px 12px;border-radius:8px;background:#080811;border:1px solid rgba(201,168,76,0.3);color:#fff;font-size:12.5px;">
+        <button type="button" class="btn btn-gold btn-sm" onclick="adicionarNovoTituloSugerido()" style="padding:8px 14px;font-size:12px;font-weight:800;">➕ Adicionar</button>
+      </div>
+
+      <div style="font-size:11.5px;font-weight:700;color:var(--text2);margin-bottom:6px;">Títulos Rápidos Atuais:</div>
+      <div id="lista-cfg-titulos" style="display:flex;flex-direction:column;gap:6px;max-height:250px;overflow-y:auto;padding-right:4px;">
+        <!-- Itens inseridos dinamicamente -->
+      </div>
+    </div>
+
+    <!-- Rodapé -->
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-top:18px;padding-top:12px;border-top:1px solid rgba(255,255,255,0.08);">
+      <button type="button" onclick="restaurarPadroesEventosCronograma()" style="background:none;border:none;color:#94a3b8;font-size:11px;cursor:pointer;text-decoration:underline;">↺ Restaurar Padrões</button>
+      <button type="button" class="btn btn-sec btn-sm" onclick="fecharConfiguracaoEventosCronograma()" style="padding:6px 16px;">Concluir</button>
     </div>
   </div>
 </div>
