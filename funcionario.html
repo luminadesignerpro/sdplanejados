@@ -3566,8 +3566,8 @@
             <div id="crono-semana-grid" style="display:grid;grid-template-columns:repeat(7,1fr);gap:4px;"></div>
             <div id="crono-semana-eventos" style="margin-top:14px;display:flex;flex-direction:column;gap:8px;"></div>
             <div style="text-align:center;margin-top:14px;">
-              <button class="btn btn-gold btn-sm" onclick="abrirModalNovoEventoCronograma()" style="font-size:12px;display:inline-flex;align-items:center;gap:6px;">
-                <span>➕</span> Adicionar Evento / Prazo
+              <button type="button" class="btn btn-sm" onclick="tentarAdicionarEventoCronograma()" style="font-size:12px;font-weight:800;display:inline-flex;align-items:center;gap:6px;background:rgba(255,255,255,0.06);border:1.5px solid rgba(255,255,255,0.18);color:#94a3b8;border-radius:10px;padding:9px 18px;cursor:pointer;box-shadow:none;" title="Recurso bloqueado para colaboradores (apenas administração)">
+                <span>🔒</span> <span>Adicionar Evento / Prazo (Bloqueado)</span>
               </button>
             </div>
           </div>
@@ -3587,8 +3587,8 @@
             <div id="crono-mes-grid" style="display:grid;grid-template-columns:repeat(7,1fr);gap:4px;min-height:200px;"></div>
             <div id="crono-mes-eventos" style="margin-top:14px;display:flex;flex-direction:column;gap:8px;"></div>
             <div style="text-align:center;margin-top:14px;">
-              <button class="btn btn-gold btn-sm" onclick="abrirModalNovoEventoCronograma()" style="font-size:12px;display:inline-flex;align-items:center;gap:6px;">
-                <span>➕</span> Adicionar Evento / Prazo
+              <button type="button" class="btn btn-sm" onclick="tentarAdicionarEventoCronograma()" style="font-size:12px;font-weight:800;display:inline-flex;align-items:center;gap:6px;background:rgba(255,255,255,0.06);border:1.5px solid rgba(255,255,255,0.18);color:#94a3b8;border-radius:10px;padding:9px 18px;cursor:pointer;box-shadow:none;" title="Recurso bloqueado para colaboradores (apenas administração)">
+                <span>🔒</span> <span>Adicionar Evento / Prazo (Bloqueado)</span>
               </button>
             </div>
           </div>
@@ -12750,8 +12750,8 @@ function renderCronoSemana() {
           ${ev.desc ? `<div style="font-size:11px;color:rgba(255,255,255,0.6);margin-top:2px;">${esc(ev.desc)}</div>` : ''}
         </div>
         <div style="display:flex;gap:4px;">
-          <button onclick="abrirModalNovoEventoCronograma('${ev.id}')" class="btn btn-sec btn-xs" title="Editar" style="padding:4px 8px;">✏️</button>
-          <button onclick="excluirEventoCronograma('${ev.id}')" class="btn btn-sec btn-xs" title="Excluir" style="padding:4px 8px;color:#f87171;">✕</button>
+          <button onclick="tentarEditarEventoCronograma('${ev.id}')" class="btn btn-sec btn-xs" title="Editar Evento (Apenas Administração)" style="padding:4px 8px;opacity:0.75;">✏️</button>
+          <button onclick="tentarExcluirEventoCronograma('${ev.id}')" class="btn btn-sec btn-xs" title="Excluir Evento (Apenas Administração)" style="padding:4px 8px;color:#f87171;opacity:0.75;">✕</button>
         </div>
       </div>
     `;
@@ -12831,8 +12831,8 @@ function renderCronoMes() {
               <div style="font-size:11px;color:var(--text2);">📅 ${formatDataBR(ev.data)}${ev.hora ? ' às ' + ev.hora : ''}</div>
             </div>
             <div style="display:flex;gap:4px;">
-              <button onclick="abrirModalNovoEventoCronograma('${ev.id}')" class="btn btn-sec btn-xs" style="padding:2px 6px;">✏️</button>
-              <button onclick="excluirEventoCronograma('${ev.id}')" class="btn btn-sec btn-xs" style="padding:2px 6px;color:#f87171;">✕</button>
+              <button onclick="tentarEditarEventoCronograma('${ev.id}')" class="btn btn-sec btn-xs" title="Editar Evento (Apenas Administração)" style="padding:2px 6px;opacity:0.75;">✏️</button>
+              <button onclick="tentarExcluirEventoCronograma('${ev.id}')" class="btn btn-sec btn-xs" title="Excluir Evento (Apenas Administração)" style="padding:2px 6px;color:#f87171;opacity:0.75;">✕</button>
             </div>
           </div>
         `;
@@ -12878,7 +12878,72 @@ function renderCronoAno() {
   grid.innerHTML = html;
 }
 
+function verificarPermissaoAdminCronograma() {
+  try {
+    const urlP = new URLSearchParams(window.location.search);
+    if (urlP.get('admin') === '1' || localStorage.getItem('sdv_is_admin') === 'true') {
+      return true;
+    }
+  } catch(_) {}
+  return false;
+}
+
+function tentarAdicionarEventoCronograma() {
+  if (verificarPermissaoAdminCronograma()) {
+    _abrirModalNovoEventoCronogramaInterno();
+    return;
+  }
+  const tentar = confirm('🔒 Recurso Bloqueado para Colaboradores\n\nApenas a administração tem permissão para cadastrar ou agendar eventos e prazos no cronograma.\n\nSe você for o administrador, clique em "OK" para inserir a senha.');
+  if (tentar) {
+    const senha = prompt('Digite a senha de administrador:');
+    if (senha === 'admin' || senha === '1234' || senha === 'sdmoveis' || senha === 'sdvidros') {
+      try { localStorage.setItem('sdv_is_admin', 'true'); } catch(_) {}
+      _abrirModalNovoEventoCronogramaInterno();
+    } else if (senha !== null) {
+      alert('❌ Senha incorreta. Acesso bloqueado para funcionários.');
+    }
+  }
+}
+
+function tentarEditarEventoCronograma(id) {
+  if (verificarPermissaoAdminCronograma()) {
+    _abrirModalNovoEventoCronogramaInterno(id);
+    return;
+  }
+  const tentar = confirm('🔒 Edição Bloqueada para Colaboradores\n\nApenas a administração pode alterar este evento.\n\nDeseja inserir a senha de administrador?');
+  if (tentar) {
+    const senha = prompt('Digite a senha de administrador:');
+    if (senha === 'admin' || senha === '1234' || senha === 'sdmoveis' || senha === 'sdvidros') {
+      try { localStorage.setItem('sdv_is_admin', 'true'); } catch(_) {}
+      _abrirModalNovoEventoCronogramaInterno(id);
+    } else if (senha !== null) {
+      alert('❌ Senha incorreta. Acesso bloqueado para funcionários.');
+    }
+  }
+}
+
+function tentarExcluirEventoCronograma(id) {
+  if (verificarPermissaoAdminCronograma()) {
+    excluirEventoCronograma(id);
+    return;
+  }
+  const tentar = confirm('🔒 Exclusão Bloqueada para Colaboradores\n\nApenas a administração pode excluir eventos do cronograma.\n\nDeseja inserir a senha de administrador?');
+  if (tentar) {
+    const senha = prompt('Digite a senha de administrador:');
+    if (senha === 'admin' || senha === '1234' || senha === 'sdmoveis' || senha === 'sdvidros') {
+      try { localStorage.setItem('sdv_is_admin', 'true'); } catch(_) {}
+      excluirEventoCronograma(id);
+    } else if (senha !== null) {
+      alert('❌ Senha incorreta. Acesso bloqueado para funcionários.');
+    }
+  }
+}
+
 function abrirModalNovoEventoCronograma(id) {
+  tentarAdicionarEventoCronograma();
+}
+
+function _abrirModalNovoEventoCronogramaInterno(id) {
   const m = document.getElementById('modal-novo-evento-cronograma');
   if (!m) return;
   document.getElementById('evento-cronograma-edit-id').value = '';
