@@ -622,79 +622,6 @@
     .ponto-table {
       width: 100%; border-collapse: collapse; min-width: 980px; font-size: 13px;
     }
-    @media (max-width: 768px) {
-      .ponto-table-wrap {
-        overflow-x: visible;
-        border: none;
-        background: transparent;
-      }
-      .ponto-table.ponto-table-responsive-cards {
-        min-width: 100% !important;
-        display: block !important;
-      }
-      .ponto-table.ponto-table-responsive-cards thead {
-        display: none !important;
-      }
-      .ponto-table.ponto-table-responsive-cards tbody {
-        display: flex !important;
-        flex-direction: column !important;
-        gap: 12px !important;
-        width: 100% !important;
-      }
-      .ponto-table.ponto-table-responsive-cards tr {
-        display: flex !important;
-        flex-direction: column !important;
-        width: 100% !important;
-        box-sizing: border-box !important;
-        background: #0d0e19 !important;
-        border: 1.5px solid rgba(255,255,255,0.12) !important;
-        border-radius: 14px !important;
-        padding: 14px !important;
-        gap: 8px !important;
-        box-shadow: 0 4px 16px rgba(0,0,0,0.3) !important;
-      }
-      .ponto-table.ponto-table-responsive-cards td {
-        display: flex !important;
-        justify-content: space-between !important;
-        align-items: center !important;
-        padding: 4px 0 !important;
-        border-bottom: 1px solid rgba(255,255,255,0.05) !important;
-        white-space: normal !important;
-        background: transparent !important;
-      }
-      .ponto-table.ponto-table-responsive-cards td:last-child {
-        border-bottom: none !important;
-        padding-top: 10px !important;
-        display: block !important;
-        width: 100% !important;
-      }
-      .ponto-table.ponto-table-responsive-cards .ponto-acoes-desktop {
-        display: none !important;
-      }
-      .ponto-table.ponto-table-responsive-cards .ponto-colab-actions-mobile {
-        display: flex !important;
-        width: 100% !important;
-        gap: 6px !important;
-        flex-wrap: wrap !important;
-      }
-      .ponto-table.ponto-table-responsive-cards .ponto-colab-actions-mobile button {
-        flex: 1 !important;
-        min-width: 90px !important;
-        padding: 9px 8px !important;
-        font-size: 12px !important;
-        font-weight: 800 !important;
-        border-radius: 8px !important;
-        display: inline-flex !important;
-        align-items: center !important;
-        justify-content: center !important;
-        gap: 4px !important;
-      }
-    }
-    @media (min-width: 769px) {
-      .ponto-colab-actions-mobile {
-        display: none !important;
-      }
-    }
     .ponto-table th {
       background: #0a0a14; color: var(--muted); font-size: 11px; font-weight: 800;
       text-transform: uppercase; letter-spacing: 0.06em; padding: 12px 14px; text-align: left;
@@ -3234,7 +3161,7 @@
       </div>
 
       <div class="ponto-table-wrap">
-        <table class="ponto-table ponto-table-responsive-cards">
+        <table class="ponto-table">
           <thead>
             <tr>
               <th style="min-width:180px">COLABORADOR</th>
@@ -11690,19 +11617,12 @@ function renderFuncionarios() {
             <option value="Ausente" ${st==='Ausente'?'selected':''}>• Ausente</option>
           </select>
         </td>
-        <td data-label="Ações" style="text-align:center;">
-          <!-- Ações no Desktop (ícones compactos) -->
-          <div class="ponto-acoes-desktop" style="display:grid;grid-template-columns:1fr 1fr;gap:3px;width:68px;margin:0 auto;">
+        <td style="text-align:center;">
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:3px;width:68px;margin:0 auto;">
             <button type="button" class="btn btn-sec btn-sm" onclick="abrirModalFuncionario('${f.id}')" title="Editar Funcionário" style="padding:5px;font-size:14px;display:flex;align-items:center;justify-content:center;border-radius:8px;">✏️</button>
             <button type="button" class="btn btn-sec btn-sm" onclick="resetarStatusFuncionario('${f.id}')" title="Resetar Status" style="padding:5px;font-size:14px;display:flex;align-items:center;justify-content:center;border-radius:8px;">🔄</button>
-            <button type="button" class="btn btn-sm" onclick="window.open('${urlWppFunc}','_blank')" title="Enviar WhatsApp" style="padding:5px;font-size:14px;display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,#16a34a,#15803d);border:1px solid #22c55e;color:#fff;border-radius:8px;cursor:pointer;" ${!telLimpo ? 'disabled' : ''}>💬</button>
+            <button type="button" class="btn btn-sm" onclick="window.open('${urlWppFunc}','_blank')" title="Enviar WhatsApp" style="padding:5px;font-size:14px;display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,#16a34a,#15803d);border:1px solid #22c55e;color:#fff;border-radius:8px;cursor:pointer;" ${!telLimpo ? 'disabled title="WhatsApp não cadastrado"' : ''}>💬</button>
             <button type="button" class="btn btn-danger btn-sm" onclick="excluirFuncionario('${f.id}')" title="Excluir Funcionário" style="padding:5px;font-size:14px;display:flex;align-items:center;justify-content:center;border-radius:8px;">🗑️</button>
-          </div>
-          <!-- Ações no Mobile (botões grandes, 100% responsivos e visíveis) -->
-          <div class="ponto-colab-actions-mobile">
-            <button type="button" class="btn btn-sm" onclick="window.open('${urlWppFunc}','_blank')" style="flex:1;min-width:130px;background:linear-gradient(135deg,#16a34a,#15803d);color:#fff;border:none;padding:10px 12px;border-radius:8px;font-size:12px;font-weight:800;display:inline-flex;align-items:center;justify-content:center;gap:6px;cursor:pointer;" ${!telLimpo ? 'disabled' : ''}>💬 Enviar WhatsApp</button>
-            <button type="button" class="btn btn-sec btn-sm" onclick="abrirModalFuncionario('${f.id}')" style="flex:1;min-width:90px;padding:10px 12px;border-radius:8px;font-size:12px;font-weight:800;display:inline-flex;align-items:center;justify-content:center;gap:4px;cursor:pointer;">✏️ Editar</button>
-            <button type="button" class="btn btn-danger btn-sm" onclick="excluirFuncionario('${f.id}')" style="width:100%;background:#dc2626;color:#fff;border:none;padding:11px 12px;border-radius:8px;font-size:12.5px;font-weight:900;display:inline-flex;align-items:center;justify-content:center;gap:6px;cursor:pointer;margin-top:2px;">🗑️ Excluir Colaborador</button>
           </div>
         </td>
       </tr>
