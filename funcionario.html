@@ -210,8 +210,16 @@
     }
     .client-actions-bar {
       display: grid;
-      grid-template-columns: 1fr 1fr;
+      grid-template-columns: repeat(3, 1fr);
       gap: 10px;
+    }
+    @media(max-width: 480px) {
+      .client-actions-bar {
+        grid-template-columns: 1fr 1fr;
+      }
+      .client-actions-bar .btn-sair-action {
+        grid-column: 1 / -1;
+      }
     }
     .client-action-item {
       height: 44px;
@@ -1506,6 +1514,31 @@
       box-shadow: 0 0 16px rgba(255,255,255,0.08), inset 0 0 0 2px currentColor;
       position: relative;
     }
+    .ponto-btn-action.ponto-btn-bloqueado {
+      opacity: 0.88;
+      border-color: rgba(16, 185, 129, 0.85) !important;
+      background: linear-gradient(135deg, rgba(16, 185, 129, 0.22), rgba(6, 78, 59, 0.35)) !important;
+      cursor: not-allowed !important;
+      box-shadow: 0 0 18px rgba(16, 185, 129, 0.35), inset 0 0 0 2px #10b981 !important;
+    }
+    .ponto-btn-action.ponto-btn-bloqueado:hover {
+      transform: none !important;
+      filter: brightness(1.05);
+    }
+    .ponto-bloqueado-tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 3px;
+      margin-top: 4px;
+      font-size: 10px;
+      font-weight: 900;
+      color: #34d399;
+      background: rgba(0, 0, 0, 0.65);
+      border: 1px solid rgba(52, 211, 153, 0.45);
+      padding: 1.5px 7px;
+      border-radius: 999px;
+      letter-spacing: 0.02em;
+    }
 
     /* ── ESTILOS MINHA OPINIÃO & JOGOS ── */
     .star-item {
@@ -2415,11 +2448,8 @@
 
       <!-- ══ CARD DE AÇÕES E NAVEGAÇÃO ORGANIZADO & PADRONIZADO ══ -->
       <div class="client-nav-card">
-        <!-- Linha 1 e 2: Grid 2x2 Padronizado para Ações da Conta -->
+        <!-- Ações da Conta: Grid Padronizado e Harmonioso -->
         <div class="client-actions-bar">
-          <div class="client-action-item client-os-tag" id="lbl-cliente-os" onclick="abrirSeletorTrocaOs()" style="cursor:pointer;" title="Clique para alternar entre as Ordens de Serviço geradas">
-            <span>📋</span> <span id="lbl-cliente-os-texto">O.S. #0001</span> ▾
-          </div>
           <button type="button" class="client-action-item btn-client-action" onclick="abrirModalTrocarSenha()" title="Alterar sua senha de acesso">
             <span>🔑</span> <span>Trocar Senha</span>
           </button>
@@ -8161,15 +8191,35 @@ function mudarAba(tab) {
         }
       }
 
-      // Atualiza botões com indicação de clique/registro ativo
-      const marcarBtn = (btnId, badgeId, hora) => {
+      // Atualiza botões com indicação de clique/registro ativo e bloqueio da entrada confirmada
+      const marcarBtn = (btnId, badgeId, hora, ehEntrada = false) => {
         const btn = document.getElementById(btnId);
         const bdg = document.getElementById(badgeId);
-        if (bdg) bdg.textContent = hora ? `✓ ${hora}` : '';
-        if (btn) btn.classList.toggle('ponto-btn-registrado', Boolean(hora));
+        if (bdg) {
+          if (ehEntrada && hora) {
+            bdg.innerHTML = `✓ ${hora} <span class="ponto-bloqueado-tag">🔒 Confirmada</span>`;
+          } else {
+            bdg.textContent = hora ? `✓ ${hora}` : '';
+          }
+        }
+        if (btn) {
+          btn.classList.toggle('ponto-btn-registrado', Boolean(hora));
+          if (ehEntrada) {
+            btn.classList.toggle('ponto-btn-bloqueado', Boolean(hora));
+            if (hora) {
+              btn.setAttribute('data-bloqueado', 'true');
+              btn.setAttribute('aria-disabled', 'true');
+              btn.title = `1ª Entrada já confirmada hoje às ${hora} (Bloqueada)`;
+            } else {
+              btn.removeAttribute('data-bloqueado');
+              btn.removeAttribute('aria-disabled');
+              btn.title = 'Registrar 1ª Entrada';
+            }
+          }
+        }
       };
 
-      marcarBtn('btn-ponto-ent1', 'badge-ponto-ent1', reg && reg.entrada1);
+      marcarBtn('btn-ponto-ent1', 'badge-ponto-ent1', reg && reg.entrada1, true);
       marcarBtn('btn-ponto-alm', 'badge-ponto-alm', reg && reg.saidaAlmoco);
       marcarBtn('btn-ponto-vol', 'badge-ponto-vol', reg && reg.voltaAlmoco);
       marcarBtn('btn-ponto-sai', 'badge-ponto-sai', reg && reg.saidaFinal);
@@ -8245,7 +8295,10 @@ function mudarAba(tab) {
       document.getElementById('cl-edit-sai2').value = colab.horarioSaida || '17:30';
       document.getElementById('cl-edit-jornada').value = colab.jornada || '44h/sem';
       const m = document.getElementById('modal-cliente-editar-horario');
-      if (m) m.style.display = 'flex';
+      if (m) {
+        m.style.zIndex = '9999999';
+        m.style.display = 'flex';
+      }
     }
 
     function fecharModalEditarHorarioCliente() {
@@ -8355,7 +8408,10 @@ function abrirModalSaidaFinalCliente(horaStr) {
   if (lblRestante) lblRestante.textContent = `Tempo a ser descontado: -${tempoRestanteStr} (${minFaltantes} minutos)`;
   if (txtObs) txtObs.value = '';
 
-  if (m) m.style.display = 'flex';
+  if (m) {
+    m.style.zIndex = '9999999';
+    m.style.display = 'flex';
+  }
 }
 
 function fecharModalSaidaFinalCliente(e) {
@@ -8494,6 +8550,12 @@ function baterPontoNoCliente(tipo) {
     const colab = (typeof obterFuncionarioAtivoPonto === 'function') ? obterFuncionarioAtivoPonto() : { id: 100, nome: 'Samuel David' };
     const regHoje = pontos.find(x => (String(x.colaboradorId) === String(colab.id) || (x.colaboradorNome && colab.nome && x.colaboradorNome.toLowerCase() === colab.nome.toLowerCase())) && (x.data === dataHoje || (typeof ehDataHojePonto === 'function' && ehDataHojePonto(x.data))));
 
+    if (tipo === 'entrada1') {
+      if (regHoje && regHoje.entrada1) {
+        mostrarToastPontoCliente(`🔒 Sua 1ª Entrada já foi confirmada hoje às ${regHoje.entrada1}! O registro está gravado e bloqueado no sistema.`, false);
+        return;
+      }
+    }
     if (tipo === 'horaExtraInicial' || tipo === 'horaExtraFinal') {
       const parseMin = (s) => (s && s.includes(':')) ? s.split(':').map(Number)[0]*60 + s.split(':').map(Number)[1] : null;
       const horaSaidaPrevista = colab?.horarioSaida || '17:30';
@@ -8672,7 +8734,11 @@ function executarBatidaPontoNoCliente(tipo, horaStrParam, saidaJustificada, moti
     if (typeof renderizarEspelhoPontoCliente === 'function') {
       try { renderizarEspelhoPontoCliente(); } catch(_) {}
     }
-    mostrarToastPontoCliente(`✅ ${labelTipo} registrada com sucesso às ${horaStr}!`, true);
+    if (tipo === 'entrada1') {
+      mostrarToastPontoCliente(`✅ 1ª Entrada confirmada com sucesso às ${horaStr}! Ponto gravado e bloqueado no sistema.`, true);
+    } else {
+      mostrarToastPontoCliente(`✅ ${labelTipo} registrada com sucesso às ${horaStr}!`, true);
+    }
     if (typeof tocarAlertaSonoro === 'function') tocarAlertaSonoro();
   } catch(err) {
     console.error('Erro em executarBatidaPontoNoCliente:', err);
@@ -8683,6 +8749,7 @@ function executarBatidaPontoNoCliente(tipo, horaStrParam, saidaJustificada, moti
     function abrirModalJustificarFalta() {
       const m = document.getElementById('modal-justificar-falta-cliente');
       if (m) {
+        m.style.zIndex = '9999999';
         m.style.display = 'flex';
         const txt = document.getElementById('obs-falta-textarea');
         if (txt) txt.value = '';
@@ -8752,14 +8819,63 @@ function executarBatidaPontoNoCliente(tipo, horaStrParam, saidaJustificada, moti
 
     function mostrarToastPontoCliente(msg, sucesso = true) {
       const el = document.getElementById('cliente-ponto-msg');
-      if (!el) { alert(msg); return; }
-      el.style.display = 'block';
-      el.style.background = sucesso ? 'rgba(16,185,129,0.18)' : 'rgba(220,38,38,0.18)';
-      el.style.border = sucesso ? '1px solid #10b981' : '1px solid #dc2626';
-      el.style.color = sucesso ? '#4ade80' : '#f87171';
-      el.innerHTML = msg;
-      setTimeout(() => {
-        if (el) el.style.display = 'none';
+      if (el) {
+        el.style.display = 'block';
+        el.style.background = sucesso ? 'rgba(16,185,129,0.18)' : 'rgba(220,38,38,0.18)';
+        el.style.border = sucesso ? '1px solid #10b981' : '1px solid #dc2626';
+        el.style.color = sucesso ? '#4ade80' : '#f87171';
+        el.innerHTML = msg;
+        setTimeout(() => { if (el) el.style.display = 'none'; }, 5000);
+      }
+
+      // Banner flutuante no topo com alta visibilidade
+      let banner = document.getElementById('toast-flutuante-ponto');
+      if (!banner) {
+        banner = document.createElement('div');
+        banner.id = 'toast-flutuante-ponto';
+        document.body.appendChild(banner);
+      }
+      banner.style.cssText = `
+        position: fixed;
+        top: 20px;
+        left: 50%;
+        transform: translateX(-50%);
+        z-index: 999999999;
+        max-width: 92%;
+        width: 440px;
+        padding: 14px 18px;
+        border-radius: 12px;
+        font-family: inherit;
+        font-size: 13.5px;
+        font-weight: 700;
+        text-align: center;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.5), 0 0 15px ${sucesso ? 'rgba(16,185,129,0.35)' : 'rgba(239,68,68,0.35)'};
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+        background: ${sucesso ? 'linear-gradient(135deg, rgba(6,78,59,0.95), rgba(4,120,87,0.95))' : 'linear-gradient(135deg, rgba(127,29,29,0.95), rgba(185,28,28,0.95))'};
+        color: #ffffff;
+        border: 1px solid ${sucesso ? '#34d399' : '#f87171'};
+        animation: toastDrop 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+        line-height: 1.4;
+      `;
+      banner.innerHTML = msg;
+
+      try {
+        if (navigator.vibrate) navigator.vibrate(sucesso ? [50, 40, 50] : [100, 50, 100]);
+      } catch(_) {}
+
+      clearTimeout(banner._hideTimer);
+      banner._hideTimer = setTimeout(() => {
+        if (banner) {
+          banner.style.transition = 'opacity 0.4s ease, transform 0.4s ease';
+          banner.style.opacity = '0';
+          banner.style.transform = 'translate(-50%, -20px)';
+          setTimeout(() => { if (banner && banner.parentNode) banner.parentNode.removeChild(banner); }, 450);
+        }
       }, 4500);
     }
 
@@ -11872,7 +11988,10 @@ function abrirConfigHorariosAlarmeCliente() {
   atualizarBadgeResumoDiasAlarmeFunc();
 
   const m = document.getElementById('modal-config-alarme-ponto');
-  if (m) m.style.display = 'flex';
+  if (m) {
+    m.style.zIndex = '9999999';
+    m.style.display = 'flex';
+  }
 }
 
 function fecharConfigHorariosAlarmeCliente(e) {

@@ -617,9 +617,75 @@
     .ponto-table-wrap {
       overflow-x: auto; width: 100%; border-radius: var(--r-sm);
       border: 1px solid rgba(255,255,255,0.07); margin-top: 12px;
+      -webkit-overflow-scrolling: touch;
     }
     .ponto-table {
       width: 100%; border-collapse: collapse; min-width: 980px; font-size: 13px;
+    }
+    @media (max-width: 768px) {
+      .ponto-table-wrap {
+        overflow-x: visible;
+        border: none;
+        background: transparent;
+      }
+      .ponto-table.ponto-table-responsive-cards {
+        min-width: 100% !important;
+        display: block !important;
+      }
+      .ponto-table.ponto-table-responsive-cards thead {
+        display: none !important;
+      }
+      .ponto-table.ponto-table-responsive-cards tbody {
+        display: flex !important;
+        flex-direction: column !important;
+        gap: 12px !important;
+        width: 100% !important;
+      }
+      .ponto-table.ponto-table-responsive-cards tr {
+        display: flex !important;
+        flex-direction: column !important;
+        width: 100% !important;
+        box-sizing: border-box !important;
+        background: #0d0e19 !important;
+        border: 1.5px solid rgba(255,255,255,0.12) !important;
+        border-radius: 14px !important;
+        padding: 14px !important;
+        gap: 8px !important;
+        box-shadow: 0 4px 16px rgba(0,0,0,0.3) !important;
+      }
+      .ponto-table.ponto-table-responsive-cards td {
+        display: flex !important;
+        justify-content: space-between !important;
+        align-items: center !important;
+        padding: 4px 0 !important;
+        border-bottom: 1px solid rgba(255,255,255,0.05) !important;
+        white-space: normal !important;
+        background: transparent !important;
+      }
+      .ponto-table.ponto-table-responsive-cards td:last-child {
+        border-bottom: none !important;
+        padding-top: 10px !important;
+        display: block !important;
+        width: 100% !important;
+      }
+      .ponto-table.ponto-table-responsive-cards .ponto-colab-actions-mobile {
+        display: flex !important;
+        width: 100% !important;
+        gap: 6px !important;
+        flex-wrap: wrap !important;
+      }
+      .ponto-table.ponto-table-responsive-cards .ponto-colab-actions-mobile button {
+        flex: 1 !important;
+        min-width: 90px !important;
+        padding: 9px 8px !important;
+        font-size: 12px !important;
+        font-weight: 800 !important;
+        border-radius: 8px !important;
+        display: inline-flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        gap: 4px !important;
+      }
     }
     .ponto-table th {
       background: #0a0a14; color: var(--muted); font-size: 11px; font-weight: 800;
@@ -3004,6 +3070,29 @@
         <option value="">Selecione o Funcionário...</option>
       </select>
 
+      <!-- Banner Alarme de Ponto no Celular (5 min antes) -->
+      <div style="background:rgba(16,185,129,0.08);border:1.5px solid rgba(16,185,129,0.3);border-radius:14px;padding:12px 14px;margin:12px 0 14px;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;">
+        <div style="display:flex;align-items:center;gap:10px;">
+          <span style="font-size:24px;">🔔</span>
+          <div style="text-align:left;">
+            <div style="font-size:12px;font-weight:900;color:#34d399;">Alarme de Ponto no Celular (5 min antes)</div>
+            <div style="font-size:10.5px;color:rgba(255,255,255,0.65);">Toca mesmo com o aplicativo fechado ou celular bloqueado.</div>
+          </div>
+        </div>
+        <div style="display:flex;gap:6px;flex-wrap:wrap;">
+          <button type="button" onclick="ativarAlarmePontoCelularSegundoPlano()" style="padding:7px 12px;background:#10b981;border:none;border-radius:8px;color:#000;font-size:11px;font-weight:900;cursor:pointer;display:inline-flex;align-items:center;gap:5px;box-shadow:0 2px 10px rgba(16,185,129,0.4);">
+            <span>⏰</span> <span>Ativar no Celular</span>
+          </button>
+          <button type="button" onclick="baixarSincronizacaoAlarmeCalendario()" style="padding:7px 10px;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.2);border-radius:8px;color:#fff;font-size:11px;font-weight:700;cursor:pointer;" title="Adicionar alarmes ao despertador nativo do celular">
+            <span>📅</span> <span>Despertador (.ics)</span>
+          </button>
+        </div>
+      </div>
+
+      <div style="font-size:12px;color:rgba(255,255,255,0.7);margin-bottom:14px;text-align:center;">
+        Toque no botão correspondente para registrar seu horário oficial:
+      </div>
+
       <!-- Box Superior: Horário de Trabalho e Opção de Editar -->
       <div id="ponto-info-horario-box" style="margin:10px 0 14px;background:rgba(212,175,55,0.07);border:1px solid rgba(212,175,55,0.3);border-radius:12px;padding:10px 14px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;">
         <div style="display:flex;align-items:center;gap:8px;">
@@ -3024,6 +3113,9 @@
           </button>
           <button type="button" onclick="abrirModalHistoricoNotificacoes()" style="background:rgba(245,158,11,0.18);border:1px solid rgba(245,158,11,0.45);color:#fef08a;font-size:11.5px;font-weight:800;padding:6px 12px;border-radius:8px;cursor:pointer;display:inline-flex;align-items:center;gap:4px;" title="Ver registro de todas as notificações e alertas">
             🔔 Notificações (<span id="badge-notif-ponto-count">0</span>)
+          </button>
+          <button type="button" onclick="resetarBatidasHojeColaborador()" style="background:rgba(239,68,68,0.18);border:1px solid rgba(239,68,68,0.45);color:#fca5a5;font-size:11.5px;font-weight:800;padding:6px 12px;border-radius:8px;cursor:pointer;display:inline-flex;align-items:center;gap:4px;" title="Limpar ou reiniciar batidas de hoje do colaborador">
+            🔄 Limpar Hoje
           </button>
         </div>
       </div>
@@ -3066,6 +3158,62 @@
         </button>
       </div>
       <div id="ponto-feedback-msg" style="margin-top:14px;font-size:13.5px;font-weight:700;"></div>
+
+      <!-- Card Resumo das Batidas de Hoje -->
+      <div style="background:#0c0d16;border:1.5px solid rgba(255,255,255,0.08);border-radius:16px;padding:18px;margin-top:16px;box-shadow:0 8px 24px rgba(0,0,0,0.5);">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;flex-wrap:wrap;gap:8px;">
+          <div style="font-size:14px;font-weight:900;color:#fff;display:flex;align-items:center;gap:7px;">
+            <span>📋</span> <span>Resumo do Seu Ponto de Hoje</span>
+          </div>
+          <span id="ponto-hoje-total-resumo" style="font-size:12px;font-weight:800;color:#38bdf8;background:rgba(14,165,233,0.15);padding:4px 12px;border-radius:999px;border:1px solid rgba(56,189,248,0.3);">
+            00h 00m • Ganho: R$ 0,00
+          </span>
+        </div>
+
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(90px,1fr));gap:8px;text-align:center;">
+          <div style="background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.07);border-radius:10px;padding:10px 4px;">
+            <div style="font-size:9.5px;color:var(--muted);text-transform:uppercase;font-weight:800;">1ª Entrada</div>
+            <div id="admin-resumo-ent1" style="font-size:15px;font-weight:900;color:#34d399;margin-top:4px;">--:--</div>
+          </div>
+          <div style="background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.07);border-radius:10px;padding:10px 4px;">
+            <div style="font-size:9.5px;color:var(--muted);text-transform:uppercase;font-weight:800;">Saída Almoço</div>
+            <div id="admin-resumo-almsai" style="font-size:15px;font-weight:900;color:#f59e0b;margin-top:4px;">--:--</div>
+          </div>
+          <div style="background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.07);border-radius:10px;padding:10px 4px;">
+            <div style="font-size:9.5px;color:var(--muted);text-transform:uppercase;font-weight:800;">Volta Almoço</div>
+            <div id="admin-resumo-almvol" style="font-size:15px;font-weight:900;color:#38bdf8;margin-top:4px;">--:--</div>
+          </div>
+          <div style="background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.07);border-radius:10px;padding:10px 4px;">
+            <div style="font-size:9.5px;color:var(--muted);text-transform:uppercase;font-weight:800;">Saída Final</div>
+            <div id="admin-resumo-sai2" style="font-size:15px;font-weight:900;color:#ef4444;margin-top:4px;">--:--</div>
+          </div>
+          <div style="background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.07);border-radius:10px;padding:10px 4px;">
+            <div style="font-size:9.5px;color:var(--muted);text-transform:uppercase;font-weight:800;">Horas Extras</div>
+            <div id="admin-resumo-he" style="font-size:15px;font-weight:900;color:#a855f7;margin-top:4px;">--:--</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Card: Indicadores do Período -->
+      <div style="background:linear-gradient(135deg,rgba(15,23,42,0.8),rgba(10,14,26,0.8));border:1px solid rgba(255,255,255,0.08);border-radius:16px;padding:16px;margin-top:16px;">
+        <div style="font-size:13px;font-weight:800;color:var(--gold-light);margin-bottom:10px;text-transform:uppercase;letter-spacing:0.06em;text-align:left;">
+          📊 Indicadores do Período (<span id="admin-lbl-periodo-ativo">Mês Atual</span>)
+        </div>
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(110px,1fr));gap:8px;">
+          <div style="background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.06);border-radius:10px;padding:10px;text-align:center;">
+            <div style="font-size:10px;color:var(--muted);text-transform:uppercase;font-weight:800;">Total Horas</div>
+            <div id="admin-ponto-stat-total-horas" style="font-size:16px;font-weight:900;color:#38bdf8;margin-top:4px;">00:00</div>
+          </div>
+          <div style="background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.06);border-radius:10px;padding:10px;text-align:center;">
+            <div style="font-size:10px;color:var(--muted);text-transform:uppercase;font-weight:800;">Horas Extras</div>
+            <div id="admin-ponto-stat-horas-extras" style="font-size:16px;font-weight:900;color:#a855f7;margin-top:4px;">00:00</div>
+          </div>
+          <div style="background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.06);border-radius:10px;padding:10px;text-align:center;">
+            <div style="font-size:10px;color:var(--muted);text-transform:uppercase;font-weight:800;">Dias Trabalhados</div>
+            <div id="admin-ponto-stat-dias-pres" style="font-size:16px;font-weight:900;color:#10b981;margin-top:4px;">0</div>
+          </div>
+        </div>
+      </div>
     </div>
 
     <!-- Card: Quadro de Funcionários Ativos -->
@@ -3078,7 +3226,7 @@
       </div>
 
       <div class="ponto-table-wrap">
-        <table class="ponto-table">
+        <table class="ponto-table ponto-table-responsive-cards">
           <thead>
             <tr>
               <th style="min-width:180px">COLABORADOR</th>
@@ -6325,8 +6473,8 @@ function load(k, d=[]) {
     const key = getEmpresaStorageKey(k);
     let val = localStorage.getItem(key);
 
-    // Migração para SD Vidros na primeira vez: recupera da chave legado sem prefixo
-    if (val === null && key.endsWith('_sdvidros')) {
+    // Recupera da chave base/legado sem prefixo se ainda não existir na chave específica
+    if (val === null) {
       const legacy = localStorage.getItem(k);
       if (legacy !== null) {
         val = legacy;
@@ -6344,10 +6492,8 @@ function save(k, v) {
   try {
     const key = getEmpresaStorageKey(k);
     localStorage.setItem(key, JSON.stringify(v));
-    // Sincroniza retroativamente caso seja a sdvidros
-    if (key.endsWith('_sdvidros')) {
-      try { localStorage.setItem(k, JSON.stringify(v)); } catch(_) {}
-    }
+    // Sincroniza sempre com a chave base k (ex: sdv_pontos, sdv_funcionarios, etc.)
+    try { localStorage.setItem(k, JSON.stringify(v)); } catch(_) {}
   } catch (e) {
     console.warn('Erro ao salvar no storage:', e);
   }
@@ -8620,16 +8766,7 @@ function editarFuncionarioPeloModalLinks(id) {
 }
 
 function excluirFuncionarioPeloModalLinks(id) {
-  let f = funcionariosLista.find(x => x.id === id);
-  const nome = f ? f.nome : 'este colaborador';
-  if (!confirm(`Deseja realmente excluir o colaborador "${nome}"?`)) return;
-
-  funcionariosLista = funcionariosLista.filter(x => x.id !== id);
-  save(K.employees, funcionariosLista);
-  atualizarSelectColaboradoresPonto();
-  renderFuncionarios();
-  renderizarModalLinksFuncionarios();
-  mostrarMsgPonto(`Colaborador "${nome}" removido.`, true);
+  excluirFuncionario(id);
 }
 
 function enviarAcessoInstalarColaborador(id) {
@@ -11387,29 +11524,25 @@ function atualizarEspelhoPontoTempoReal() {
 
 function renderPontoView() {
   try {
-    const rawP = localStorage.getItem('sdv_pontos');
-    if (rawP) {
-      const arrP = JSON.parse(rawP);
-      if (Array.isArray(arrP)) pontosLista = arrP;
+    const loadedP = load(K.timesheet, null);
+    if (Array.isArray(loadedP)) {
+      pontosLista = loadedP;
     }
-    const rawF = localStorage.getItem('sdv_funcionarios');
-    if (rawF) {
-      const arrF = JSON.parse(rawF);
-      if (Array.isArray(arrF) && arrF.length) {
-        const vistosF = new Set();
-        const unicosF = [];
-        arrF.forEach(f => {
-          if (!f || !f.nome) return;
-          const chaveF = (f.nome || '').toLowerCase().trim();
-          if (!vistosF.has(chaveF)) {
-            vistosF.add(chaveF);
-            unicosF.push(f);
-          }
-        });
-        funcionariosLista = unicosF;
-        if (unicosF.length !== arrF.length) {
-          try { localStorage.setItem('sdv_funcionarios', JSON.stringify(unicosF)); } catch(_) {}
+    const loadedF = load(K.employees, null);
+    if (Array.isArray(loadedF) && loadedF.length) {
+      const vistosF = new Set();
+      const unicosF = [];
+      loadedF.forEach(f => {
+        if (!f || !f.nome) return;
+        const chaveF = (f.nome || '').toLowerCase().trim();
+        if (!vistosF.has(chaveF)) {
+          vistosF.add(chaveF);
+          unicosF.push(f);
         }
+      });
+      funcionariosLista = unicosF;
+      if (unicosF.length !== loadedF.length) {
+        save(K.employees, unicosF);
       }
     }
   } catch(_) {}
@@ -11483,37 +11616,44 @@ function renderFuncionarios() {
 
     return `
       <tr>
-        <td>
+        <td data-label="Colaborador">
           <div class="ponto-colab-name">${esc(f.nome)}</div>
           <div class="ponto-colab-sub">${esc(f.email || '')}${f.whatsapp ? ' · ' + esc(f.whatsapp) : ''}</div>
         </td>
-        <td>
+        <td data-label="Cargo">
           <div class="ponto-cargo-badge">${esc(f.cargo || 'Geral')}</div>
         </td>
-        <td style="color:var(--text2);font-weight:600;">
+        <td data-label="Departamento" style="color:var(--text2);font-weight:600;">
           ${esc(f.departamento || 'Operações')}
         </td>
-        <td style="color:var(--text2);font-weight:700;">
+        <td data-label="Jornada" style="color:var(--text2);font-weight:700;">
           ${esc(f.jornada || '44h/sem')}
         </td>
-        <td>
+        <td data-label="Salário">
           <div class="ponto-sal-val">${salFormatado}</div>
           <div class="ponto-sal-h">${vhFormatado}</div>
         </td>
-        <td>
-          <select class="ponto-status-select ${stCls}" onchange="mudarStatusFuncionarioDireto(${f.id}, this.value)">
+        <td data-label="Status">
+          <select class="ponto-status-select ${stCls}" onchange="mudarStatusFuncionarioDireto('${f.id}', this.value)">
             <option value="Presente" ${st==='Presente'?'selected':''}>• Presente</option>
             <option value="Em Almoço" ${st==='Em Almoço'?'selected':''}>• Em Almoço</option>
             <option value="Folga" ${st==='Folga'?'selected':''}>• Folga</option>
             <option value="Ausente" ${st==='Ausente'?'selected':''}>• Ausente</option>
           </select>
         </td>
-        <td style="text-align:center;">
-          <div style="display:grid;grid-template-columns:1fr 1fr;gap:3px;width:68px;margin:0 auto;">
-            <button type="button" class="btn btn-sec btn-sm" onclick="abrirModalFuncionario(${f.id})" title="Editar Funcionário" style="padding:5px;font-size:14px;display:flex;align-items:center;justify-content:center;border-radius:8px;">✏️</button>
-            <button type="button" class="btn btn-sec btn-sm" onclick="resetarStatusFuncionario(${f.id})" title="Resetar Status" style="padding:5px;font-size:14px;display:flex;align-items:center;justify-content:center;border-radius:8px;">🔄</button>
+        <td data-label="Ações" style="text-align:center;">
+          <!-- Ações no Desktop (ícones compactos) -->
+          <div class="ponto-acoes-desktop" style="display:grid;grid-template-columns:1fr 1fr;gap:3px;width:68px;margin:0 auto;">
+            <button type="button" class="btn btn-sec btn-sm" onclick="abrirModalFuncionario('${f.id}')" title="Editar Funcionário" style="padding:5px;font-size:14px;display:flex;align-items:center;justify-content:center;border-radius:8px;">✏️</button>
+            <button type="button" class="btn btn-sec btn-sm" onclick="resetarStatusFuncionario('${f.id}')" title="Resetar Status" style="padding:5px;font-size:14px;display:flex;align-items:center;justify-content:center;border-radius:8px;">🔄</button>
             <button type="button" class="btn btn-sm" onclick="window.open('${urlWppFunc}','_blank')" title="Enviar WhatsApp" style="padding:5px;font-size:14px;display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,#16a34a,#15803d);border:1px solid #22c55e;color:#fff;border-radius:8px;cursor:pointer;" ${!telLimpo ? 'disabled' : ''}>💬</button>
-            <button type="button" class="btn btn-danger btn-sm" onclick="excluirFuncionario(${f.id})" title="Excluir Funcionário" style="padding:5px;font-size:14px;display:flex;align-items:center;justify-content:center;border-radius:8px;">🗑️</button>
+            <button type="button" class="btn btn-danger btn-sm" onclick="excluirFuncionario('${f.id}')" title="Excluir Funcionário" style="padding:5px;font-size:14px;display:flex;align-items:center;justify-content:center;border-radius:8px;">🗑️</button>
+          </div>
+          <!-- Ações no Mobile (botões grandes, 100% responsivos e visíveis) -->
+          <div class="ponto-colab-actions-mobile">
+            <button type="button" class="btn btn-sm" onclick="window.open('${urlWppFunc}','_blank')" style="flex:1;min-width:130px;background:linear-gradient(135deg,#16a34a,#15803d);color:#fff;border:none;padding:10px 12px;border-radius:8px;font-size:12px;font-weight:800;display:inline-flex;align-items:center;justify-content:center;gap:6px;cursor:pointer;" ${!telLimpo ? 'disabled' : ''}>💬 Enviar WhatsApp</button>
+            <button type="button" class="btn btn-sec btn-sm" onclick="abrirModalFuncionario('${f.id}')" style="flex:1;min-width:90px;padding:10px 12px;border-radius:8px;font-size:12px;font-weight:800;display:inline-flex;align-items:center;justify-content:center;gap:4px;cursor:pointer;">✏️ Editar</button>
+            <button type="button" class="btn btn-danger btn-sm" onclick="excluirFuncionario('${f.id}')" style="width:100%;background:#dc2626;color:#fff;border:none;padding:11px 12px;border-radius:8px;font-size:12.5px;font-weight:900;display:inline-flex;align-items:center;justify-content:center;gap:6px;cursor:pointer;margin-top:2px;">🗑️ Excluir Colaborador</button>
           </div>
         </td>
       </tr>
@@ -11531,19 +11671,19 @@ function renderEspelhoPonto() {
   const tbody = document.getElementById('espelho-ponto-tbody');
   if (!tbody) return;
 
-  // Recarrega sempre do storage para sincronizar instantaneamente com batidas do Portal Equipe
-  try {
-    const rawP = localStorage.getItem('sdv_pontos');
-    if (rawP) {
-      const arrP = JSON.parse(rawP);
-      if (Array.isArray(arrP)) pontosLista = arrP;
-    }
-    const rawF = localStorage.getItem('sdv_funcionarios');
-    if (rawF) {
-      const arrF = JSON.parse(rawF);
+  // Garante que as listas estejam carregadas caso ainda não estejam em memória
+  if (!pontosLista || !pontosLista.length) {
+    try {
+      const arrP = load(K.timesheet, null);
+      if (Array.isArray(arrP) && arrP.length) pontosLista = arrP;
+    } catch(_) {}
+  }
+  if (!funcionariosLista || !funcionariosLista.length) {
+    try {
+      const arrF = load(K.employees, null);
       if (Array.isArray(arrF) && arrF.length) funcionariosLista = arrF;
-    }
-  } catch(_) {}
+    } catch(_) {}
+  }
 
   const selFiltro = document.getElementById('filtro-ponto-colaborador');
   const filtroId = selFiltro && selFiltro.value ? parseInt(selFiltro.value) : null;
@@ -11579,7 +11719,7 @@ function renderEspelhoPonto() {
     return;
   }
 
-  tbody.innerHTML = lista.map(p => {
+  tbody.innerHTML = lista.map((p, idx) => {
     const pNome = String(p.colaboradorNome || '').toLowerCase();
     const pPri = pNome.split(' ')[0];
     const f = funcionariosLista.find(x => x.id === p.colaboradorId) ||
@@ -11653,9 +11793,9 @@ function renderEspelhoPonto() {
         </td>
         <td style="text-align:center;white-space:nowrap;">
           <div style="display:flex;gap:4px;justify-content:center;">
-            <button type="button" class="btn btn-whats btn-sm" onclick="enviarPontoWhatsApp(${p.id})" title="Enviar Comprovante via WhatsApp" style="padding:4px 8px;font-size:12px;">📱</button>
-            <button type="button" class="btn btn-sec btn-sm" onclick="abrirModalLancamentoPonto(${p.id})" title="Editar Batidas" style="padding:4px 8px;font-size:12px;">✏️</button>
-            <button type="button" class="btn btn-danger btn-sm" onclick="excluirPonto(${p.id})" title="Excluir Registro" style="padding:4px 8px;font-size:12px;">🗑️</button>
+            <button type="button" class="btn btn-whats btn-sm" onclick="enviarPontoWhatsApp('${p.id}')" title="Enviar Comprovante via WhatsApp" style="padding:4px 8px;font-size:12px;">📱</button>
+            <button type="button" class="btn btn-sec btn-sm" onclick="abrirModalLancamentoPonto('${p.id}')" title="Editar Batidas" style="padding:4px 8px;font-size:12px;">✏️</button>
+            <button type="button" class="btn btn-danger btn-sm" onclick="excluirPonto('${p.id}', '${p.data || ''}', '${esc(nomeColab || '')}')" title="Excluir Registro" style="padding:4px 8px;font-size:12px;">🗑️</button>
           </div>
         </td>
       </tr>
@@ -11678,6 +11818,9 @@ function selPontoPeriodo(btn, periodo) {
   if (btn) btn.classList.add('active');
   pontoPeriodoAtual = periodo;
   renderEspelhoPonto();
+  if (typeof atualizarStatusBatidaColaborador === 'function') {
+    atualizarStatusBatidaColaborador();
+  }
 }
 
 function rolarParaRelogioPonto() {
@@ -11793,12 +11936,121 @@ function atualizarTravaHoraExtraIndex(p) {
   }
 }
 
+function ativarAlarmePontoCelularSegundoPlano() {
+  if (!('Notification' in window)) {
+    alert('Seu navegador não possui suporte à Notificação do Ponto.');
+    return;
+  }
+  Notification.requestPermission().then(permission => {
+    if (permission === 'granted') {
+      const cfgSalva = (function(){ try { return JSON.parse(localStorage.getItem('sdv_config_alarme_ponto')||'{}'); } catch(_){ return {}; } })();
+      const turnos = [
+        { hora: cfgSalva.ent || '08:00', label: 'Entrada' },
+        { hora: cfgSalva.alm || '12:00', label: 'Saída para Almoço' },
+        { hora: cfgSalva.vol || '13:00', label: 'Retorno do Almoço' },
+        { hora: cfgSalva.sai || '17:30', label: 'Saída Final' }
+      ];
+      if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
+        navigator.serviceWorker.controller.postMessage({
+          action: 'configurarAlarmesPonto',
+          alarmes: turnos,
+          nome: 'Colaborador',
+          testar: true
+        });
+      }
+      alert('🔔 Alarme de Ponto ativado no celular com sucesso! Você receberá aviso 5 minutos antes de cada turno mesmo com o app fechado.');
+    } else {
+      alert('Por favor, permita as notificações no navegador para receber os alarmes de ponto no celular.');
+    }
+  });
+}
+
+function baixarSincronizacaoAlarmeCalendario() {
+  const icsContent = [
+    'BEGIN:VCALENDAR',
+    'VERSION:2.0',
+    'PRODID:-//SD Vidros e Moveis//Alarme Ponto//PT-BR',
+    'CALSCALE:GREGORIAN',
+    'METHOD:PUBLISH',
+    'BEGIN:VEVENT',
+    'SUMMARY:⏰ Bater Ponto - Entrada (08:00)',
+    'DESCRIPTION:Alarme oficial de ponto eletrônico SD Vidros / SD Móveis Projetados.',
+    'DTSTART;TZID=America/Fortaleza:20260101T080000',
+    'RRULE:FREQ=WEEKLY;BYDAY=MO,TU,WE,TH,FR',
+    'BEGIN:VALARM',
+    'ACTION:DISPLAY',
+    'DESCRIPTION:⏰ Faltam 5 minutos para a Entrada do Ponto!',
+    'TRIGGER:-PT5M',
+    'END:VALARM',
+    'END:VEVENT',
+    'BEGIN:VEVENT',
+    'SUMMARY:⏰ Bater Ponto - Almoço (12:00)',
+    'DESCRIPTION:Alarme oficial de ponto - Almoço.',
+    'DTSTART;TZID=America/Fortaleza:20260101T120000',
+    'RRULE:FREQ=WEEKLY;BYDAY=MO,TU,WE,TH,FR',
+    'BEGIN:VALARM',
+    'ACTION:DISPLAY',
+    'DESCRIPTION:⏰ Faltam 5 minutos para o Almoço!',
+    'TRIGGER:-PT5M',
+    'END:VALARM',
+    'END:VEVENT',
+    'BEGIN:VEVENT',
+    'SUMMARY:⏰ Bater Ponto - Retorno Almoço (13:00)',
+    'DESCRIPTION:Alarme oficial de ponto - Retorno do Almoço.',
+    'DTSTART;TZID=America/Fortaleza:20260101T130000',
+    'RRULE:FREQ=WEEKLY;BYDAY=MO,TU,WE,TH,FR',
+    'BEGIN:VALARM',
+    'ACTION:DISPLAY',
+    'DESCRIPTION:⏰ Faltam 5 minutos para o Retorno do Almoço!',
+    'TRIGGER:-PT5M',
+    'END:VALARM',
+    'END:VEVENT',
+    'BEGIN:VEVENT',
+    'SUMMARY:⏰ Bater Ponto - Saída (17:30)',
+    'DESCRIPTION:Alarme oficial de ponto - Saída Final.',
+    'DTSTART;TZID=America/Fortaleza:20260101T173000',
+    'RRULE:FREQ=WEEKLY;BYDAY=MO,TU,WE,TH,FR',
+    'BEGIN:VALARM',
+    'ACTION:DISPLAY',
+    'DESCRIPTION:⏰ Faltam 5 minutos para o Fim do Expediente!',
+    'TRIGGER:-PT5M',
+    'END:VALARM',
+    'END:VEVENT',
+    'END:VCALENDAR'
+  ].join('\r\n');
+
+  const blob = new Blob([icsContent], { type: 'text/calendar;charset=utf-8' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'alarmes-ponto-sdvidros.ics';
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+  alert('📅 Arquivo de calendário baixado! Toque nele para importar os alarmes no despertador do celular.');
+}
+
 function atualizarStatusBatidaColaborador() {
   const sel = document.getElementById('ponto-sel-colaborador');
   const id = sel ? parseInt(sel.value) : 0;
   const msgEl = document.getElementById('ponto-feedback-msg');
+
+  const elResEnt1 = document.getElementById('admin-resumo-ent1');
+  const elResAlmSai = document.getElementById('admin-resumo-almsai');
+  const elResAlmVol = document.getElementById('admin-resumo-almvol');
+  const elResSai2 = document.getElementById('admin-resumo-sai2');
+  const elResHe = document.getElementById('admin-resumo-he');
+  const elResTot = document.getElementById('ponto-hoje-total-resumo');
+
   if (!id) {
     if (msgEl) msgEl.innerHTML = '';
+    if (elResEnt1) elResEnt1.textContent = '--:--';
+    if (elResAlmSai) elResAlmSai.textContent = '--:--';
+    if (elResAlmVol) elResAlmVol.textContent = '--:--';
+    if (elResSai2) elResSai2.textContent = '--:--';
+    if (elResHe) elResHe.textContent = '--:--';
+    if (elResTot) elResTot.textContent = '00h 00m • Ganho: R$ 0,00';
     return;
   }
   const colab = funcionariosLista.find(f => f.id === id);
@@ -11824,28 +12076,25 @@ function atualizarStatusBatidaColaborador() {
     const btn = document.getElementById(btnId);
     const bd = document.getElementById(badgeId);
     if (!btn || !bd) return;
+    btn.disabled = false;
+    btn.style.opacity = '1';
+    btn.style.cursor = 'pointer';
+    btn.style.pointerEvents = 'auto';
+
     if (valor) {
       btn.classList.add('batido');
-      bd.textContent = '✓ ' + valor;
-      bd.style.display = 'inline-block';
-      // Trava os botões para não permitir re-registro
-      if (['btn-ponto-ent1', 'btn-ponto-alm', 'btn-ponto-vol', 'btn-ponto-sai'].includes(btnId)) {
-        btn.disabled = true;
-        btn.style.opacity = '0.6';
-        btn.style.cursor = 'not-allowed';
-        btn.title = labelTurno + ' já registrado(a) hoje';
+      if (btnId === 'btn-ponto-ent1') {
+        bd.innerHTML = '✓ ' + valor + ' <span style="font-size:10px;color:#facc15;font-weight:900;background:rgba(250,204,21,0.2);padding:2px 6px;border-radius:6px;border:1px solid rgba(250,204,21,0.4);margin-left:4px;display:inline-block;">🔒 Confirmada</span>';
+      } else {
+        bd.textContent = '✓ ' + valor;
       }
+      bd.style.display = 'inline-block';
+      btn.title = labelTurno + ' registrado às ' + valor + (btnId === 'btn-ponto-ent1' ? ' (1ª Entrada Bloqueada no Sistema)' : ' (toque para atualizar ou alterar)');
     } else {
       btn.classList.remove('batido');
       bd.textContent = '';
       bd.style.display = 'none';
-      // Desbloqueio (novo dia / sem registro)
-      if (['btn-ponto-ent1', 'btn-ponto-alm', 'btn-ponto-vol', 'btn-ponto-sai'].includes(btnId)) {
-        btn.disabled = false;
-        btn.style.opacity = '';
-        btn.style.cursor = '';
-        btn.title = '';
-      }
+      btn.title = 'Registrar ' + labelTurno;
     }
   };
 
@@ -11856,9 +12105,92 @@ function atualizarStatusBatidaColaborador() {
   atualizarBotaoStatus('btn-ponto-he-ini', 'badge-ponto-he-ini', p?.horaExtraInicial, 'H.E. Inicial');
   atualizarBotaoStatus('btn-ponto-he-fim', 'badge-ponto-he-fim', p?.horaExtraFinal, 'H.E. Final');
   atualizarBotaoStatus('btn-ponto-falta', 'badge-ponto-falta', (p && String(p.status).includes('Falta')) ? (p.justificativaFalta || 'Falta Registrada') : '', 'Falta');
+
+  if (p) recalcularHorasPonto(p, colab);
+
+  // Atualiza os cards de Resumo do Seu Ponto de Hoje
+  if (elResEnt1) elResEnt1.textContent = p?.entrada1 || '--:--';
+  if (elResAlmSai) elResAlmSai.textContent = p?.saidaAlmoco || '--:--';
+  if (elResAlmVol) elResAlmVol.textContent = p?.voltaAlmoco || '--:--';
+  if (elResSai2) elResSai2.textContent = p?.saidaFinal || '--:--';
+  if (elResHe) elResHe.textContent = p?.horasExtras || '--:--';
+  if (elResTot) {
+    if (p) {
+      elResTot.textContent = `${p.tempoTrabalhado || '00h 00m'} • Ganho: ${p.valorSalario || 'R$ 0,00'}`;
+    } else {
+      elResTot.textContent = '00h 00m • Ganho: R$ 0,00';
+    }
+  }
+
+  // Atualiza Indicadores do Período
+  const elTotH = document.getElementById('admin-ponto-stat-total-horas');
+  const elExtH = document.getElementById('admin-ponto-stat-horas-extras');
+  const elDiasP = document.getElementById('admin-ponto-stat-dias-pres');
+  const elLblPer = document.getElementById('admin-lbl-periodo-ativo');
+
+  const perNome = (typeof pontoPeriodoAtual !== 'undefined') ? pontoPeriodoAtual : 'mes';
+  if (elLblPer) {
+    elLblPer.textContent = perNome === 'dia' ? 'Hoje' : (perNome === 'semana' ? 'Semana Atual' : (perNome === 'ano' ? 'Ano Atual' : 'Mês Atual'));
+  }
+
+  const agora = new Date();
+  const hojeStr = agora.toISOString().split('T')[0];
+  const mesAtualStr = hojeStr.slice(0, 7);
+  const anoAtualStr = hojeStr.slice(0, 4);
+
+  const colabPri = colab.nome ? colab.nome.toLowerCase().split(' ')[0] : '';
+  const pontosColab = pontosLista.filter(pt => {
+    if (pt.colaboradorId && String(pt.colaboradorId) === String(colab.id)) return true;
+    if (pt.colaboradorNome && colab.nome) {
+      const ptNome = pt.colaboradorNome.toLowerCase();
+      if (ptNome === colab.nome.toLowerCase() || ptNome.includes(colabPri)) return true;
+    }
+    return false;
+  });
+
+  const pontosPeriodo = pontosColab.filter(pt => {
+    const d = pt.data || '';
+    if (perNome === 'dia') return (typeof ehDataPontoAtiva === 'function' ? ehDataPontoAtiva(d) : ehDataHoje(d));
+    if (perNome === 'semana') {
+      const dt = new Date(d + 'T12:00:00');
+      const diff = (agora - dt) / (1000 * 60 * 60 * 24);
+      return diff >= -1 && diff <= 7;
+    }
+    if (perNome === 'ano') return d.includes(anoAtualStr);
+    return d.includes(mesAtualStr) || d.includes('/' + (agora.getMonth() + 1).toString().padStart(2, '0') + '/');
+  });
+
+  let totalMin = 0;
+  let totalMinExt = 0;
+  let diasPres = 0;
+
+  pontosPeriodo.forEach(pt => {
+    recalcularHorasPonto(pt, colab);
+    if (pt.totalMinutos != null) totalMin += pt.totalMinutos;
+    else if (pt.horasTrabalhadas && pt.horasTrabalhadas.includes(':')) {
+      const parts = pt.horasTrabalhadas.split(':');
+      totalMin += (parseInt(parts[0], 10) || 0) * 60 + (parseInt(parts[1], 10) || 0);
+    }
+    if (pt.horasExtras && pt.horasExtras.includes(':')) {
+      const heP = pt.horasExtras.split(':');
+      totalMinExt += (parseInt(heP[0], 10) || 0) * 60 + (parseInt(heP[1], 10) || 0);
+    }
+    if (pt.entrada1 || pt.saidaAlmoco || pt.voltaAlmoco || pt.saidaFinal || (pt.status || '').toLowerCase().includes('presente') || (pt.status || '').toLowerCase().includes('extra') || (pt.tempoTrabalhado && pt.tempoTrabalhado !== '00h 00m')) {
+      diasPres++;
+    }
+  });
+
+  const hTot = Math.floor(totalMin / 60);
+  const mTot = totalMin % 60;
+  const hExt = Math.floor(totalMinExt / 60);
+  const mExt = totalMinExt % 60;
+
+  if (elTotH) elTotH.textContent = String(hTot).padStart(2, '0') + ':' + String(mTot).padStart(2, '0');
+  if (elExtH) elExtH.textContent = String(hExt).padStart(2, '0') + ':' + String(mExt).padStart(2, '0');
+  if (elDiasP) elDiasP.textContent = String(diasPres);
+
   if (msgEl) {
     if (p) {
-      recalcularHorasPonto(p, colab);
       const ehFdsP = ehFimDeSemanaPonto(p.data);
       const txtHNeg = (p.minutosNegativos && p.minutosNegativos > 0)
         ? `<strong style="color:#f87171;" title="Tolerância de 5min excedida. Descontado como hora negativa">⏳ H. Negativa: ${p.horaNegativa} (${p.descontoNegativoFormatado})</strong>`
@@ -12045,24 +12377,57 @@ function concluirBatidaSaidaFinal(colabId, horaStr, decisao, obs) {
   mostrarMsgPonto(msg, true);
 }
 
-// ── CONFIRMAÇÃO DE ENTRADA ──
-function confirmarEntradaPonto() {
-  const btn = document.getElementById('btn-ponto-ent1');
-  // Se já batido, não faz nada
-  if (btn && btn.classList.contains('batido')) {
-    mostrarMsgPonto('✅ Entrada já registrada hoje. Aguarde os próximos lançamentos.', true);
-    return;
-  }
-
+// ── LIMPAR BATIDAS DE HOJE DO COLABORADOR SELECIONADO ──
+function resetarBatidasHojeColaborador() {
   const sel = document.getElementById('ponto-sel-colaborador');
   let colabId = parseInt(sel ? sel.value : 0);
   if (!colabId && funcionariosLista.length > 0) colabId = funcionariosLista[0].id;
   const colab = funcionariosLista.find(f => f.id === colabId);
+  if (!colab) {
+    mostrarMsgPonto('⚠️ Nenhum colaborador selecionado.', false);
+    return;
+  }
+  const nomeColab = colab.nome || 'Colaborador';
+  if (!confirm(`Deseja realmente limpar todos os registros de ponto de hoje para "${nomeColab}"?`)) return;
+
+  pontosLista = pontosLista.filter(x => !( (x.colaboradorId === colabId || (x.colaboradorNome && x.colaboradorNome.toLowerCase() === nomeColab.toLowerCase())) && (typeof ehDataPontoAtiva === 'function' ? ehDataPontoAtiva(x.data) : ehDataHoje(x.data)) ));
+  save(K.timesheet, pontosLista);
+  try {
+    const kEmp = (typeof getEmpresaStorageKey === 'function') ? getEmpresaStorageKey(K.timesheet) : K.timesheet;
+    localStorage.setItem(kEmp, JSON.stringify(pontosLista));
+    localStorage.setItem('sdv_pontos', JSON.stringify(pontosLista));
+    localStorage.setItem('sdv_ponto_ultimo_update', Date.now().toString());
+  } catch(_) {}
+
+  atualizarStatusBatidaColaborador();
+  renderEspelhoPonto();
+  mostrarMsgPonto(`✅ Batidas de hoje limpas para "${nomeColab}". Todos os botões estão livres!`, true);
+}
+
+// ── CONFIRMAÇÃO DE ENTRADA ──
+function confirmarEntradaPonto() {
+  const sel = document.getElementById('ponto-sel-colaborador');
+  let colabId = parseInt(sel ? sel.value : 0);
+  if (!colabId && funcionariosLista.length > 0) colabId = funcionariosLista[0].id;
+  const colab = funcionariosLista.find(f => f.id === colabId);
+  if (!colab) {
+    mostrarMsgPonto('⚠️ Selecione ou cadastre um colaborador primeiro.', false);
+    return;
+  }
 
   const agora = new Date();
   const hh = String(agora.getHours()).padStart(2, '0');
   const mm = String(agora.getMinutes()).padStart(2, '0');
   const horaStr = hh + ':' + mm;
+
+  const dataHoje = getHojeFormatado();
+  let p = pontosLista.find(x => (x.colaboradorId === colabId || (x.colaboradorNome && x.colaboradorNome.toLowerCase() === colab.nome.toLowerCase())) && (typeof ehDataPontoAtiva === 'function' ? ehDataPontoAtiva(x.data) : ehDataHoje(x.data)));
+
+  // Se já batido, bloqueia re-entrada duplicada com aviso claro (gravado e bloqueado no sistema)
+  if (p && p.entrada1) {
+    mostrarMsgPonto(`🔒 A 1ª Entrada de ${colab.nome} já foi confirmada hoje às ${p.entrada1}! O registro está gravado e bloqueado no sistema.`, false);
+    return;
+  }
 
   // Preenche o modal de confirmação
   const elNome = document.getElementById('modal-conf-entrada-nome');
@@ -12078,13 +12443,12 @@ function confirmarEntradaExecutar() {
   const modal = document.getElementById('modal-confirmacao-entrada');
   if (modal) modal.style.display = 'none';
   registrarBatidaPonto('entrada1');
-  // Trava o botão visualmente
+  // Mantém o botão ativo e responsivo
   const btn = document.getElementById('btn-ponto-ent1');
   if (btn) {
-    btn.disabled = true;
-    btn.style.opacity = '0.6';
-    btn.style.cursor = 'not-allowed';
-    btn.title = 'Entrada já registrada';
+    btn.disabled = false;
+    btn.style.opacity = '1';
+    btn.style.cursor = 'pointer';
   }
 }
 
@@ -12095,12 +12459,6 @@ function cancelarConfirmacaoEntrada() {
 
 // ── CONFIRMAÇÃO DE SAÍDA PARA ALMOÇO ──
 function confirmarSaidaAlmocoPonto() {
-  const btn = document.getElementById('btn-ponto-alm');
-  if (btn && (btn.classList.contains('batido') || btn.disabled)) {
-    mostrarMsgPonto('✅ Saída para Almoço já registrada hoje.', true);
-    return;
-  }
-
   const sel = document.getElementById('ponto-sel-colaborador');
   let colabId = parseInt(sel ? sel.value : 0);
   if (!colabId && funcionariosLista.length > 0) colabId = funcionariosLista[0].id;
@@ -12110,28 +12468,43 @@ function confirmarSaidaAlmocoPonto() {
     return;
   }
 
-  const dataHoje = getHojeFormatado();
-  let p = pontosLista.find(x => (x.colaboradorId === colabId || (x.colaboradorNome && x.colaboradorNome.toLowerCase() === colab.nome.toLowerCase())) && ehDataHoje(x.data));
-  if (p && p.saidaAlmoco) {
-    mostrarMsgPonto('✅ Saída para Almoço já registrada hoje.', true);
-    return;
-  }
-  if (!p || !p.entrada1) {
-    mostrarMsgPonto('⚠️ Registre primeiro a 1ª Entrada antes da Saída para Almoço.', false);
-    return;
-  }
-
-  const horaProg = colab.horarioAlmocoSai || '12:00';
   const agora = new Date();
-  const minAgora = agora.getHours() * 60 + agora.getMinutes();
-  const [hP, mP] = horaProg.split(':').map(Number);
-  const minProg = (hP * 60) + mP;
   const hh = String(agora.getHours()).padStart(2, '0');
   const mm = String(agora.getMinutes()).padStart(2, '0');
   const horaStr = `${hh}:${mm}`;
 
-  // Permite confirmação da Saída para Almoço pelo colaborador no modal
+  const dataHoje = getHojeFormatado();
+  let p = pontosLista.find(x => (x.colaboradorId === colabId || (x.colaboradorNome && x.colaboradorNome.toLowerCase() === colab.nome.toLowerCase())) && (typeof ehDataPontoAtiva === 'function' ? ehDataPontoAtiva(x.data) : ehDataHoje(x.data)));
 
+  // Se já batido, permite atualizar
+  if (p && p.saidaAlmoco) {
+    if (confirm(`☕ Saída para Almoço já registrada hoje às ${p.saidaAlmoco}.\n\nDeseja ATUALIZAR para o horário atual (${horaStr})?`)) {
+      p.saidaAlmoco = horaStr;
+      recalcularHorasPonto(p, colab);
+      save(K.timesheet, pontosLista);
+      try {
+        const kEmp = (typeof getEmpresaStorageKey === 'function') ? getEmpresaStorageKey(K.timesheet) : K.timesheet;
+        localStorage.setItem(kEmp, JSON.stringify(pontosLista));
+        localStorage.setItem('sdv_pontos', JSON.stringify(pontosLista));
+        localStorage.setItem('sdv_ponto_ultimo_update', Date.now().toString());
+      } catch(_) {}
+      atualizarStatusBatidaColaborador();
+      renderEspelhoPonto();
+      mostrarMsgPonto(`✅ Saída para Almoço atualizada para ${horaStr}!`, true);
+    }
+    return;
+  }
+
+  if (!p || !p.entrada1) {
+    if (confirm(`⚠️ A 1ª Entrada ainda não foi registrada hoje.\n\nDeseja registrar a 1ª Entrada agora às ${horaStr}?`)) {
+      confirmarEntradaPonto();
+    } else {
+      mostrarMsgPonto('⚠️ Registre primeiro a 1ª Entrada antes do almoço.', false);
+    }
+    return;
+  }
+
+  const horaProg = colab.horarioAlmocoSai || '12:00';
   const elNome = document.getElementById('modal-conf-almsai-nome');
   const elHora = document.getElementById('modal-conf-almsai-hora');
   const elProg = document.getElementById('modal-conf-almsai-prog');
@@ -12149,10 +12522,9 @@ function confirmarAlmocoSaiExecutar() {
   registrarBatidaPonto('saidaAlmoco');
   const btn = document.getElementById('btn-ponto-alm');
   if (btn) {
-    btn.disabled = true;
-    btn.style.opacity = '0.6';
-    btn.style.cursor = 'not-allowed';
-    btn.title = 'Saída Almoço já registrada hoje';
+    btn.disabled = false;
+    btn.style.opacity = '1';
+    btn.style.cursor = 'pointer';
   }
 }
 
@@ -12163,12 +12535,6 @@ function cancelarConfirmacaoAlmocoSai() {
 
 // ── CONFIRMAÇÃO DE VOLTA DO ALMOÇO ──
 function confirmarVoltaAlmocoPonto() {
-  const btn = document.getElementById('btn-ponto-vol');
-  if (btn && (btn.classList.contains('batido') || btn.disabled)) {
-    mostrarMsgPonto('✅ Volta do Almoço já registrada hoje.', true);
-    return;
-  }
-
   const sel = document.getElementById('ponto-sel-colaborador');
   let colabId = parseInt(sel ? sel.value : 0);
   if (!colabId && funcionariosLista.length > 0) colabId = funcionariosLista[0].id;
@@ -12178,28 +12544,43 @@ function confirmarVoltaAlmocoPonto() {
     return;
   }
 
-  const dataHoje = getHojeFormatado();
-  let p = pontosLista.find(x => (x.colaboradorId === colabId || (x.colaboradorNome && x.colaboradorNome.toLowerCase() === colab.nome.toLowerCase())) && ehDataHoje(x.data));
-  if (p && p.voltaAlmoco) {
-    mostrarMsgPonto('✅ Volta do Almoço já registrada hoje.', true);
-    return;
-  }
-  if (!p || !p.saidaAlmoco) {
-    mostrarMsgPonto('⚠️ Registre primeiro a Saída para Almoço antes da Volta.', false);
-    return;
-  }
-
-  const horaProg = colab.horarioAlmocoVolta || '13:00';
   const agora = new Date();
-  const minAgora = agora.getHours() * 60 + agora.getMinutes();
-  const [hP, mP] = horaProg.split(':').map(Number);
-  const minProg = (hP * 60) + mP;
   const hh = String(agora.getHours()).padStart(2, '0');
   const mm = String(agora.getMinutes()).padStart(2, '0');
   const horaStr = `${hh}:${mm}`;
 
-  // Permite confirmação da Volta do Almoço pelo colaborador no modal
+  const dataHoje = getHojeFormatado();
+  let p = pontosLista.find(x => (x.colaboradorId === colabId || (x.colaboradorNome && x.colaboradorNome.toLowerCase() === colab.nome.toLowerCase())) && (typeof ehDataPontoAtiva === 'function' ? ehDataPontoAtiva(x.data) : ehDataHoje(x.data)));
 
+  // Se já batido, permite atualizar
+  if (p && p.voltaAlmoco) {
+    if (confirm(`▶️ Volta do Almoço já registrada hoje às ${p.voltaAlmoco}.\n\nDeseja ATUALIZAR para o horário atual (${horaStr})?`)) {
+      p.voltaAlmoco = horaStr;
+      recalcularHorasPonto(p, colab);
+      save(K.timesheet, pontosLista);
+      try {
+        const kEmp = (typeof getEmpresaStorageKey === 'function') ? getEmpresaStorageKey(K.timesheet) : K.timesheet;
+        localStorage.setItem(kEmp, JSON.stringify(pontosLista));
+        localStorage.setItem('sdv_pontos', JSON.stringify(pontosLista));
+        localStorage.setItem('sdv_ponto_ultimo_update', Date.now().toString());
+      } catch(_) {}
+      atualizarStatusBatidaColaborador();
+      renderEspelhoPonto();
+      mostrarMsgPonto(`✅ Volta do Almoço atualizada para ${horaStr}!`, true);
+    }
+    return;
+  }
+
+  if (!p || !p.saidaAlmoco) {
+    if (confirm(`☕ A Saída para Almoço ainda não foi registrada.\n\nDeseja registrar a Saída para Almoço agora às ${horaStr}?`)) {
+      confirmarSaidaAlmocoPonto();
+    } else {
+      mostrarMsgPonto('⚠️ Registre primeiro a Saída para Almoço antes da Volta.', false);
+    }
+    return;
+  }
+
+  const horaProg = colab.horarioAlmocoVolta || '13:00';
   const elNome = document.getElementById('modal-conf-almvol-nome');
   const elHora = document.getElementById('modal-conf-almvol-hora');
   const elProg = document.getElementById('modal-conf-almvol-prog');
@@ -12217,10 +12598,9 @@ function confirmarAlmocoVoltaExecutar() {
   registrarBatidaPonto('voltaAlmoco');
   const btn = document.getElementById('btn-ponto-vol');
   if (btn) {
-    btn.disabled = true;
-    btn.style.opacity = '0.6';
-    btn.style.cursor = 'not-allowed';
-    btn.title = 'Volta Almoço já registrada hoje';
+    btn.disabled = false;
+    btn.style.opacity = '1';
+    btn.style.cursor = 'pointer';
   }
 }
 
@@ -12231,12 +12611,6 @@ function cancelarConfirmacaoAlmocoVolta() {
 
 // ── CONFIRMAÇÃO DE SAÍDA FINAL ──
 function confirmarSaidaFinalPonto() {
-  const btn = document.getElementById('btn-ponto-sai');
-  if (btn && (btn.classList.contains('batido') || btn.disabled)) {
-    mostrarMsgPonto('✅ Saída Final já registrada hoje.', true);
-    return;
-  }
-
   const sel = document.getElementById('ponto-sel-colaborador');
   let colabId = parseInt(sel ? sel.value : 0);
   if (!colabId && funcionariosLista.length > 0) colabId = funcionariosLista[0].id;
@@ -12246,34 +12620,54 @@ function confirmarSaidaFinalPonto() {
     return;
   }
 
+  const agora = new Date();
+  const hh = String(agora.getHours()).padStart(2, '0');
+  const mm = String(agora.getMinutes()).padStart(2, '0');
+  const horaStr = `${hh}:${mm}`;
+
   const dataHoje = getHojeFormatado();
-  let p = pontosLista.find(x => (x.colaboradorId === colabId || (x.colaboradorNome && x.colaboradorNome.toLowerCase() === colab.nome.toLowerCase())) && ehDataHoje(x.data));
+  let p = pontosLista.find(x => (x.colaboradorId === colabId || (x.colaboradorNome && x.colaboradorNome.toLowerCase() === colab.nome.toLowerCase())) && (typeof ehDataPontoAtiva === 'function' ? ehDataPontoAtiva(x.data) : ehDataHoje(x.data)));
+
+  // Se já batido, permite atualizar
   if (p && p.saidaFinal) {
-    mostrarMsgPonto('✅ Saída Final já registrada hoje.', true);
+    if (confirm(`[➔ Saída Final já registrada hoje às ${p.saidaFinal}.\n\nDeseja ATUALIZAR para o horário atual (${horaStr})?`)) {
+      p.saidaFinal = horaStr;
+      recalcularHorasPonto(p, colab);
+      save(K.timesheet, pontosLista);
+      try {
+        const kEmp = (typeof getEmpresaStorageKey === 'function') ? getEmpresaStorageKey(K.timesheet) : K.timesheet;
+        localStorage.setItem(kEmp, JSON.stringify(pontosLista));
+        localStorage.setItem('sdv_pontos', JSON.stringify(pontosLista));
+        localStorage.setItem('sdv_ponto_ultimo_update', Date.now().toString());
+      } catch(_) {}
+      atualizarStatusBatidaColaborador();
+      renderEspelhoPonto();
+      mostrarMsgPonto(`✅ Saída Final atualizada para ${horaStr}!`, true);
+    }
     return;
   }
+
   if (!p || !p.entrada1) {
-    mostrarMsgPonto('⚠️ Registre primeiro a 1ª Entrada antes da Saída Final.', false);
+    if (confirm(`⚠️ A 1ª Entrada ainda não foi registrada hoje.\n\nDeseja registrar a 1ª Entrada agora às ${horaStr}?`)) {
+      confirmarEntradaPonto();
+    } else {
+      mostrarMsgPonto('⚠️ Registre primeiro a 1ª Entrada antes da Saída Final.', false);
+    }
     return;
   }
 
   const horaProg = colab.horarioSaida || '17:30';
-  const agora = new Date();
   const minAgora = agora.getHours() * 60 + agora.getMinutes();
   const [hP, mP] = horaProg.split(':').map(Number);
   const minProg = (hP * 60) + mP;
-  const hh = String(agora.getHours()).padStart(2, '0');
-  const mm = String(agora.getMinutes()).padStart(2, '0');
-  const horaStr = `${hh}:${mm}`;
   const ehFds = ehFimDeSemanaPonto(dataHoje);
 
-  // Bloqueio rigoroso antes do horário programado
+  // Saída antecipada: abre direto o modal para justificar/confirmar
   if (minAgora < minProg && !ehFds && !p.saidaAntecipadaJustificada) {
-    mostrarMsgPonto(`🔒 Registro Bloqueado! A Saída Final não pode ser registrada antes do horário programado (${horaProg}). Horário atual: ${horaStr}.`, false);
-    setTimeout(() => {
+    if (typeof abrirModalSaidaFinal === 'function') {
       abrirModalSaidaFinal(colabId, horaStr, p);
-    }, 1000);
-    return;
+      return;
+    }
   }
 
   const elNome = document.getElementById('modal-conf-saida-nome');
@@ -12293,10 +12687,9 @@ function confirmarSaidaFinalExecutar() {
   registrarBatidaPonto('saidaFinal');
   const btn = document.getElementById('btn-ponto-sai');
   if (btn) {
-    btn.disabled = true;
-    btn.style.opacity = '0.6';
-    btn.style.cursor = 'not-allowed';
-    btn.title = 'Saída Final já registrada hoje';
+    btn.disabled = false;
+    btn.style.opacity = '1';
+    btn.style.cursor = 'pointer';
   }
 }
 
@@ -12769,7 +13162,7 @@ function abrirModalFuncionario(id = null) {
   const titulo = document.getElementById('modal-func-titulo');
   const btnSalvar = document.getElementById('btn-salvar-func');
   if (id) {
-    const f = funcionariosLista.find(x => x.id === id);
+    const f = funcionariosLista.find(x => String(x.id) === String(id));
     if (!f) return;
     if (titulo) titulo.textContent = '✏️ Editar Funcionário';
     if (btnSalvar) btnSalvar.textContent = '💾 Atualizar Funcionário';
@@ -12791,12 +13184,21 @@ function abrirModalFuncionario(id = null) {
     document.getElementById('f-jornada').value = '44h/sem';
     document.getElementById('f-status').value = 'Presente';
   }
-  document.getElementById('modal-funcionario').style.display = 'flex';
+  const m = document.getElementById('modal-funcionario');
+  if (m) {
+    m.style.zIndex = '9999999';
+    m.style.display = 'flex';
+    m.classList.add('active');
+  }
 }
 
 function fecharModalFuncionario(e) {
-  if (!e || e.target === document.getElementById('modal-funcionario')) {
-    document.getElementById('modal-funcionario').style.display = 'none';
+  const m = document.getElementById('modal-funcionario');
+  if (!e || e.target === m || (e.target && e.target.classList && e.target.classList.contains('modal-close'))) {
+    if (m) {
+      m.style.display = 'none';
+      m.classList.remove('active');
+    }
   }
 }
 
@@ -12827,36 +13229,61 @@ function salvarFuncionarioModal() {
   };
 
   if (editandoFuncionarioId) {
-    const idx = funcionariosLista.findIndex(x => x.id === editandoFuncionarioId);
+    const idx = funcionariosLista.findIndex(x => String(x.id) === String(editandoFuncionarioId));
     if (idx !== -1) funcionariosLista[idx] = { ...funcionariosLista[idx], ...novo };
+    else funcionariosLista.push({ id: editandoFuncionarioId, ...novo });
   } else {
     novo.id = Date.now();
     funcionariosLista.push(novo);
   }
 
   save(K.employees, funcionariosLista);
+  try { localStorage.setItem('sdv_funcionarios', JSON.stringify(funcionariosLista)); } catch(_) {}
+  try { localStorage.setItem('sdv_ponto_ultimo_update', Date.now().toString()); } catch(_) {}
+
   atualizarSelectColaboradoresPonto();
   renderFuncionarios();
   renderizarModalLinksFuncionarios();
-  document.getElementById('modal-funcionario').style.display = 'none';
+  const m = document.getElementById('modal-funcionario');
+  if (m) {
+    m.style.display = 'none';
+    m.classList.remove('active');
+  }
   mostrarMsgPonto(`✅ Funcionário "${nome}" salvo com sucesso!`, true);
 }
 
 function excluirFuncionario(id) {
-  const f = funcionariosLista.find(x => x.id === id);
-  if (!f) return;
-  if (!confirm(`Deseja realmente remover o colaborador "${f.nome}"?`)) return;
+  const idStr = String(id || '').trim();
+  const f = funcionariosLista.find(x => String(x.id) === idStr) ||
+            funcionariosLista.find(x => String(x.nome || '').toLowerCase() === idStr.toLowerCase()) ||
+            (funcionariosLista.length === 1 ? funcionariosLista[0] : null);
+  if (!f) {
+    mostrarMsgPonto('⚠️ Colaborador não encontrado para exclusão.', false);
+    return;
+  }
+  const nomeColab = f.nome || 'Colaborador';
+  try {
+    if (typeof confirm === 'function') {
+      if (!confirm(`Deseja realmente remover o colaborador "${nomeColab}"?`)) return;
+    }
+  } catch(_) {}
 
-  funcionariosLista = funcionariosLista.filter(x => x.id !== id);
+  funcionariosLista = funcionariosLista.filter(x => String(x.id) !== String(f.id) && String(x.nome || '').toLowerCase() !== String(nomeColab).toLowerCase());
   save(K.employees, funcionariosLista);
+  try {
+    const kEmp = (typeof getEmpresaStorageKey === 'function') ? getEmpresaStorageKey(K.employees) : K.employees;
+    localStorage.setItem(kEmp, JSON.stringify(funcionariosLista));
+    localStorage.setItem('sdv_funcionarios', JSON.stringify(funcionariosLista));
+    localStorage.setItem('sdv_ponto_ultimo_update', Date.now().toString());
+  } catch(_) {}
 
   const empIdAtual = (typeof obterLicencaAtiva === 'function' ? obterLicencaAtiva().id : 'sdvidros');
   try { localStorage.setItem(`sdv_emp_init_${empIdAtual}`, '1'); } catch(_) {}
 
   atualizarSelectColaboradoresPonto();
   renderFuncionarios();
-  renderizarModalLinksFuncionarios();
-  mostrarMsgPonto(`Colaborador "${f.nome}" removido.`, true);
+  if (typeof renderizarModalLinksFuncionarios === 'function') renderizarModalLinksFuncionarios();
+  mostrarMsgPonto(`🗑️ Colaborador "${nomeColab}" removido com sucesso.`, true);
 }
 
 function abrirModalLancamentoPonto(pId = null) {
@@ -12865,7 +13292,7 @@ function abrirModalLancamentoPonto(pId = null) {
   atualizarSelectColaboradoresPonto();
 
   if (pId) {
-    const p = pontosLista.find(x => x.id === pId);
+    const p = pontosLista.find(x => String(x.id) === String(pId));
     if (!p) return;
     if (titulo) titulo.textContent = '✏️ Editar Registro de Ponto';
     document.getElementById('lp-colaborador').value = p.colaboradorId || '';
@@ -12886,12 +13313,21 @@ function abrirModalLancamentoPonto(pId = null) {
     document.getElementById('lp-sai2').value = '17:00';
     document.getElementById('lp-status').value = 'Presente';
   }
-  document.getElementById('modal-lancamento-ponto').style.display = 'flex';
+  const m = document.getElementById('modal-lancamento-ponto');
+  if (m) {
+    m.style.zIndex = '9999999';
+    m.style.display = 'flex';
+    m.classList.add('active');
+  }
 }
 
 function fecharModalLancamentoPonto(e) {
-  if (!e || e.target === document.getElementById('modal-lancamento-ponto')) {
-    document.getElementById('modal-lancamento-ponto').style.display = 'none';
+  const m = document.getElementById('modal-lancamento-ponto');
+  if (!e || e.target === m || (e.target && e.target.classList && e.target.classList.contains('modal-close'))) {
+    if (m) {
+      m.style.display = 'none';
+      m.classList.remove('active');
+    }
   }
 }
 
@@ -12901,7 +13337,7 @@ function salvarLancamentoPontoModal() {
   if (!colabId) { showMsg('ponto-modal-msg', 'Selecione o colaborador.', false); return; }
   if (!data) { showMsg('ponto-modal-msg', 'Informe a data do registro.', false); return; }
 
-  const colab = funcionariosLista.find(x => x.id === colabId);
+  const colab = funcionariosLista.find(x => String(x.id) === String(colabId));
   const ent1 = document.getElementById('lp-ent1').value.trim();
   const almsai = document.getElementById('lp-almsai').value.trim();
   const almvol = document.getElementById('lp-almvol').value.trim();
@@ -12910,7 +13346,7 @@ function salvarLancamentoPontoModal() {
 
   let p = null;
   if (editandoPontoId) {
-    p = pontosLista.find(x => x.id === editandoPontoId);
+    p = pontosLista.find(x => String(x.id) === String(editandoPontoId));
   }
   if (!p) {
     p = { id: Date.now() };
@@ -12929,25 +13365,77 @@ function salvarLancamentoPontoModal() {
   recalcularHorasPonto(p, colab);
 
   save(K.timesheet, pontosLista);
+  try { localStorage.setItem('sdv_pontos', JSON.stringify(pontosLista)); } catch(_) {}
+  try { localStorage.setItem('sdv_ponto_ultimo_update', Date.now().toString()); } catch(_) {}
+
   renderEspelhoPonto();
-  document.getElementById('modal-lancamento-ponto').style.display = 'none';
+  const m = document.getElementById('modal-lancamento-ponto');
+  if (m) {
+    m.style.display = 'none';
+    m.classList.remove('active');
+  }
   mostrarMsgPonto(`✅ Registro de ponto para ${p.colaboradorNome} salvo com sucesso!`, true);
 }
 
-function excluirPonto(id) {
-  if (!confirm('Deseja excluir este registro de ponto?')) return;
-  pontosLista = pontosLista.filter(x => x.id !== id);
+function excluirPonto(id, dataOrIdx, colabNome) {
+  const nomeTxt = colabNome ? ` de ${colabNome}` : '';
+  const dataTxt = (dataOrIdx && typeof dataOrIdx === 'string' && isNaN(Number(dataOrIdx))) ? ` do dia ${dataOrIdx}` : '';
+  try {
+    if (typeof confirm === 'function') {
+      if (!confirm(`Deseja realmente excluir este registro de ponto${nomeTxt}${dataTxt}?`)) return;
+    }
+  } catch(_) {}
+
+  const idStr = String(id || '').trim();
+  const tamanhoAntes = pontosLista.length;
+
+  if (idStr && idStr !== 'undefined' && idStr !== 'null') {
+    pontosLista = pontosLista.filter(x => String(x.id).trim() !== idStr && Number(x.id) !== Number(idStr));
+  }
+
+  // Se não foi removido por ID e recebemos data e colaborador
+  if (pontosLista.length === tamanhoAntes && typeof dataOrIdx === 'string' && isNaN(Number(dataOrIdx))) {
+    const dataAlvo = dataOrIdx.trim();
+    const colabAlvo = String(colabNome || '').trim().toLowerCase();
+    let indexRemover = -1;
+    for (let i = 0; i < pontosLista.length; i++) {
+      const reg = pontosLista[i];
+      const matchData = String(reg.data || '').trim() === dataAlvo;
+      const matchColab = !colabAlvo || String(reg.colaboradorNome || '').trim().toLowerCase() === colabAlvo;
+      if (matchData && matchColab) {
+        indexRemover = i;
+        break;
+      }
+    }
+    if (indexRemover !== -1) {
+      pontosLista.splice(indexRemover, 1);
+    }
+  } else if (pontosLista.length === tamanhoAntes && typeof dataOrIdx === 'number' && dataOrIdx >= 0 && dataOrIdx < pontosLista.length) {
+    pontosLista.splice(dataOrIdx, 1);
+  }
+
   save(K.timesheet, pontosLista);
+  try {
+    const kTimesheetEmp = (typeof getEmpresaStorageKey === 'function') ? getEmpresaStorageKey(K.timesheet) : K.timesheet;
+    localStorage.setItem(kTimesheetEmp, JSON.stringify(pontosLista));
+    localStorage.setItem('sdv_pontos', JSON.stringify(pontosLista));
+    localStorage.setItem('sdv_ponto_ultimo_update', Date.now().toString());
+  } catch(_) {}
+
   renderEspelhoPonto();
-  mostrarMsgPonto('Registro de ponto excluído.', true);
+  if (typeof atualizarStatusBatidaColaborador === 'function') {
+    atualizarStatusBatidaColaborador();
+  }
+  mostrarMsgPonto('🗑️ Registro de ponto excluído com sucesso.', true);
 }
 
 function enviarPontoWhatsApp(pId) {
-  const p = pontosLista.find(x => x.id === pId);
+  const p = pontosLista.find(x => String(x.id) === String(pId));
   if (!p) return;
-  const f = funcionariosLista.find(x => x.id === p.colaboradorId);
+  const f = funcionariosLista.find(x => String(x.id) === String(p.colaboradorId)) ||
+            funcionariosLista.find(x => (x.nome||'').toLowerCase() === (p.colaboradorNome||'').toLowerCase());
   const tel = f && f.whatsapp ? f.whatsapp.replace(/\D/g, '') : '';
-  const msg = `*SD Vidros — Espelho de Ponto Eletrônico*
+  const msg = `*SD Móveis — Espelho de Ponto Eletrônico*
 Colaborador: *${f ? f.nome : p.colaboradorNome}*
 Data: *${p.data}*
 
@@ -12961,7 +13449,7 @@ Data: *${p.data}*
 💰 Valor do Salário: *${p.valorSalario || 'R$ 0,00'}*
 Status: *${p.status || 'Validado'}*
 
-_Comprovante de ponto eletrônico gerado pelo sistema SD Vidros._`;
+_Comprovante de ponto eletrônico gerado pelo sistema SD Móveis._`;
 
   const url = tel ? `https://api.whatsapp.com/send?phone=55${tel}&text=${encodeURIComponent(msg)}` : `https://api.whatsapp.com/send?text=${encodeURIComponent(msg)}`;
   window.open(url, '_blank');
