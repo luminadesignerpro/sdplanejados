@@ -668,6 +668,9 @@
         display: block !important;
         width: 100% !important;
       }
+      .ponto-table.ponto-table-responsive-cards .ponto-acoes-desktop {
+        display: none !important;
+      }
       .ponto-table.ponto-table-responsive-cards .ponto-colab-actions-mobile {
         display: flex !important;
         width: 100% !important;
@@ -685,6 +688,11 @@
         align-items: center !important;
         justify-content: center !important;
         gap: 4px !important;
+      }
+    }
+    @media (min-width: 769px) {
+      .ponto-colab-actions-mobile {
+        display: none !important;
       }
     }
     .ponto-table th {
@@ -6473,6 +6481,41 @@ function load(k, d=[]) {
     const key = getEmpresaStorageKey(k);
     let val = localStorage.getItem(key);
 
+    if (k === K.timesheet) {
+      let pEmp = [];
+      try { if (val) pEmp = JSON.parse(val); } catch(_) {}
+      let pBase = [];
+      try {
+        const rawBase = localStorage.getItem('sdv_pontos') || localStorage.getItem('sdv_pontos_sdmoveis') || localStorage.getItem('sdv_pontos_sdvidros');
+        if (rawBase) pBase = JSON.parse(rawBase);
+      } catch(_) {}
+
+      const mapa = new Map();
+      (pEmp || []).forEach(p => {
+        const chave = (p.id ? String(p.id) : '') + '_' + (p.data || '') + '_' + (p.colaboradorId || p.colaboradorNome || '');
+        mapa.set(chave, p);
+      });
+      (pBase || []).forEach(p => {
+        const chave = (p.id ? String(p.id) : '') + '_' + (p.data || '') + '_' + (p.colaboradorId || p.colaboradorNome || '');
+        const exist = mapa.get(chave);
+        if (!exist) {
+          mapa.set(chave, p);
+        } else {
+          if (p.entrada1 && !exist.entrada1) exist.entrada1 = p.entrada1;
+          if (p.saidaAlmoco && !exist.saidaAlmoco) exist.saidaAlmoco = p.saidaAlmoco;
+          if (p.voltaAlmoco && !exist.voltaAlmoco) exist.voltaAlmoco = p.voltaAlmoco;
+          if (p.saidaFinal && !exist.saidaFinal) exist.saidaFinal = p.saidaFinal;
+          if (p.horaExtraInicial && !exist.horaExtraInicial) exist.horaExtraInicial = p.horaExtraInicial;
+          if (p.horaExtraFinal && !exist.horaExtraFinal) exist.horaExtraFinal = p.horaExtraFinal;
+          if (p.tempoTrabalhado) exist.tempoTrabalhado = p.tempoTrabalhado;
+          if (p.valorSalario) exist.valorSalario = p.valorSalario;
+          if (p.status) exist.status = p.status;
+        }
+      });
+      const unificados = Array.from(mapa.values());
+      if (unificados.length > 0) return unificados;
+    }
+
     // Recupera da chave base/legado sem prefixo se ainda não existir na chave específica
     if (val === null) {
       const legacy = localStorage.getItem(k);
@@ -6491,9 +6534,15 @@ function load(k, d=[]) {
 function save(k, v) {
   try {
     const key = getEmpresaStorageKey(k);
-    localStorage.setItem(key, JSON.stringify(v));
+    const jsonStr = JSON.stringify(v);
+    localStorage.setItem(key, jsonStr);
     // Sincroniza sempre com a chave base k (ex: sdv_pontos, sdv_funcionarios, etc.)
-    try { localStorage.setItem(k, JSON.stringify(v)); } catch(_) {}
+    try { localStorage.setItem(k, jsonStr); } catch(_) {}
+    if (k === K.timesheet) {
+      try { localStorage.setItem('sdv_pontos_sdmoveis', jsonStr); } catch(_) {}
+      try { localStorage.setItem('sdv_pontos_sdvidros', jsonStr); } catch(_) {}
+      try { localStorage.setItem('sdv_ponto_ultimo_update', Date.now().toString()); } catch(_) {}
+    }
   } catch (e) {
     console.warn('Erro ao salvar no storage:', e);
   }
@@ -20635,6 +20684,41 @@ function executarDecisaoEmpresa(decisao) {
 // Inicia verificação periódica de solicitações de saída pendentes a cada 10 segundos
 if (typeof setInterval !== 'undefined') {
   setInterval(verificarSolicitacoesSaidaPendentes, 10000);
+}
+
+// Sincronização em tempo real entre Portal do Colaborador (funcionario.html) e Painel do Administrador (index.html)
+function sincronizarPontoTempoReal() {
+  try {
+    const novosPontos = load(K.timesheet, []);
+    if (JSON.stringify(novosPontos) !== JSON.stringify(pontosLista)) {
+      pontosLista = novosPontos;
+      if (typeof renderEspelhoPonto === 'function') renderEspelhoPonto();
+      if (typeof atualizarSelectColaboradoresPonto === 'function') atualizarSelectColaboradoresPonto();
+      if (typeof atualizarStatusBatidaColaborador === 'function') atualizarStatusBatidaColaborador();
+    }
+  } catch(_) {}
+}
+
+try {
+  if (typeof BroadcastChannel !== 'undefined') {
+    const bcSync = new BroadcastChannel('sdv_ponto_channel');
+    bcSync.onmessage = function(ev) {
+      if (ev && ev.data && ev.data.type === 'PONTO_ATUALIZADO') {
+        sincronizarPontoTempoReal();
+      }
+    };
+  }
+} catch(_) {}
+
+window.addEventListener('storage', function(e) {
+  if (e && (e.key === 'sdv_pontos' || e.key === 'sdv_pontos_sdmoveis' || e.key === 'sdv_pontos_sdvidros' || e.key === 'sdv_ponto_ultimo_update')) {
+    sincronizarPontoTempoReal();
+  }
+});
+
+// Checagem a cada 5 segundos para garantir que o painel admin esteja 100% atualizado com as batidas
+if (typeof setInterval !== 'undefined') {
+  setInterval(sincronizarPontoTempoReal, 5000);
 }
 
 </script>
